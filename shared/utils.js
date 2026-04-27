@@ -45,10 +45,10 @@ const Utils = {
     return d.toISOString().slice(0, 10);
   },
 
-  // ── 이미지 URL (단어 의미 기반으로 개선) ──
+  // ── 이미지 URL ──
   pollUrl(en, ko) {
     const mainKo = (ko || '').split(/[,\/]/)[0].trim();
-    const prompt = `${en} meaning ${mainKo}, simple clean illustration, minimal flat design, no text, white background, icon style`;
+    const prompt = `${en} ${mainKo} simple clean illustration minimal flat design no text white background`;
     const p = encodeURIComponent(prompt);
     const seed = this.wordSeed(en);
     return `https://image.pollinations.ai/prompt/${p}?width=200&height=200&seed=${seed}&nologo=true`;
@@ -60,96 +60,38 @@ const Utils = {
     return h % 9999;
   },
 
-  // ── AI 연상법 생성 ──
-  _mnemonicCache: {},
-
-  async getMnemonic(en, ko) {
-    // 1. 메모리 캐시
-    if (this._mnemonicCache[en]) return this._mnemonicCache[en];
-
-    // 2. Firebase 캐시
-    try {
-      const saved = await DB.getMnemonics();
-      if (saved[en]) {
-        this._mnemonicCache[en] = saved[en];
-        return saved[en];
-      }
-    } catch(e) {}
-
-    // 3. AI 생성
-    const result = await this.generateMnemonic(en, ko);
-    this._mnemonicCache[en] = result;
-
-    // Firebase에 저장 (백그라운드)
-    try { DB.saveMnemonic(en, result); } catch(e) {}
-
-    return result;
-  },
-
-  async generateMnemonic(en, ko) {
-    const mainKo = (ko || '').split(/[,\/]/)[0].trim();
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 120,
-          messages: [{
-            role: 'user',
-            content: `수능 영어 단어 암기 연상법을 만들어줘.
-
-단어: ${en}
-뜻: ${mainKo}
-
-조건:
-- 영어 발음과 비슷한 한국어 소리를 활용
-- 그 소리와 단어 뜻을 연결하는 짧고 재미있는 이미지/스토리 1문장
-- 충격적이거나 웃기면 더 좋음
-- 30자 이내
-- 연상법 문장만 답해. 설명 없이.
-
-예시:
-abandon → 어! 밴드(band)온(on)이 무대를 버리고 떠났다
-adequate → 애들이 쿼트(court)에서 적절히 뛰논다`
-          }]
-        })
-      });
-      const data = await res.json();
-      const text = data.content?.[0]?.text?.trim();
-      return text || this.fallbackMnemonic(en, mainKo);
-    } catch(e) {
-      return this.fallbackMnemonic(en, mainKo);
+  // ── 연상법 가져오기 (파일 기반 + Firebase 저장값 우선) ──
+  getMnemonic(en, ko) {
+    // 1. Firebase에 선생님이 저장한 연상법 우선
+    if (window._mnemonicOverrides && window._mnemonicOverrides[en]) {
+      return window._mnemonicOverrides[en];
     }
+    // 2. 미리 만든 연상법 파일
+    if (window.MNEMONICS && window.MNEMONICS[en.toLowerCase()]) {
+      return window.MNEMONICS[en.toLowerCase()];
+    }
+    // 3. 발음 기반 자동생성 (폴백)
+    return this.fallbackMnemonic(en, ko);
   },
 
   fallbackMnemonic(en, ko) {
-    // API 실패 시 발음 기반 폴백
-    const chunks = [];
-    let i = 0;
-    const w = en.toLowerCase();
-    const map = [
-      ['tion','션'],['sion','전'],['ous','어스'],['ive','이브'],
-      ['ize','아이즈'],['ate','에이트'],['ment','먼트'],['ness','니스'],
-      ['less','리스'],['ful','풀'],['able','어블'],['ible','이블'],
-      ['ity','이티'],['ly','리'],['th','드'],['ph','프'],['ch','취'],
-      ['sh','쉬'],['wh','워'],['ck','크'],['qu','크'],['ee','이'],
-      ['ea','이'],['ou','아우'],['oo','우'],['ai','에이'],['ay','에이'],
-      ['a','아'],['e','에'],['i','이'],['o','오'],['u','우'],
-      ['b','브'],['c','크'],['d','드'],['f','프'],['g','그'],
-      ['h','흐'],['j','지'],['k','크'],['l','ㄹ'],['m','므'],
-      ['n','느'],['p','프'],['r','르'],['s','스'],['t','트'],
-      ['v','브'],['w','우'],['x','크스'],['y','이'],['z','즈'],
-    ];
-    while (i < w.length) {
-      let matched = false;
-      for (const [pat, kor] of map) {
-        if (w.slice(i).startsWith(pat)) {
-          chunks.push(kor); i += pat.length; matched = true; break;
-        }
-      }
-      if (!matched) { chunks.push(w[i]); i++; }
-    }
-    return `[${chunks.join('')}] → "${ko}"`;
+    const mainKo = (ko || '').split(/[,\/]/)[0].trim();
+    // 발음 근사 변환
+    const phonetic = en
+      .replace(/tion$/i, '션').replace(/sion$/i, '전')
+      .replace(/ous$/i, '어스').replace(/ive$/i, '이브')
+      .replace(/ate$/i, '에이트').replace(/ment$/i, '먼트')
+      .replace(/ness$/i, '니스').replace(/less$/i, '리스')
+      .replace(/ful$/i, '풀').replace(/able$/i, '어블')
+      .replace(/ible$/i, '이블').replace(/ity$/i, '이티')
+      .replace(/ly$/i, '리').replace(/th/gi, '드')
+      .replace(/ph/gi, '프').replace(/ch/gi, '치')
+      .replace(/sh/gi, '쉬').replace(/ck/gi, '크')
+      .replace(/ee|ea/gi, '이').replace(/ou/gi, '아우')
+      .replace(/oo/gi, '우').replace(/ai|ay/gi, '에이')
+      .replace(/a/gi, '아').replace(/e/gi, '에')
+      .replace(/i/gi, '이').replace(/o/gi, '오').replace(/u/gi, '우')
+      .replace(/[bcdfghjklmnpqrstvwxyz]/gi, '');
+    return `[${phonetic || en}] 소리로 기억 → "${mainKo}"`;
   }
 };
