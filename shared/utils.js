@@ -66,12 +66,11 @@ const Utils = {
     if (window._mnemonicOverrides && window._mnemonicOverrides[en]) {
       return window._mnemonicOverrides[en];
     }
-    // 2. 미리 만든 연상법 파일
+    // 2. 미리 만든 연상법 파일 (없으면 null → 표시 안 함)
     if (window.MNEMONICS && window.MNEMONICS[en.toLowerCase()]) {
       return window.MNEMONICS[en.toLowerCase()];
     }
-    // 3. 발음 기반 자동생성 (폴백)
-    return this.fallbackMnemonic(en, ko);
+    return null;
   },
 
   fallbackMnemonic(en, ko) {
