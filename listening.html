@@ -268,36 +268,36 @@ async function selectSet(setId) {
 
   // 세트 정보 카드
   const done = Object.values(progress).filter(Boolean).length;
-  document.getElementById('set-info-card').innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:.875rem">
-      <span style="font-size:28px">${currentSetInfo.icon}</span>
-      <div>
-        <div style="font-size:15px;font-weight:600">${currentSetInfo.name}</div>
-        <div style="font-size:11px;color:var(--txt2)">${currentSetInfo.subname}</div>
-      </div>
-      <span class="badge b-gold" style="margin-left:auto">${done}/${questions.length}</span>
-    </div>
-    <div class="prog-track"><div class="prog-fill" style="width:${Math.round(done/questions.length*100)}%"></div></div>`;
+  var pct = Math.round(done/questions.length*100);
+  document.getElementById('set-info-card').innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:.875rem">' +
+    '<span style="font-size:28px">' + currentSetInfo.icon + '</span>' +
+    '<div><div style="font-size:15px;font-weight:600">' + currentSetInfo.name + '</div>' +
+    '<div style="font-size:11px;color:var(--txt2)">' + currentSetInfo.subname + '</div></div>' +
+    '<span class="badge b-gold" style="margin-left:auto">' + done + '/' + questions.length + '</span>' +
+    '</div>' +
+    '<div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div>';
 
   renderQList();
 }
 
 function renderQList() {
   const done = Object.values(progress).filter(Boolean).length;
-  // 진행 바 업데이트
   const fill = document.querySelector('.prog-fill');
-  if (fill) fill.style.width = `${Math.round(done/questions.length*100)}%`;
+  if (fill) fill.style.width = Math.round(done/questions.length*100) + '%';
 
-  document.getElementById('q-list').innerHTML = questions.map((q, i) => {
+  document.getElementById('q-list').innerHTML = questions.map(function(q, i) {
     const isDone = !!progress[q.num];
     const diffColor = q.difficulty === '하' ? 'var(--grn)' : q.difficulty === '중' ? 'var(--amb)' : 'var(--red)';
-    return `
-      <div class="q-list-item" onclick="openQuestion(${i})">
-        <span class="q-num ${isDone?'done'}">${String(q.num).padStart(2,'0')}</span>
-        <span style="font-size:13px;color:var(--txt);flex:1">${q.question.slice(0,30)}…</span>
-        <span class="q-type-badge" style="background:var(--sur3);color:var(--txt2)">${q.type}</span>
-        <span class="q-diff" style="color:${diffColor}">${q.difficulty}</span>
-      </div>`;
+    const numStr = String(q.num).padStart(2,'0');
+    const qShort = q.question.slice(0,30);
+    const numClass = 'q-num' + (isDone ? ' done' : '');
+    return '<div class="q-list-item" onclick="openQuestion(' + i + ')">' +
+      '<span class="' + numClass + '">' + numStr + '</span>' +
+      '<span style="font-size:13px;color:var(--txt);flex:1">' + qShort + '…</span>' +
+      '<span class="q-type-badge" style="background:var(--sur3);color:var(--txt2)">' + q.type + '</span>' +
+      '<span class="q-diff" style="color:' + diffColor + '">' + q.difficulty + '</span>' +
+      '</div>';
   }).join('');
 }
 
