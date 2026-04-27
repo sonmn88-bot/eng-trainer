@@ -462,21 +462,24 @@ async function renderFlash() {
   const inner = document.getElementById('fc-inner');
   inner.classList.remove('flipped');
 
-  // 연상법
-  const mn = mnemonics[w[0]] || Utils.autoMnemonic(w[0], w[1]);
+  // 연상법 — AI 생성 (로딩 표시)
   const mnBox = document.getElementById('fc-mnemonic');
-  if (mn) { mnBox.textContent = mn; mnBox.style.display = 'block'; }
-  else mnBox.style.display = 'none';
+  mnBox.textContent = '💭 연상법 생성 중...';
+  mnBox.style.display = 'block';
+  mnBox.style.opacity = '0.5';
+  Utils.getMnemonic(w[0], w[1]).then(mn => {
+    mnBox.textContent = mn;
+    mnBox.style.opacity = '1';
+  });
 
-  // Pollinations 이미지
+  // Pollinations 이미지 (단어+뜻 기반으로 개선)
   const imgWrap = document.getElementById('fc-img-wrap');
-  const seed = Utils.wordSeed(w[0]);
   imgWrap.innerHTML = `<div class="img-loading">🖼️</div>`;
   const img = new Image();
   img.className = 'fc-img';
   img.onload = () => { imgWrap.innerHTML = ''; imgWrap.appendChild(img); };
-  img.onerror = () => { imgWrap.innerHTML = ''; }; // 실패 시 조용히 숨김
-  img.src = Utils.pollUrl(`${w[0]} ${w[1].split(',')[0]}`, seed);
+  img.onerror = () => { imgWrap.innerHTML = ''; };
+  img.src = Utils.pollUrl(w[0], w[1]);
 }
 
 function flipCard() {
