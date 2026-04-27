@@ -339,7 +339,11 @@ async function openQuestion(idx) {
   document.getElementById('dictation-result').style.display = 'none';
 
   // 오디오 로드
-  const audioSrc = `audio/${currentSetInfo.audioDir}/${String(q.num).padStart(2,'0')}.mp3`;
+  // GitHub Releases URL (로컬 audio/ 폴더 없을 때 자동 fallback)
+  const fileNum = String(q.num).padStart(2,'0');
+  const localSrc = `audio/${currentSetInfo.audioDir}/${fileNum}.mp3`;
+  const releaseSrc = `https://github.com/sonmn88-bot/eng-trainer/releases/download/audio-${currentSetInfo.audioDir}/${fileNum}.mp3`;
+  const audioSrc = releaseSrc;
   audio.src = audioSrc;
   audio.playbackRate = 1.0;
   document.getElementById('play-btn').textContent = '▶';
