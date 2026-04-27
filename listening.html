@@ -357,7 +357,8 @@ function renderScript(q) {
   // 키워드 하이라이트
   let script = q.script || '';
   (q.keyExpressions || []).forEach(([en]) => {
-    const re = new RegExp(`(${en.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    const escaped = en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('(' + escaped + ')', 'gi');
     script = script.replace(re, '<span class="keyword" onclick="Utils.speak(\'$1\')">$1</span>');
   });
   scriptEl.innerHTML = script;
