@@ -1,0 +1,93 @@
+// ── 단어 세트 카탈로그 ──────────────────────────
+// 새 단어장 추가 시 여기에만 항목 추가하면 됨
+const WORD_CATALOG = [
+  {
+    id:       'personal',
+    name:     '전체본',
+    subname:  '선생님 직접 수집',
+    icon:     '⭐',
+    file:     'personal.js',
+    varName:  'PERSONAL',
+    color:    '#C9A961',
+    tag:      'CUSTOM',
+    tagColor: '#C9A961',
+    desc:     '직접 모은 핵심 단어 모음',
+  },
+  {
+    id:       'core',
+    name:     '수능 핵심 필수',
+    subname:  'AI 자동 추출',
+    icon:     '🎯',
+    file:     'core-essential.js',
+    varName:  'WM_CORE',
+    color:    '#F87171',
+    tag:      'AI PICK',
+    tagColor: '#F87171',
+    desc:     '3개 단어장 교집합 핵심어',
+  },
+  {
+    id:       'wm-basic',
+    name:     'WM 고등 Basic',
+    subname:  'Word Master',
+    icon:     '📗',
+    file:     'wm-basic.js',
+    varName:  'WM_BASIC',
+    color:    '#4ADE80',
+    tag:      'BASIC',
+    tagColor: '#4ADE80',
+    desc:     '고등 기본 필수 어휘',
+  },
+  {
+    id:       'wm-hyper',
+    name:     'WM Hyper 1000',
+    subname:  'Word Master',
+    icon:     '📘',
+    file:     'wm-hyper1000.js',
+    varName:  'WM_HYPER',
+    color:    '#60A5FA',
+    tag:      'ADVANCED',
+    tagColor: '#60A5FA',
+    desc:     '고난도 심화 어휘 1000',
+  },
+  {
+    id:       'wm-suneung',
+    name:     'WM 수능 2000',
+    subname:  'Word Master',
+    icon:     '📙',
+    file:     'wm-suneung2000.js',
+    varName:  'WM_SUNEUNG',
+    color:    '#FBBF24',
+    tag:      'SUNEUNG',
+    tagColor: '#FBBF24',
+    desc:     '수능 빈출 2000 완전정복',
+  },
+  // ── 여기에 새 단어장 추가 ──
+  // {
+  //   id: 'wm-xxx', name: '워드마스터 XXX', subname: 'Word Master',
+  //   icon: '📕', file: 'wm-xxx.js', varName: 'WM_XXX',
+  //   color: '#A78BFA', tag: 'NEW', tagColor: '#A78BFA', desc: '설명',
+  // },
+];
+
+// ── 리스닝 세트 카탈로그 ─────────────────────────
+// 새 회차 추가 시 여기에만 항목 추가
+const LISTENING_CATALOG = [
+  {
+    id:       '2026-suneung',
+    name:     '2026학년도 수능',
+    subname:  '대학수학능력시험',
+    icon:     '🎯',
+    metaFile: '2026-suneung-meta.json',
+    audioDir: '2026-suneung',
+    color:    '#C9A961',
+    tag:      '수능',
+    tagColor: '#C9A961',
+    total:    17,
+  },
+  // ── 여기에 새 회차 추가 ──
+  // {
+  //   id: '2026-09', name: '2026학년도 9월 모의', subname: '전국연합학력평가',
+  //   icon: '📝', metaFile: '2026-09-meta.json', audioDir: '2026-09',
+  //   color: '#60A5FA', tag: '9모', tagColor: '#60A5FA', total: 17,
+  // },
+];

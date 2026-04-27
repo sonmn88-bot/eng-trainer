@@ -1,0 +1,397 @@
+[
+  {
+    "num": 1,
+    "type": "목적",
+    "difficulty": "하",
+    "speakers": "M",
+    "question": "다음을 듣고, 남자가 하는 말의 목적으로 가장 적절한 것을 고르시오.",
+    "script": "Hello, viewers. It's Ryan. Welcome back to Only4Health Channel. Do you want to have good sleep? Then, the app Nightly Journey is perfect for you. This app provides a variety of aids that help you sleep well, such as calming sounds, peaceful and quiet music, and bedtime stories. It also offers audio exercises that teach you how to breathe in order to sleep better. Next time when you go to bed, consider Nightly Journey. Then, you'll wake up feeling refreshed the next morning. Why don't you try this app and get some good sleep tonight? Thank you for watching.",
+    "keyExpressions": [
+      [
+        "calming sounds",
+        "차분한 소리들"
+      ],
+      [
+        "feeling refreshed",
+        "상쾌한 기분으로"
+      ],
+      [
+        "a variety of aids",
+        "다양한 도움들"
+      ]
+    ],
+    "tip": "🎯 목적 유형 핵심: 첫 문장 또는 마지막 문장에 목적이 직접 드러남. 'Why don't you ~?' 같은 권유 표현이 결정적 단서. 광고·홍보 지문은 '앱/제품 추천'이 정답."
+  },
+  {
+    "num": 2,
+    "type": "의견",
+    "difficulty": "하",
+    "speakers": "W/M",
+    "question": "대화를 듣고, 여자의 의견으로 가장 적절한 것을 고르시오.",
+    "script": "W: How's it going, Liam? M: Good, Emily. Are you about to go indoor rock climbing like you do every weekend? W: I am. Do you want to try it, too? M: Maybe, but I wonder why you enjoy it so much. W: I think indoor rock climbing helps improve problem-solving skills. M: Really? How so? W: You use strategic thinking to solve the problem of getting to the top. That means you have to strategically plan the holds to grab. M: Hmm, I can see that. What if the plan doesn't work though? W: You have to adapt your plan while climbing. It makes you better at adjusting to new information. That's the basics of solving problems. M: That makes sense. W: Yeah. I'm sure your problem-solving skills will improve if you go indoor rock climbing. M: Okay. I'll try it.",
+    "keyExpressions": [
+      [
+        "problem-solving skills",
+        "문제 해결 능력"
+      ],
+      [
+        "strategic thinking",
+        "전략적 사고"
+      ],
+      [
+        "adapt your plan",
+        "계획을 적응시키다"
+      ]
+    ],
+    "tip": "🎯 의견 유형 핵심: 여자(W)의 말 중 'I think ~', 'I'm sure ~' 뒤에 핵심 의견. 대화 전반에 걸쳐 W가 반복하는 주장 파악."
+  },
+  {
+    "num": 3,
+    "type": "요지",
+    "difficulty": "하",
+    "speakers": "M",
+    "question": "다음을 듣고, 남자가 하는 말의 요지로 가장 적절한 것을 고르시오.",
+    "script": "Good afternoon, students. I'm Mr. Flynn, your school counselor. If you become anxious when facing an important job interview or presentation, I have a useful tip for you. Making a big pose can relieve your anxiety. For example, you can stretch out your arms in a V-shape and hold that pose. Also, you could make a big pose as your favorite superhero does in the movies. When you make a big pose, you'll occupy more space. Then, your body will send a message to your brain saying that you're powerful, which will ease your anxiety. Next time you want to feel less anxious, try to make a big pose.",
+    "keyExpressions": [
+      [
+        "relieve your anxiety",
+        "불안을 해소하다"
+      ],
+      [
+        "occupy more space",
+        "더 많은 공간을 차지하다"
+      ],
+      [
+        "ease your anxiety",
+        "불안을 완화하다"
+      ]
+    ],
+    "tip": "🎯 요지 유형 핵심: 중반부 이후에 핵심 요지가 명확하게 제시됨. 첫 문장(배경)과 마지막 문장(결론/권유) 집중 청취."
+  },
+  {
+    "num": 4,
+    "type": "그림",
+    "difficulty": "중",
+    "speakers": "W/M",
+    "question": "대화를 듣고, 그림에서 대화의 내용과 일치하지 않는 것을 고르시오.",
+    "script": "W: Mr. Howard, how was your family trip to Compton Railway Museum over the weekend? M: It was great, Ms. Joyce. Here's a photo. W: Let me see. Wow, there's a train on the rails. M: Yeah. Do you see the boy wearing a heart-patterned T-shirt next to the train? W: He looks so lovely. Is he your son? M: He is. We took a walk through the museum. It was really good. W: I can see. Oh, there's a bench in front of the shop window. It looks nice. Did you get anything from the shop? M: Yes. Look at the flower-shaped doormat on the ground. I bought one like that. W: It's so cute. The three chairs around the table look convenient. Did you take a break there? M: We did. W: The museum seems worth visiting. I'll have to go there.",
+    "keyExpressions": [
+      [
+        "heart-patterned T-shirt",
+        "하트 무늬 티셔츠"
+      ],
+      [
+        "flower-shaped doormat",
+        "꽃 모양 현관 매트"
+      ],
+      [
+        "in front of the shop window",
+        "상점 창문 앞에"
+      ]
+    ],
+    "tip": "🎯 그림 유형 핵심: 위치 전치사(in front of, next to, behind, on) 집중! 숫자(몇 개), 패턴·모양(heart/flower-shaped) 언급 시 그림과 즉시 대조."
+  },
+  {
+    "num": 5,
+    "type": "할일",
+    "difficulty": "하",
+    "speakers": "M/W",
+    "question": "대화를 듣고, 여자가 할 일로 가장 적절한 것을 고르시오.",
+    "script": "M: Honey, I'm excited that we're opening our homemade-pie store tomorrow. W: Me, too. Do you think everything's ready? M: I do. But let's go over what we've done. W: Good idea. I completed the product list for sale. Did you take photos of the pies? M: I took photos of the walnut, pumpkin, blueberry, and apple pies. W: Perfect. What about uploading information onto social media? M: Don't worry. I advertised our pies on social media. W: I hope it brings in a lot of customers. I also prepared forks and plates for customers on our opening day. M: One more thing, don't forget to confirm the delivery of the ingredients for making more pies. W: Right. I'll do that this afternoon. M: Wonderful. See, we're ready for tomorrow.",
+    "keyExpressions": [
+      [
+        "confirm the delivery",
+        "배송을 확인하다"
+      ],
+      [
+        "ingredients for making more pies",
+        "파이를 더 만들기 위한 재료들"
+      ],
+      [
+        "I'll do that this afternoon",
+        "오늘 오후에 그것을 할게요"
+      ]
+    ],
+    "tip": "🎯 할일 유형 핵심: 대화 마지막 부분에 답이 있음. 이미 한 일(완료)과 앞으로 할 일(미완료) 구분. 'I'll ~', 'I need to ~' 표현 주목."
+  },
+  {
+    "num": 6,
+    "type": "금액",
+    "difficulty": "중",
+    "speakers": "W/M",
+    "question": "대화를 듣고, 남자가 지불할 금액을 고르시오.",
+    "script": "W: Welcome to Winter Land Mart. How may I help you? M: Hi. I'm shopping for an electric heater. W: How about this type? It's very popular. M: Let me see. Oh, I like it. W: Well, we have it in three sizes. The small one is $50, the medium is $70, and the large is $100. M: I'll take one medium-sized heater. Do you also have slippers? W: Yes. We have wool and leather ones. A pair of wool slippers is $5, and a pair of leather ones is $10. M: Hmm, I'll take two pairs of leather ones. W: Great. So, one medium-sized electric heater and two pairs of leather slippers. Is that correct? M: Yes, that's right. Can I use this 10% off coupon? W: I'll check. [Pause] Oh, I'm sorry. You cannot use this coupon because it isn't valid anymore. M: That's okay. Here's my credit card.",
+    "keyExpressions": [
+      [
+        "medium-sized heater",
+        "중형 히터"
+      ],
+      [
+        "a pair of leather slippers",
+        "가죽 슬리퍼 한 켤레"
+      ],
+      [
+        "isn't valid anymore",
+        "더 이상 유효하지 않다"
+      ]
+    ],
+    "tip": "🎯 금액 유형 핵심: 구매 품목과 개수 메모! 할인 쿠폰이 '사용 불가'로 끝남 → 정가 합산. 계산: $70 + ($10×2) = $90."
+  },
+  {
+    "num": 7,
+    "type": "이유",
+    "difficulty": "하",
+    "speakers": "M/W",
+    "question": "대화를 듣고, 여자가 Morning Tea Club에 참석할 수 없는 이유를 고르시오.",
+    "script": "M: Good morning, Ms. Lee. Are you heading to Morning Tea Club? W: Not today, Mr. Thomson. I can't attend it this time. M: Really? But you enjoy starting the workday by drinking tea with co-workers. Did you forget to bring your tea? W: No, I always keep it in my bag. M: Are you just too tired this morning because you worked late last night? W: Not at all. I feel fine, just like usual. M: Then, has your doctor told you not to drink too much tea? W: No, my doctor actually encourages me to drink tea. He says it's good for my health. M: Oh, I see. Something else must have come up then. W: Yes. I have an early business meeting that overlaps with the tea club. M: That's too bad. I hope your meeting goes well.",
+    "keyExpressions": [
+      [
+        "an early business meeting",
+        "이른 비즈니스 미팅"
+      ],
+      [
+        "overlaps with",
+        "~와 겹치다"
+      ],
+      [
+        "something else must have come up",
+        "다른 일이 생겼음에 틀림없다"
+      ]
+    ],
+    "tip": "🎯 이유 유형 핵심: 오답 소거법! 여러 이유가 제시되지만 모두 부정(No, Not at all)된 후, 마지막에 진짜 이유 등장. 'Yes. I have ~' 뒤가 정답."
+  },
+  {
+    "num": 8,
+    "type": "언급",
+    "difficulty": "하",
+    "speakers": "W/M",
+    "question": "대화를 듣고, Autumn Treasure Hunt 행사에 관해 언급되지 않은 것을 고르시오.",
+    "script": "W: Hey, Nathan. Have you heard of the Autumn Treasure Hunt event that is coming soon? M: Autumn Treasure Hunt? That's interesting. Where will it take place? W: It'll be held in Pinenut Park. Participants can search for hidden treasure there. M: Sounds fun. You know I'm a great treasure hunter. When is it? W: It's this Saturday, November 22nd. M: Perfect. I'm free that day. There must be a big prize for the winner. Do you know what it is? W: Yeah. If you collect the most treasure, you'll get a gift card worth $100 as a reward. M: Wow, that's a big prize. How can I sign up for the Autumn Treasure Hunt event? W: You can visit its website and register online. M: Awesome! Let's go there together. W: That'd be great.",
+    "keyExpressions": [
+      [
+        "hidden treasure",
+        "숨겨진 보물"
+      ],
+      [
+        "a gift card worth $100",
+        "100달러 상당의 상품권"
+      ],
+      [
+        "register online",
+        "온라인으로 등록하다"
+      ]
+    ],
+    "tip": "🎯 언급 유형 핵심: 언급된 것 = 장소, 날짜, 상품, 참가방법. 언급 안 된 것 = 주로 '참가 인원', '준비물', '비용' 등. 선택지를 미리 보고 들으면 빠름."
+  },
+  {
+    "num": 9,
+    "type": "내용일치",
+    "difficulty": "하",
+    "speakers": "W",
+    "question": "2025 Court Visit Program에 관한 다음 내용을 듣고, 일치하지 않는 것을 고르시오.",
+    "script": "Hello, listeners. This is Lisa Cooperson from Leverin Radio Station. Are you considering a career related to law? The 2025 Court Visit Program will be held on November 19th at Woodfield County Courthouse. It allows high school students to experience working in law. This program offers an opportunity to meet with judges and lawyers and learn what happens in court. Its activities include a trial role-play. Also, the program gives participants a certificate that shows completion of the program. To join, you must apply as a team, not as an individual. Applications should be submitted to the courthouse by the end of this week. Lastly, the program includes a free lunch, so you won't need to bring your own. Don't miss this wonderful opportunity!",
+    "keyExpressions": [
+      [
+        "a trial role-play",
+        "재판 역할극"
+      ],
+      [
+        "apply as a team",
+        "팀으로 지원하다"
+      ],
+      [
+        "a free lunch",
+        "무료 점심"
+      ]
+    ],
+    "tip": "🎯 내용일치 유형 핵심: 선택지 순서 = 지문 순서. 날짜·장소·자격·방법·혜택 순으로 체크. 'not as an individual(개인이 아닌 팀으로)' 같은 반전 표현 주의."
+  },
+  {
+    "num": 10,
+    "type": "도표",
+    "difficulty": "중",
+    "speakers": "M/W",
+    "question": "다음 표를 보면서 대화를 듣고, 남자가 구입할 버터나이프 세트를 고르시오.",
+    "script": "M: Hey, Madelyn. Can you help me? W: Sure, Kevin. What is it? M: I'm looking for a butter knife set for my family. Among these five best-selling sets, which would you recommend? W: If I were you, I wouldn't spend more than $10. That's too expensive. M: You're right. What about the handle material? W: I don't recommend a wood handle because it's harder to wash. M: That's a good point. Next is the number of knives. W: Well, each person in your family needs their own knife. M: There's my wife, my son, and me. That means I'll need at least three knives. W: That leaves two options. I guess you'll need a gift box. M: No, my wife doesn't like packaging waste. W: That's good. Then, you've made your decision. M: Yes. I'll buy this set. Thanks for your help.",
+    "keyExpressions": [
+      [
+        "wouldn't spend more than $10",
+        "10달러 초과는 안 쓸 것이다"
+      ],
+      [
+        "at least three knives",
+        "최소 세 개의 칼"
+      ],
+      [
+        "packaging waste",
+        "포장 폐기물"
+      ]
+    ],
+    "tip": "🎯 도표 유형 핵심: 조건을 하나씩 소거! 가격 → 재질 → 개수 → 부가옵션 순으로 걸러냄. '$10 초과 제외 → wood 제외 → 2개 이하 제외 → gift box 있는 것 제외 = 정답."
+  },
+  {
+    "num": 11,
+    "type": "짧은대화응답",
+    "difficulty": "하",
+    "speakers": "W/M",
+    "question": "대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오.",
+    "script": "[Cell phone rings.] W: Hello, Tony. I'm driving now to pick up my daughter from your place but I'm going to be late. M: Well, your daughter is having fun with my kids now. But my family does have to leave in 30 minutes. When do you think you can make it here? W: By car, I'll get there in 10 minutes. Can you watch her until I arrive? M: ___",
+    "keyExpressions": [
+      [
+        "pick up my daughter",
+        "딸을 데리러 오다"
+      ],
+      [
+        "make it here",
+        "여기 도착하다"
+      ],
+      [
+        "watch her until I arrive",
+        "내가 도착할 때까지 봐주다"
+      ]
+    ],
+    "tip": "🎯 짧은 응답 핵심: 상황 파악 후 마지막 질문('Can you watch her until I arrive?')에 자연스러운 대답 선택. 10분 안에 도착 가능 = 긍정적 대답이 자연스러움."
+  },
+  {
+    "num": 12,
+    "type": "짧은대화응답",
+    "difficulty": "중",
+    "speakers": "M/W",
+    "question": "대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+    "script": "M: Jenny, have you responded to the survey on where to go for our school trip? W: Not yet, Jamie. Both places look good, so I'll go with whichever place has a direct bus from our town. M: I've been to both and only Rosemary Amusement Park has a direct one. Bus number 20 goes straight there. W: ___",
+    "keyExpressions": [
+      [
+        "responded to the survey",
+        "설문에 응답하다"
+      ],
+      [
+        "a direct bus",
+        "직행버스"
+      ],
+      [
+        "goes straight there",
+        "바로 그곳에 가다"
+      ]
+    ],
+    "tip": "🎯 응답 핵심: W가 '직행버스 있는 곳 선택' 조건 제시 → M이 Rosemary 공원만 직행버스 있다고 알려줌 → W의 응답은 '그럼 거기로 투표할게' 류가 자연스러움."
+  },
+  {
+    "num": 13,
+    "type": "짧은대화응답",
+    "difficulty": "중",
+    "speakers": "W/M",
+    "question": "대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+    "script": "[Telephone rings.] M: Hello, Griffin's Furnishings. How may I help you? W: Hello, I'm calling because I have an issue with the chair kit I received. M: Could you please tell me your full name? W: I'm Sally Park. M: Give me a moment. [Typing sound] I see that you ordered a do-it-yourself chair, which was delivered yesterday. W: Yes, that's correct. While putting the chair together, I found a problem. M: I'm sorry to hear that. Can you be more specific about the issue? W: There's a big scratch on one of the chair legs. M: Are the rest of the chair parts in good condition? W: Yes, all of the other parts are fine. It's only the left front leg that is damaged. M: In that case, you can get a whole new kit or just the part you need. W: I'm almost done putting the chair together, so I don't need a whole chair kit. M: ___",
+    "keyExpressions": [
+      [
+        "a big scratch",
+        "큰 긁힘"
+      ],
+      [
+        "the left front leg",
+        "왼쪽 앞다리"
+      ],
+      [
+        "I don't need a whole chair kit",
+        "전체 의자 키트는 필요 없다"
+      ]
+    ],
+    "tip": "🎯 응답 핵심: W가 '전체 키트 불필요, 부품만 필요' → M은 '그럼 해당 부품만 보내드리겠습니다' 류의 응답이 자연스러움."
+  },
+  {
+    "num": 14,
+    "type": "짧은대화응답",
+    "difficulty": "중",
+    "speakers": "W/M",
+    "question": "대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+    "script": "W: Hey, Jake. M: Anna, what's wrong? You look so worried. W: My five-year-old daughter doesn't eat a variety of foods. M: Is she willing to taste new foods? W: That's the problem. She won't even try them. She eats only foods she's used to. M: Oh, that seems like a big problem. Why don't you prepare meals together with her? W: How might that help? M: Getting children involved in meal preparation makes them interested in new foods, which can increase the variety of foods they eat. W: I can see that. But would it work for my daughter? M: It was a success with my son when he was your daughter's age. W: Really? Does he eat diverse foods now? M: Of course, he does. His eating habits improved after we prepared meals together. You should do it this weekend. W: ___",
+    "keyExpressions": [
+      [
+        "prepare meals together",
+        "함께 식사를 준비하다"
+      ],
+      [
+        "eating habits improved",
+        "식습관이 개선되었다"
+      ],
+      [
+        "You should do it this weekend",
+        "이번 주말에 해보세요"
+      ]
+    ],
+    "tip": "🎯 응답 핵심: M이 이번 주말에 해보라고 권유 → W는 '좋은 생각이에요, 해볼게요' 류의 수용 또는 약한 반론 중 선택. 문맥상 수용이 자연스러움."
+  },
+  {
+    "num": 15,
+    "type": "상황적절표현",
+    "difficulty": "중",
+    "speakers": "M",
+    "question": "다음 상황 설명을 듣고, Olivia가 Andy에게 할 말로 가장 적절한 것을 고르시오.",
+    "script": "Olivia and Andy are classmates who are taking a history course together. In the class, they're assigned a team project. For this project, they decide to create a bicycling route map of local historical sites. First, they pick some historical sites to include in the map. Next, they start discussing how to create the map. Andy says that they can generate the route map by using only the Internet. However, Olivia has a different idea. She thinks the Internet cannot provide all the information they need, such as closed paths or less difficult routes for bicycling. So, Olivia wants to suggest that they go to each site themselves by riding their bicycles for the project. In this situation, what would Olivia most likely say to Andy?",
+    "keyExpressions": [
+      [
+        "bicycling route map",
+        "자전거 경로 지도"
+      ],
+      [
+        "closed paths",
+        "막힌 길"
+      ],
+      [
+        "go to each site themselves",
+        "직접 각 장소에 가다"
+      ]
+    ],
+    "tip": "🎯 상황 적절 표현 핵심: 상황 설명 마지막 'Olivia wants to suggest ~' 부분이 핵심. 인터넷만으로 부족 → 직접 가보자는 제안 표현 선택."
+  },
+  {
+    "num": 16,
+    "type": "주제",
+    "difficulty": "중",
+    "speakers": "W",
+    "question": "여자가 하는 말의 주제로 가장 적절한 것은?",
+    "script": "Hello, students. Do you know that plants often help scientists understand the wonders of nature? Let's look at some plants that are perfect for science experiments because they grow quickly. First, bamboo is known for quick growth, with some varieties growing inches per day. Therefore, it absorbs a large amount of CO2, so it's often used in studies about how to reduce climate change. Second, lettuce grows quickly and is sensitive to environmental conditions. So, scientists grow it to see the effects of various chemicals on plant growth. Third, sunflowers are known for their remarkable growth rate, sometimes reaching several feet in just a few months. That's why scientists use them to learn about the effects of soils on plant height. Finally, peas are classic plants for experiments about genetics as they grow quickly and have easily observable characteristics like seed color and shape. For these reasons, the famous scientist, Mendel, studied them. After a short break, we'll look at other plants that are good for science experiments.",
+    "keyExpressions": [
+      [
+        "grow quickly",
+        "빠르게 자라다"
+      ],
+      [
+        "science experiments",
+        "과학 실험"
+      ],
+      [
+        "easily observable characteristics",
+        "쉽게 관찰 가능한 특성들"
+      ]
+    ],
+    "tip": "🎯 주제 유형 핵심: 첫 문장 'plants that are perfect for science experiments because they grow quickly'가 주제 문장. 이후 나열 구조(First, Second, Third, Finally)는 예시."
+  },
+  {
+    "num": 17,
+    "type": "세부내용",
+    "difficulty": "하",
+    "speakers": "W",
+    "question": "언급된 식물이 아닌 것은?",
+    "script": "※ 16번과 같은 지문",
+    "keyExpressions": [
+      [
+        "bamboo",
+        "대나무"
+      ],
+      [
+        "lettuce",
+        "상추"
+      ],
+      [
+        "sunflowers",
+        "해바라기"
+      ],
+      [
+        "peas",
+        "완두콩"
+      ]
+    ],
+    "tip": "🎯 세부내용 핵심: 언급된 식물 = bamboo, lettuce, sunflowers, peas (4가지). 선택지 5개 중 미언급 1개가 정답. 보통 생김새가 비슷한 식물로 함정 선지 구성."
+  }
+]
