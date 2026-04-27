@@ -4,7 +4,7 @@
    Fonts: Cormorant Garamond (display) + DM Sans (body) + DM Mono (numbers)
 ═══════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Nanum+Pen+Script&family=Gaegu:wght@300;400;700&display=swap');
 
 :root {
   /* ── Palette (Dark base) ── */
@@ -46,6 +46,7 @@
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body:    'DM Sans', system-ui, sans-serif;
   --font-mono:    'DM Mono', monospace;
+  --font-hand:    'Nanum Pen Script', 'Gaegu', cursive;
 
   /* ── Spacing & Shape ── */
   --r:   14px;
@@ -495,11 +496,14 @@ select option { background: var(--sur); }
   line-height: 1.5;
 }
 .fc-mnemonic {
-  font-size: 12px;
-  color: var(--txt2);
+  font-family: var(--font-hand);
+  font-size: 17px;
+  color: var(--gold);
   margin-top: .75rem;
-  line-height: 1.5;
-  font-style: italic;
+  line-height: 1.6;
+  font-style: normal;
+  letter-spacing: .02em;
+  text-shadow: 0 1px 8px rgba(201,169,97,.15);
 }
 .fc-hint {
   font-size: 10px;
