@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>리스닝 학습</title>
+<link rel="stylesheet" href="shared/theme.css">
+<style>
+.q-list-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: .875rem 0; border-bottom: 1px solid var(--bdr);
+  cursor: pointer; transition: all .15s;
+}
+.q-list-item:last-child { border-bottom: none; }
+.q-list-item:hover { opacity: .8; }
+.q-num {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--txt3); min-width: 32px; text-align: center;
+  background: var(--sur2); border-radius: 6px;
+  padding: 4px 6px; letter-spacing: .04em;
+}
+.q-num.done { background: var(--grn-bg); color: var(--grn); }
+.q-type-badge {
+  font-size: 9px; font-weight: 600; letter-spacing: .06em;
+  padding: 2px 7px; border-radius: 3px; flex-shrink: 0;
+}
+.q-diff { font-size: 10px; color: var(--txt3); margin-left: auto; }
+.dictation-input {
+  width: 100%; min-height: 60px;
+  background: var(--sur2); border: 1px solid var(--bdr);
+  border-radius: var(--rs); padding: .75rem 1rem;
+  color: var(--txt); font-family: var(--font-body);
+  font-size: 14px; line-height: 1.7; resize: vertical; outline: none;
+}
+.dictation-input:focus { border-color: var(--gold-bdr); box-shadow: 0 0 0 3px rgba(201,169,97,.08); }
+.dictation-result { font-size: 13px; line-height: 1.8; }
+.dr-match { color: var(--grn); }
+.dr-miss  { color: var(--red); text-decoration: underline; }
+.kw-card {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: .625rem 0; border-bottom: 1px solid var(--bdr); font-size: 13px;
+}
+.kw-card:last-child { border-bottom: none; }
+.kw-en { font-family: var(--font-display); font-size: 15px; font-style: italic; color: var(--gold); min-width: 110px; }
+.kw-ko { color: var(--txt); }
+.speed-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .875rem; }
+.sub-tab { display: flex; gap: 4px; margin-bottom: 1rem; }
+.sub-tab-btn {
+  flex: 1; padding: 7px; text-align: center;
+  border: 1px solid var(--bdr); background: var(--sur2);
+  border-radius: var(--rs); cursor: pointer;
+  font-size: 11px; font-family: var(--font-body); font-weight: 500;
+  color: var(--txt2); transition: all .15s;
+}
+.sub-tab-btn.active { background: var(--gold-bg); border-color: var(--gold-bdr); color: var(--gold); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">🎧</div>
+    <div>
+      <div class="logo-text-main" id="page-title">리스닝 학습</div>
+      <div class="logo-text-sub">Listening</div>
+    </div>
+  </div>
+  <button class="btn btn-ghost" id="back-btn" onclick="goBack()">← 홈</button>
+</div>
+
+<!-- ══ VIEW: 라이브러리 ══ -->
+<div id="view-library" class="fade-in">
+  <p class="sec-title">회차 선택</p>
+  <div class="catalog-grid" id="catalog-grid"></div>
+</div>
+
+<!-- ══ VIEW: 문항 목록 ══ -->
+<div id="view-set" style="display:none">
+  <div class="card card-sm" style="margin-bottom:1rem" id="set-info-card"></div>
+  <div class="card card-sm">
+    <p class="sec-title" style="margin-bottom:.875rem">문항 목록</p>
+    <div id="q-list"></div>
+  </div>
+</div>
+
+<!-- ══ VIEW: 문항 학습 ══ -->
+<div id="view-question" style="display:none">
+  <!-- 오디오 플레이어 -->
+  <div class="player-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.875rem">
+      <div>
+        <span class="badge b-gold" id="q-num-badge">Q.1</span>
+        <span class="badge" id="q-type-badge" style="margin-left:6px"></span>
+      </div>
+      <span class="badge" id="q-diff-badge"></span>
+    </div>
+    <div style="font-size:13px;color:var(--txt2);line-height:1.5;margin-bottom:1rem" id="q-question"></div>
+
+    <audio id="player-audio" preload="none"></audio>
+    <div class="player-track">
+      <span class="player-time" id="time-cur">0:00</span>
+      <div class="progress-bar-wrap" style="flex:1;height:4px;background:var(--sur3);border-radius:2px;cursor:pointer" onclick="seekAudio(event)" id="prog-bar">
+        <div id="audio-fill" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;width:0%;pointer-events:none;transition:width .1s linear"></div>
+      </div>
+      <span class="player-time" id="time-dur">0:00</span>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:1rem">
+      <button class="player-btn" onclick="seekRel(-5)" title="-5초">⏮</button>
+      <button class="player-btn" onclick="skipSeg(-1)" title="이전 구간">⏪</button>
+      <button class="player-btn player-btn-main" id="play-btn" onclick="togglePlay()">▶</button>
+      <button class="player-btn" onclick="skipSeg(1)" title="다음 구간">⏩</button>
+      <button class="player-btn" onclick="seekRel(5)" title="+5초">⏭</button>
+    </div>
+
+    <div class="speed-row">
+      <span style="font-size:10px;color:var(--txt3);align-self:center;letter-spacing:.06em;text-transform:uppercase">배속</span>
+      <button class="speed-btn" onclick="setSpeed(0.5)">0.5×</button>
+      <button class="speed-btn" onclick="setSpeed(0.75)">0.75×</button>
+      <button class="speed-btn active" id="sp-1" onclick="setSpeed(1.0)">1.0×</button>
+      <button class="speed-btn" onclick="setSpeed(1.25)">1.25×</button>
+      <button class="speed-btn" onclick="setSpeed(1.5)">1.5×</button>
+    </div>
+  </div>
+
+  <!-- 탭: 스크립트 / 단어 / 받아쓰기 / 팁 -->
+  <div class="sub-tab">
+    <button class="sub-tab-btn active" id="stab-script"   onclick="switchTab('script')">📄 스크립트</button>
+    <button class="sub-tab-btn"        id="stab-keywords" onclick="switchTab('keywords')">📚 단어</button>
+    <button class="sub-tab-btn"        id="stab-dictate"  onclick="switchTab('dictate')">✏️ 받아쓰기</button>
+    <button class="sub-tab-btn"        id="stab-tip"      onclick="switchTab('tip')">💡 팁</button>
+  </div>
+
+  <!-- 스크립트 탭 -->
+  <div id="tab-script">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <p class="sec-title" style="margin:0">스크립트</p>
+      <button class="btn btn-ghost btn-sm" id="script-toggle" onclick="toggleScript()">숨기기</button>
+    </div>
+    <div class="script-panel" id="script-text"></div>
+  </div>
+
+  <!-- 단어 탭 -->
+  <div id="tab-keywords" style="display:none">
+    <div class="card card-sm">
+      <p class="sec-title" style="margin-bottom:.875rem">핵심 표현</p>
+      <div id="kw-list"></div>
+    </div>
+  </div>
+
+  <!-- 받아쓰기 탭 -->
+  <div id="tab-dictate" style="display:none">
+    <div class="card card-sm">
+      <p class="sec-title" style="margin-bottom:.875rem">받아쓰기</p>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:.875rem">들은 내용을 아래에 받아쓰세요</p>
+      <textarea class="dictation-input" id="dictation-input" placeholder="여기에 받아쓰기..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:.75rem">
+        <button class="btn btn-full" onclick="clearDictation()">지우기</button>
+        <button class="btn btn-gold btn-full" onclick="checkDictation()">채점하기</button>
+      </div>
+      <div id="dictation-result" style="display:none;margin-top:1rem"></div>
+    </div>
+  </div>
+
+  <!-- 팁 탭 -->
+  <div id="tab-tip" style="display:none">
+    <div class="tip-card" id="tip-text"></div>
+  </div>
+
+  <!-- 하단 네비 -->
+  <div style="display:flex;gap:8px;margin-top:1rem">
+    <button class="btn btn-full" onclick="prevQuestion()">← 이전</button>
+    <button class="btn btn-gold btn-full" onclick="markDone()">✓ 완료</button>
+    <button class="btn btn-full" onclick="nextQuestion()">다음 →</button>
+  </div>
+  <div style="text-align:center;margin-top:.75rem">
+    <button class="btn btn-ghost btn-sm" onclick="backToSet()">← 문항 목록</button>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<script src="data/_index.js"></script>
+<script src="shared/utils.js"></script>
+<script src="shared/db.js"></script>
+<script>
+// ── URL Params ─────────────────────────────────
+const params = new URLSearchParams(location.search);
+const STU_ID   = params.get('stu')  || 'guest';
+const STU_NAME = params.get('name') || '학생';
+
+// ── State ──────────────────────────────────────
+let currentSetInfo = null;
+let questions = [];
+let currentQIdx = 0;
+let progress = {};       // { qNum: true/false }
+let scriptVisible = true;
+const audio = document.getElementById('player-audio');
+
+// ── Views ──────────────────────────────────────
+const VIEWS = ['library','set','question'];
+function showView(name) {
+  VIEWS.forEach(v => {
+    const el = document.getElementById(`view-${v}`);
+    if (el) el.style.display = v === name ? 'block' : 'none';
+  });
+}
+
+function goBack() {
+  const visible = VIEWS.find(v => {
+    const el = document.getElementById(`view-${v}`);
+    return el && el.style.display !== 'none';
+  });
+  if (!visible || visible === 'library') {
+    window.location.href = `index.html?stu=${STU_ID}&name=${encodeURIComponent(STU_NAME)}`;
+  } else if (visible === 'question') {
+    backToSet();
+  } else {
+    showView('library');
+    document.getElementById('back-btn').textContent = '← 홈';
+    audio.pause();
+  }
+}
+
+function backToSet() {
+  audio.pause();
+  showView('set');
+  document.getElementById('back-btn').textContent = '← 목록';
+  renderQList();
+}
+
+// ── Library ────────────────────────────────────
+function initLibrary() {
+  const grid = document.getElementById('catalog-grid');
+  grid.innerHTML = LISTENING_CATALOG.map(s => `
+    <div class="catalog-card card-interactive" onclick="selectSet('${s.id}')">
+      <div class="catalog-icon">${s.icon}</div>
+      <div class="catalog-name">${s.name}</div>
+      <div class="catalog-count">${s.total}문항</div>
+      <span class="catalog-tag" style="background:${s.color}18;color:${s.color};border:1px solid ${s.color}30">${s.tag}</span>
+    </div>
+  `).join('');
+}
+
+// ── Set Selection ──────────────────────────────
+async function selectSet(setId) {
+  currentSetInfo = LISTENING_CATALOG.find(s => s.id === setId);
+  if (!currentSetInfo) return;
+
+  // 메타 데이터 로드
+  try {
+    const res = await fetch(`data/listening/${currentSetInfo.metaFile}`);
+    questions = await res.json();
+  } catch(e) {
+    alert('메타 데이터를 불러올 수 없습니다. 파일 경로를 확인하세요.');
+    return;
+  }
+
+  // 진행 상황 로드
+  try {
+    progress = await DB.getListeningProgress(STU_ID, setId);
+  } catch(e) { progress = {}; }
+
+  showView('set');
+  document.getElementById('back-btn').textContent = '← 목록';
+  document.getElementById('page-title').textContent = currentSetInfo.name;
+
+  // 세트 정보 카드
+  const done = Object.values(progress).filter(Boolean).length;
+  document.getElementById('set-info-card').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:.875rem">
+      <span style="font-size:28px">${currentSetInfo.icon}</span>
+      <div>
+        <div style="font-size:15px;font-weight:600">${currentSetInfo.name}</div>
+        <div style="font-size:11px;color:var(--txt2)">${currentSetInfo.subname}</div>
+      </div>
+      <span class="badge b-gold" style="margin-left:auto">${done}/${questions.length}</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" style="width:${Math.round(done/questions.length*100)}%"></div></div>`;
+
+  renderQList();
+}
+
+function renderQList() {
+  const done = Object.values(progress).filter(Boolean).length;
+  // 진행 바 업데이트
+  const fill = document.querySelector('.prog-fill');
+  if (fill) fill.style.width = `${Math.round(done/questions.length*100)}%`;
+
+  document.getElementById('q-list').innerHTML = questions.map((q, i) => {
+    const isDone = !!progress[q.num];
+    const diffColor = q.difficulty === '하' ? 'var(--grn)' : q.difficulty === '중' ? 'var(--amb)' : 'var(--red)';
+    return `
+      <div class="q-list-item" onclick="openQuestion(${i})">
+        <span class="q-num ${isDone?'done'}">${String(q.num).padStart(2,'0')}</span>
+        <span style="font-size:13px;color:var(--txt);flex:1">${q.question.slice(0,30)}…</span>
+        <span class="q-type-badge" style="background:var(--sur3);color:var(--txt2)">${q.type}</span>
+        <span class="q-diff" style="color:${diffColor}">${q.difficulty}</span>
+      </div>`;
+  }).join('');
+}
+
+// ── Question View ──────────────────────────────
+async function openQuestion(idx) {
+  currentQIdx = idx;
+  const q = questions[idx];
+  showView('question');
+  document.getElementById('back-btn').textContent = '← 목록';
+
+  // 배지
+  document.getElementById('q-num-badge').textContent = `Q.${q.num}`;
+  const typeEl = document.getElementById('q-type-badge');
+  typeEl.textContent = q.type;
+  typeEl.className = 'badge b-gold';
+  const diffEl = document.getElementById('q-diff-badge');
+  diffEl.textContent = q.difficulty;
+  diffEl.className = `badge ${q.difficulty==='하'?'b-grn':q.difficulty==='중'?'b-amb':'b-red'}`;
+
+  document.getElementById('q-question').textContent = q.question;
+
+  // 스크립트
+  renderScript(q);
+
+  // 단어
+  document.getElementById('kw-list').innerHTML = (q.keyExpressions || []).map(([en,ko]) => `
+    <div class="kw-card">
+      <div class="kw-en">${en}</div>
+      <div class="kw-ko">${ko}</div>
+      <button class="tts-btn" style="margin-left:auto;font-size:10px;padding:3px 8px;flex-shrink:0"
+              onclick="Utils.speak('${en.replace(/'/,"\\'")}')">🔊</button>
+    </div>`).join('') || '<div class="empty" style="padding:1rem 0">키워드 없음</div>';
+
+  // 팁
+  document.getElementById('tip-text').textContent = q.tip || '이 문항의 팁이 없습니다.';
+
+  // 받아쓰기 초기화
+  document.getElementById('dictation-input').value = '';
+  document.getElementById('dictation-result').style.display = 'none';
+
+  // 오디오 로드
+  const audioSrc = `audio/${currentSetInfo.audioDir}/${String(q.num).padStart(2,'0')}.mp3`;
+  audio.src = audioSrc;
+  audio.playbackRate = 1.0;
+  document.getElementById('play-btn').textContent = '▶';
+
+  // 탭 초기화
+  switchTab('script');
+}
+
+function renderScript(q) {
+  const scriptEl = document.getElementById('script-text');
+  // 키워드 하이라이트
+  let script = q.script || '';
+  (q.keyExpressions || []).forEach(([en]) => {
+    const re = new RegExp(`(${en.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    script = script.replace(re, '<span class="keyword" onclick="Utils.speak(\'$1\')">$1</span>');
+  });
+  scriptEl.innerHTML = script;
+  scriptVisible = true;
+  document.getElementById('script-toggle').textContent = '숨기기';
+}
+
+function toggleScript() {
+  const el = document.getElementById('script-text');
+  scriptVisible = !scriptVisible;
+  el.style.opacity = scriptVisible ? '1' : '0';
+  el.style.filter = scriptVisible ? 'none' : 'blur(6px)';
+  el.style.userSelect = scriptVisible ? 'auto' : 'none';
+  document.getElementById('script-toggle').textContent = scriptVisible ? '숨기기' : '보기';
+}
+
+function switchTab(name) {
+  ['script','keywords','dictate','tip'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === name ? 'block' : 'none';
+    document.getElementById(`stab-${t}`).classList.toggle('active', t === name);
+  });
+}
+
+// ── Audio Controls ─────────────────────────────
+audio.addEventListener('timeupdate', () => {
+  const pct = audio.duration ? (audio.currentTime / audio.duration * 100) : 0;
+  document.getElementById('audio-fill').style.width = pct + '%';
+  document.getElementById('time-cur').textContent = Utils.fmtTime(Math.floor(audio.currentTime));
+});
+audio.addEventListener('loadedmetadata', () => {
+  document.getElementById('time-dur').textContent = Utils.fmtTime(Math.floor(audio.duration));
+});
+audio.addEventListener('ended', () => {
+  document.getElementById('play-btn').textContent = '▶';
+});
+
+function togglePlay() {
+  if (audio.paused) {
+    audio.play();
+    document.getElementById('play-btn').textContent = '⏸';
+  } else {
+    audio.pause();
+    document.getElementById('play-btn').textContent = '▶';
+  }
+}
+
+function seekRel(sec) {
+  audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec));
+}
+
+function seekAudio(e) {
+  const bar = document.getElementById('prog-bar');
+  const pct = e.offsetX / bar.offsetWidth;
+  audio.currentTime = (audio.duration || 0) * pct;
+}
+
+function skipSeg(dir) { seekRel(dir * 10); }
+
+function setSpeed(rate) {
+  audio.playbackRate = rate;
+  document.querySelectorAll('.speed-btn').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.textContent) === rate);
+  });
+}
+
+// ── Dictation ─────────────────────────────────
+function clearDictation() {
+  document.getElementById('dictation-input').value = '';
+  document.getElementById('dictation-result').style.display = 'none';
+}
+
+function checkDictation() {
+  const q = questions[currentQIdx];
+  const userText = document.getElementById('dictation-input').value.trim();
+  if (!userText) return;
+
+  const scriptWords = (q.script || '').split(/\s+/).map(w => w.replace(/[^\w]/g,'').toLowerCase());
+  const userWords = userText.split(/\s+/).map(w => w.replace(/[^\w]/g,'').toLowerCase());
+
+  let matched = 0;
+  const resultWords = userWords.map(w => {
+    if (scriptWords.includes(w)) { matched++; return `<span class="dr-match">${w}</span>`; }
+    return `<span class="dr-miss">${w}</span>`;
+  });
+
+  const score = Math.round(matched / Math.max(scriptWords.length, 1) * 100);
+  const res = document.getElementById('dictation-result');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+      <span class="badge ${score>=70?'b-grn':'b-red'}">정확도 ${score}%</span>
+      <span style="font-size:11px;color:var(--txt3)">(초록=정답 / 빨강=오류)</span>
+    </div>
+    <div class="dictation-result">${resultWords.join(' ')}</div>`;
+}
+
+// ── Navigation ─────────────────────────────────
+async function markDone() {
+  const q = questions[currentQIdx];
+  progress[q.num] = true;
+  try { await DB.saveListeningProgress(STU_ID, currentSetInfo.id, q.num, true); } catch(e) {}
+  const btn = document.querySelector('[onclick="markDone()"]');
+  btn.textContent = '✓ 완료됨';
+  btn.classList.add('btn-ghost');
+}
+
+function prevQuestion() {
+  audio.pause();
+  if (currentQIdx > 0) openQuestion(currentQIdx - 1);
+}
+function nextQuestion() {
+  audio.pause();
+  if (currentQIdx < questions.length - 1) openQuestion(currentQIdx + 1);
+  else backToSet();
+}
+
+// ── Init ──────────────────────────────────────
+initLibrary();
+</script>
+</body>
+</html>

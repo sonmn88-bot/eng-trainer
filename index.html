@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>English Trainer</title>
+<link rel="stylesheet" href="shared/theme.css">
+<style>
+.module-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 1.5rem;
+}
+.module-card {
+  background: var(--sur);
+  border: 1px solid var(--bdr);
+  border-radius: var(--rx);
+  padding: 2rem 1.25rem 1.5rem;
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all .2s;
+  text-decoration: none;
+  display: block;
+}
+.module-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, var(--accent-color, rgba(201,169,97,.1)), transparent 70%);
+  opacity: 0;
+  transition: opacity .25s;
+}
+.module-card:hover {
+  border-color: var(--accent-bdr, var(--gold-bdr));
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+.module-card:hover::after { opacity: 1; }
+.module-icon {
+  font-size: 40px;
+  margin-bottom: .875rem;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.3));
+}
+.module-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--txt);
+  margin-bottom: 4px;
+  line-height: 1.1;
+}
+.module-desc {
+  font-size: 10px;
+  color: var(--txt3);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.hero {
+  text-align: center;
+  padding: 2.5rem 0 2rem;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 8vw, 48px);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: -.02em;
+  background: linear-gradient(135deg, var(--txt) 30%, var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: .5rem;
+  line-height: 1.1;
+}
+.hero-sub {
+  font-size: 11px;
+  color: var(--txt3);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.greeting {
+  font-size: 13px;
+  color: var(--txt2);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.greeting strong { color: var(--gold); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ── 학생 홈 ── -->
+<div id="screen-home" class="screen active">
+  <div class="hero">
+    <div id="app-title-display" class="hero-title">English Trainer</div>
+    <div class="hero-sub">수능 영어 전문</div>
+  </div>
+
+  <!-- 로그인 전 -->
+  <div id="view-login">
+    <div class="card">
+      <p class="sec-title">학생 입장</p>
+      <div class="inp-wrap">
+        <input id="stu-input" type="text" placeholder="이름을 입력하세요" autocomplete="off"
+               oninput="onStuInput()" onkeydown="onStuKeydown(event)">
+        <div class="dd" id="stu-dd"></div>
+      </div>
+      <input type="hidden" id="stu-id">
+      <button class="btn btn-gold btn-full" onclick="doStuLogin()">입장 →</button>
+      <p style="text-align:center;margin-top:1rem">
+        <button class="btn btn-ghost btn-sm" onclick="goTeacher()">선생님 모드</button>
+      </p>
+    </div>
+  </div>
+
+  <!-- 로그인 후 -->
+  <div id="view-main" style="display:none">
+    <div id="streak-bar" class="streak-bar" style="display:none">
+      <span style="font-size:22px">🔥</span>
+      <div>
+        <div class="streak-num" id="streak-num">0</div>
+        <div style="font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:.08em">연속 출석일</div>
+      </div>
+      <div style="margin-left:auto;font-size:12px;color:var(--gold);font-weight:500;text-align:right;line-height:1.4" id="streak-msg"></div>
+    </div>
+
+    <div class="greeting" id="greeting"></div>
+
+    <p class="sec-title">학습 시작</p>
+    <div class="module-grid">
+      <a class="module-card" href="vocab.html" id="mod-vocab"
+         style="--accent-color:rgba(201,169,97,.1);--accent-bdr:var(--gold-bdr)">
+        <span class="module-icon">📖</span>
+        <div class="module-name">단어</div>
+        <div class="module-desc">Vocabulary</div>
+      </a>
+      <a class="module-card" href="listening.html" id="mod-listen"
+         style="--accent-color:rgba(96,165,250,.1);--accent-bdr:rgba(96,165,250,.25)">
+        <span class="module-icon">🎧</span>
+        <div class="module-name">리스닝</div>
+        <div class="module-desc">Listening</div>
+      </a>
+    </div>
+
+    <!-- 내 현황 -->
+    <div class="card card-sm" id="my-stats" style="display:none">
+      <p class="sec-title" style="margin-bottom:.875rem">내 현황</p>
+      <div class="metrics" id="stats-grid"></div>
+    </div>
+
+    <div style="text-align:center;margin-top:1.5rem">
+      <button class="btn btn-ghost btn-sm" onclick="logout()">← 나가기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 선생님 로그인 ── -->
+<div id="screen-teacher-login" class="screen">
+  <div class="pw-wrap">
+    <div class="card" style="text-align:center">
+      <div style="font-size:36px;margin-bottom:1rem">🔒</div>
+      <p class="sec-title">선생님 모드</p>
+      <p style="font-size:13px;color:var(--txt2);margin-bottom:1.25rem">비밀번호를 입력하세요</p>
+      <input type="password" id="pw-input" placeholder="비밀번호"
+             style="text-align:center;margin-bottom:6px" onkeydown="if(event.key==='Enter')doLogin()">
+      <div style="font-size:12px;color:var(--red);min-height:18px;margin-bottom:10px" id="pw-err"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-full" onclick="showHome()">취소</button>
+        <button class="btn btn-gold btn-full" onclick="doLogin()">입장 →</button>
+      </div>
+      <p style="font-size:11px;color:var(--txt3);margin-top:1rem">초기 비밀번호: 1234</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<script src="data/_index.js"></script>
+<script src="shared/utils.js"></script>
+<script src="shared/db.js"></script>
+<script>
+// ── State ──────────────────────────────────────
+let state = {
+  stuId: null,
+  stuName: null,
+  students: {},
+  settings: { appName: 'English Trainer', teacherPw: '1234' }
+};
+
+// ── Init ───────────────────────────────────────
+async function init() {
+  try {
+    state.settings = await DB.getSettings();
+    document.getElementById('app-title-display').textContent = state.settings.appName || 'English Trainer';
+    document.title = state.settings.appName || 'English Trainer';
+  } catch(e) { /* Firebase 미설정 시 무시 */ }
+
+  // 세션 복원
+  const saved = sessionStorage.getItem('stuId');
+  if (saved) {
+    state.stuId = saved;
+    state.stuName = sessionStorage.getItem('stuName') || '';
+    await showMain();
+  }
+
+  try {
+    state.students = await DB.getStudents();
+  } catch(e) {}
+}
+
+// ── Student Login ──────────────────────────────
+function onStuInput() {
+  const val = document.getElementById('stu-input').value.trim();
+  const dd = document.getElementById('stu-dd');
+  if (!val || val.length < 1) { dd.style.display = 'none'; return; }
+
+  const matches = Object.values(state.students)
+    .filter(s => s.name && s.name.includes(val)).slice(0, 6);
+
+  if (!matches.length) { dd.style.display = 'none'; return; }
+  dd.innerHTML = matches.map(s =>
+    `<div class="dd-item" onclick="selectStudent('${s.id}','${s.name}')">${s.name}</div>`
+  ).join('');
+  dd.style.display = 'block';
+}
+
+function onStuKeydown(e) {
+  if (e.key === 'Enter') doStuLogin();
+  if (e.key === 'Escape') document.getElementById('stu-dd').style.display = 'none';
+}
+
+function selectStudent(id, name) {
+  state.stuId = id;
+  document.getElementById('stu-input').value = name;
+  document.getElementById('stu-id').value = id;
+  document.getElementById('stu-dd').style.display = 'none';
+}
+
+async function doStuLogin() {
+  const nameVal = document.getElementById('stu-input').value.trim();
+  if (!nameVal) return;
+
+  let id = document.getElementById('stu-id').value;
+
+  // 기존 학생 검색
+  if (!id) {
+    const match = Object.values(state.students).find(s => s.name === nameVal);
+    if (match) {
+      id = match.id;
+    } else {
+      // 신규 생성
+      try {
+        id = await DB.createStudent(nameVal);
+        state.students[id] = { id, name: nameVal };
+      } catch(e) {
+        id = 'local_' + nameVal;
+      }
+    }
+  }
+
+  state.stuId = id;
+  state.stuName = nameVal;
+  sessionStorage.setItem('stuId', id);
+  sessionStorage.setItem('stuName', nameVal);
+  await showMain();
+}
+
+async function showMain() {
+  document.getElementById('view-login').style.display = 'none';
+  document.getElementById('view-main').style.display = 'block';
+
+  // 링크에 stuId 파라미터 전달
+  document.getElementById('mod-vocab').href   = `vocab.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
+  document.getElementById('mod-listen').href  = `listening.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
+
+  // 인사말
+  const h = new Date().getHours();
+  const greet = h < 12 ? '좋은 아침이에요' : h < 18 ? '안녕하세요' : '오늘도 수고했어요';
+  document.getElementById('greeting').innerHTML = `<strong>${state.stuName}</strong>님, ${greet} 👋`;
+
+  // 스트릭
+  try {
+    const cnt = await DB.updateStreak(state.stuId);
+    if (cnt > 0) {
+      document.getElementById('streak-num').textContent = cnt;
+      document.getElementById('streak-msg').textContent = cnt >= 7 ? '🔥 7일 연속 달성!' : `${cnt}일째 공부 중`;
+      document.getElementById('streak-bar').style.display = 'flex';
+    }
+  } catch(e) {}
+
+  // 현황 통계
+  try {
+    const results = await DB.getResults(state.stuId);
+    if (results.length) {
+      const total = results.length;
+      const avg = Math.round(results.reduce((s,r) => s + (r.score||0), 0) / total);
+      const weak = (await DB.getWeakWords(state.stuId)).length;
+      document.getElementById('stats-grid').innerHTML = `
+        <div class="metric"><div class="metric-lbl">총 시험</div><div class="metric-val mv-gold">${total}</div></div>
+        <div class="metric"><div class="metric-lbl">평균 점수</div><div class="metric-val mv-grn">${avg}%</div></div>
+        <div class="metric"><div class="metric-lbl">취약 단어</div><div class="metric-val mv-red">${weak}</div></div>`;
+      document.getElementById('my-stats').style.display = 'block';
+    }
+  } catch(e) {}
+}
+
+function logout() {
+  state.stuId = null; state.stuName = null;
+  sessionStorage.clear();
+  document.getElementById('view-login').style.display = 'block';
+  document.getElementById('view-main').style.display = 'none';
+  document.getElementById('stu-input').value = '';
+  document.getElementById('stu-id').value = '';
+}
+
+// ── Teacher Login ──────────────────────────────
+function goTeacher() {
+  document.getElementById('screen-home').classList.remove('active');
+  document.getElementById('screen-teacher-login').classList.add('active');
+}
+function showHome() {
+  document.getElementById('screen-teacher-login').classList.remove('active');
+  document.getElementById('screen-home').classList.add('active');
+}
+async function doLogin() {
+  const pw = document.getElementById('pw-input').value;
+  const correct = state.settings.teacherPw || '1234';
+  if (pw === correct) {
+    window.location.href = 'teacher.html';
+  } else {
+    document.getElementById('pw-err').textContent = '비밀번호가 틀렸습니다';
+    document.getElementById('pw-input').value = '';
+  }
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.inp-wrap')) document.getElementById('stu-dd').style.display = 'none';
+});
+
+init();
+</script>
+</body>
+</html>

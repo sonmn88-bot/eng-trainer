@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>단어 학습</title>
+<link rel="stylesheet" href="shared/theme.css">
+<style>
+.set-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.set-icon-big {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.week-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px; margin-bottom: 1rem;
+}
+.week-card {
+  background: var(--sur2); border: 1px solid var(--bdr);
+  border-radius: var(--rs); padding: .875rem .75rem;
+  cursor: pointer; text-align: center; transition: all .15s;
+}
+.week-card:hover, .week-card.sel {
+  border-color: var(--gold-bdr); background: var(--gold-bg); color: var(--gold);
+}
+.week-card-num { font-family: var(--font-mono); font-size: 18px; font-weight: 500; }
+.week-card-cnt { font-size: 10px; color: var(--txt3); margin-top: 2px; letter-spacing:.04em; }
+.fc-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-top: 1rem;
+}
+.img-loading {
+  width: 80px; height: 80px; border-radius: 8px;
+  background: var(--sur3); display: flex; align-items: center;
+  justify-content: center; font-size: 24px; margin-bottom: .75rem;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+.mnemonic-box {
+  background: var(--sur3); border-radius: var(--rs);
+  padding: .625rem .875rem; font-size: 12px; color: var(--txt2);
+  font-style: italic; line-height: 1.5; margin-top: .5rem;
+  border-left: 2px solid var(--gold-bdr);
+}
+.wrong-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: .75rem 0; border-bottom: 1px solid var(--bdr);
+  font-size: 13px;
+}
+.wrong-item:last-child { border-bottom: none; }
+.wi-word { font-family: var(--font-display); font-size: 16px; font-style: italic; color: var(--txt); min-width: 100px; }
+.wi-ko { color: var(--gold); font-weight: 500; }
+.wi-ans { color: var(--red); font-size: 12px; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── 상단바 ── -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">📖</div>
+    <div>
+      <div class="logo-text-main" id="page-title">단어 학습</div>
+      <div class="logo-text-sub" id="page-sub">Vocabulary</div>
+    </div>
+  </div>
+  <button class="btn btn-ghost" id="back-btn" onclick="goBack()">← 홈</button>
+</div>
+
+<!-- ══ VIEW 1: 라이브러리 ══ -->
+<div id="view-library" class="fade-in">
+  <p class="sec-title">단어장 선택</p>
+  <div class="catalog-grid" id="catalog-grid"></div>
+</div>
+
+<!-- ══ VIEW 2: 세트 상세 (주차 선택) ══ -->
+<div id="view-set" style="display:none">
+  <div class="set-header" id="set-header"></div>
+
+  <div class="card card-sm" style="margin-bottom:1rem">
+    <p class="sec-title" style="margin-bottom:.875rem">학습 모드</p>
+    <div class="mode-grid">
+      <div class="mode-card" id="mode-random" onclick="selectMode('random')">
+        <div class="mode-icon">🎲</div>
+        <div class="mode-name">전체 랜덤</div>
+        <div class="mode-desc" id="mode-random-desc">전체 단어 랜덤</div>
+      </div>
+      <div class="mode-card" id="mode-week" onclick="selectMode('week')">
+        <div class="mode-icon">📅</div>
+        <div class="mode-name">주별 학습</div>
+        <div class="mode-desc">Day별 단어 세트</div>
+      </div>
+      <div class="mode-card" id="mode-weak" onclick="selectMode('weak')"
+           style="grid-column:span 2">
+        <div class="mode-icon">⚡</div>
+        <div class="mode-name">취약단어 집중훈련</div>
+        <div class="mode-desc">3회 연속 정답 시 졸업</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 주차 선택 -->
+  <div id="week-panel" style="display:none" class="card card-sm">
+    <p class="sec-title" style="margin-bottom:.875rem">Day 선택</p>
+    <div class="week-grid" id="week-grid"></div>
+  </div>
+
+  <!-- 설정 및 시작 -->
+  <div id="start-panel" style="display:none" class="card card-sm">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
+      <p class="sec-title" style="margin:0">시험 설정</p>
+      <span class="badge b-gold" id="word-cnt-badge"></span>
+    </div>
+    <label class="label">단어 수</label>
+    <select id="quiz-count" style="margin-bottom:1rem"></select>
+    <div id="weak-notice" style="display:none" class="tip-card" style="margin-bottom:1rem">
+      ⚡ <span id="weak-cnt-msg"></span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-full" onclick="goFlash()">📖 먼저 학습</button>
+      <button class="btn btn-gold btn-full" onclick="goQuiz()">✏️ 시험 보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VIEW 3: 플래시카드 ══ -->
+<div id="view-flash" style="display:none">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <p class="sec-title" style="margin:0">📖 학습 모드</p>
+      <span class="badge b-gold" id="flash-prog"></span>
+    </div>
+    <div class="flashcard" onclick="flipCard()">
+      <div class="fc-inner" id="fc-inner">
+        <!-- 앞면 -->
+        <div class="fc-front">
+          <div id="fc-img-wrap"></div>
+          <div class="fc-en" id="fc-en"></div>
+          <div class="fc-hint">탭하여 뜻 확인</div>
+        </div>
+        <!-- 뒷면 -->
+        <div class="fc-back">
+          <div class="fc-ko" id="fc-ko"></div>
+          <div class="fc-en" style="font-size:15px;color:var(--txt2);margin-top:.5rem" id="fc-en2"></div>
+          <div id="fc-mnemonic" class="mnemonic-box" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-nav">
+      <button class="btn" onclick="flashPrev()">← 이전</button>
+      <button class="tts-btn" onclick="Utils.speak(flash.words[flash.idx][0])">🔊</button>
+      <button class="btn" onclick="flashNext()">다음 →</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:.75rem">
+      <button class="btn btn-ghost btn-full" onclick="backToSet()">← 돌아가기</button>
+      <button class="btn btn-gold btn-full" onclick="goQuiz()">✏️ 시험 보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VIEW 4: 퀴즈 ══ -->
+<div id="view-quiz" style="display:none">
+  <div class="card">
+    <div class="prog-wrap">
+      <div class="prog-info">
+        <span id="quiz-prog" style="font-weight:600"></span>
+        <span id="quiz-score" class="mono"></span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="timer" id="quiz-timer"></div>
+    <div class="big-word" id="quiz-word"></div>
+    <div style="text-align:center;margin-bottom:.75rem">
+      <button class="tts-btn" onclick="Utils.speak(quiz.words[quiz.idx][0])">🔊 발음 듣기</button>
+    </div>
+    <input class="quiz-input" id="quiz-ans" type="text" placeholder="한글 뜻을 입력하세요"
+           autocomplete="off" onkeydown="if(event.key==='Enter')submitAns()">
+    <div id="quiz-fb" style="display:none" class="feedback"></div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:.5rem">
+      <button class="btn btn-gold" onclick="submitAns()" id="btn-sub">확인</button>
+      <button class="btn" onclick="nextWord()" id="btn-nxt" style="display:none">다음 →</button>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:.5rem">
+    <button class="btn btn-ghost btn-sm"
+            onclick="if(confirm('그만할까요?')){clearInterval(quiz.timer);backToSet()}">그만두기</button>
+  </div>
+</div>
+
+<!-- ══ VIEW 5: 결과 ══ -->
+<div id="view-result" style="display:none">
+  <div class="card pop">
+    <p class="sec-title">시험 결과</p>
+    <div class="metrics" id="res-metrics"></div>
+    <div id="res-msg" style="margin-bottom:1rem;font-size:14px;color:var(--txt2);text-align:center;font-weight:500"></div>
+    <div id="res-list" style="margin-bottom:1rem"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-gold btn-full" onclick="backToSet()">다시 시작</button>
+      <button class="btn btn-full" onclick="showWrong()">📝 오답 노트</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VIEW 6: 오답 노트 ══ -->
+<div id="view-wrong" style="display:none">
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
+      <button class="btn btn-ghost btn-sm" onclick="showResult()">← 결과</button>
+      <p class="sec-title" style="margin:0">📝 오답 노트</p>
+    </div>
+    <div id="wrong-list"></div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<script src="data/_index.js"></script>
+<script src="shared/utils.js"></script>
+<script src="shared/db.js"></script>
+
+<!-- 단어 데이터 파일들 (선택된 것만 로드) -->
+<script id="word-data-script"></script>
+
+<script>
+// ── URL Params ─────────────────────────────────
+const params = new URLSearchParams(location.search);
+const STU_ID   = params.get('stu')  || 'guest';
+const STU_NAME = params.get('name') || '학생';
+
+// ── App State ──────────────────────────────────
+let currentSet = null;   // WORD_CATALOG item
+let currentMode = null;  // 'random'|'week'|'weak'
+let selectedDay = null;  // 'Day 01' etc
+let allWords = [];        // 현재 세트 전체 단어
+let mnemonics = {};       // { word: mnemonic_text }
+
+const flash = { words: [], idx: 0 };
+const quiz  = { words: [], idx: 0, correct: 0, wrong: 0, timer: null, elapsed: 0, results: [] };
+
+// ── Views ──────────────────────────────────────
+const VIEWS = ['library','set','flash','quiz','result','wrong'];
+function showView(name) {
+  VIEWS.forEach(v => {
+    const el = document.getElementById(`view-${v}`);
+    if (el) el.style.display = (v === name) ? 'block' : 'none';
+  });
+}
+
+// ── Navigation ─────────────────────────────────
+function goBack() {
+  const visible = VIEWS.find(v => {
+    const el = document.getElementById(`view-${v}`);
+    return el && el.style.display !== 'none';
+  });
+  if (visible === 'library' || !visible) {
+    window.location.href = `index.html?stu=${STU_ID}&name=${encodeURIComponent(STU_NAME)}`;
+  } else if (visible === 'flash' || visible === 'quiz') {
+    backToSet();
+  } else if (visible === 'set') {
+    showView('library');
+    document.getElementById('back-btn').textContent = '← 홈';
+  } else if (visible === 'result' || visible === 'wrong') {
+    backToSet();
+  }
+}
+
+function backToSet() {
+  clearInterval(quiz.timer);
+  showView('set');
+  document.getElementById('back-btn').textContent = '← 목록';
+}
+
+// ── Library ────────────────────────────────────
+async function initLibrary() {
+  mnemonics = {};
+  try { mnemonics = await DB.getMnemonics(); } catch(e) {}
+
+  const grid = document.getElementById('catalog-grid');
+  grid.innerHTML = WORD_CATALOG.map(s => `
+    <div class="catalog-card card-interactive" onclick="selectSet('${s.id}')">
+      <div class="catalog-icon">${s.icon}</div>
+      <div class="catalog-name">${s.name}</div>
+      <div class="catalog-count" id="cnt-${s.id}">로딩 중...</div>
+      <span class="catalog-tag" style="background:${s.color}18;color:${s.color};border:1px solid ${s.color}30">${s.tag}</span>
+    </div>
+  `).join('');
+
+  // 각 세트 단어 수 비동기 로드
+  for (const s of WORD_CATALOG) {
+    loadWordCount(s);
+  }
+}
+
+async function loadWordCount(setInfo) {
+  const el = document.getElementById(`cnt-${setInfo.id}`);
+  try {
+    const data = await loadWordFile(setInfo);
+    el.textContent = `${data.length.toLocaleString()} 단어`;
+  } catch(e) {
+    el.textContent = '로딩 오류';
+  }
+}
+
+async function loadWordFile(setInfo) {
+  // 이미 로드됐으면 window 변수에서 바로
+  if (window[setInfo.varName]) return window[setInfo.varName];
+  await new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = `data/words/${setInfo.file}`;
+    sc.onload = res; sc.onerror = rej;
+    document.head.appendChild(sc);
+  });
+  return window[setInfo.varName] || [];
+}
+
+// ── Set Selection ──────────────────────────────
+async function selectSet(setId) {
+  currentSet = WORD_CATALOG.find(s => s.id === setId);
+  if (!currentSet) return;
+
+  showView('set');
+  document.getElementById('back-btn').textContent = '← 목록';
+
+  // 헤더
+  document.getElementById('set-header').innerHTML = `
+    <div class="set-icon-big" style="background:${currentSet.color}18;border:1px solid ${currentSet.color}30">
+      ${currentSet.icon}
+    </div>
+    <div>
+      <div style="font-size:16px;font-weight:600">${currentSet.name}</div>
+      <div style="font-size:11px;color:var(--txt2)">${currentSet.desc}</div>
+    </div>`;
+
+  // 단어 로드
+  allWords = await loadWordFile(currentSet);
+  document.getElementById('mode-random-desc').textContent = `전체 ${allWords.length.toLocaleString()}개 랜덤`;
+
+  // 주차 그리드
+  buildWeekGrid();
+
+  currentMode = null;
+  selectedDay = null;
+  document.getElementById('week-panel').style.display = 'none';
+  document.getElementById('start-panel').style.display = 'none';
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('sel'));
+}
+
+function buildWeekGrid() {
+  // Day별 그루핑
+  const days = {};
+  for (const w of allWords) {
+    const d = w[2] || 'Day 01';
+    if (!days[d]) days[d] = [];
+    days[d].push(w);
+  }
+
+  // 20개씩 주차 묶기 (day 기준이 없으면 인덱스 기반)
+  const dayKeys = Object.keys(days).sort();
+  const DAYS_PER_WEEK = 5;
+  const weeks = {};
+  dayKeys.forEach((d, i) => {
+    const wk = Math.floor(i / DAYS_PER_WEEK) + 1;
+    if (!weeks[wk]) weeks[wk] = { days: [], count: 0 };
+    weeks[wk].days.push(d);
+    weeks[wk].count += days[d].length;
+  });
+
+  window._days = days;
+  window._weeks = weeks;
+
+  const grid = document.getElementById('week-grid');
+  grid.innerHTML = Object.entries(weeks).map(([wk, info]) => `
+    <div class="week-card" onclick="selectWeek(${wk})" id="wk-${wk}">
+      <div class="week-card-num">${wk}주차</div>
+      <div class="week-card-cnt">${info.count}개</div>
+    </div>
+  `).join('');
+}
+
+function selectWeek(wk) {
+  document.querySelectorAll('.week-card').forEach(c => c.classList.remove('sel'));
+  document.getElementById(`wk-${wk}`).classList.add('sel');
+
+  // 해당 주차 단어 수집
+  const info = window._weeks[wk];
+  const days = window._days;
+  const words = [];
+  for (const d of info.days) words.push(...(days[d] || []));
+  selectedDay = `__week__${wk}`;
+  window._selectedWords = words;
+  showStartPanel(words);
+}
+
+// ── Mode Selection ─────────────────────────────
+async function selectMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('sel'));
+  document.getElementById(`mode-${mode}`).classList.add('sel');
+
+  if (mode === 'week') {
+    document.getElementById('week-panel').style.display = 'block';
+    document.getElementById('start-panel').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('week-panel').style.display = 'none';
+
+  if (mode === 'random') {
+    window._selectedWords = allWords;
+    showStartPanel(allWords);
+  } else if (mode === 'weak') {
+    let weakList = [];
+    try { weakList = await DB.getWeakWords(STU_ID); } catch(e) {}
+    // weakWords의 단어명으로 allWords에서 매칭
+    const weakSet = new Set(weakList.map(w => w.word.toLowerCase()));
+    const words = allWords.filter(w => weakSet.has(w[0].toLowerCase()));
+    window._selectedWords = words.length ? words : allWords;
+    if (!words.length) {
+      document.getElementById('weak-notice').style.display = 'block';
+      document.getElementById('weak-cnt-msg').textContent = '취약 단어가 없어서 전체 단어로 진행합니다';
+    } else {
+      document.getElementById('weak-notice').style.display = 'block';
+      document.getElementById('weak-cnt-msg').textContent = `취약 단어 ${words.length}개 집중훈련`;
+    }
+    showStartPanel(window._selectedWords);
+  }
+}
+
+function showStartPanel(words) {
+  const cnt = words.length;
+  document.getElementById('word-cnt-badge').textContent = `${cnt}개 단어`;
+  const sel = document.getElementById('quiz-count');
+  const opts = [10, 20, 30, 50, cnt].filter((v,i,a) => v <= cnt && a.indexOf(v) === i);
+  sel.innerHTML = opts.map(n => `<option value="${n}">${n}개</option>`).join('');
+  if (opts.includes(20)) sel.value = 20;
+  document.getElementById('start-panel').style.display = 'block';
+}
+
+// ── Flash Card ─────────────────────────────────
+async function goFlash() {
+  const words = Utils.shuffle([...window._selectedWords]);
+  flash.words = words;
+  flash.idx = 0;
+  showView('flash');
+  renderFlash();
+}
+
+async function renderFlash() {
+  const w = flash.words[flash.idx];
+  if (!w) return;
+
+  document.getElementById('fc-en').textContent  = w[0];
+  document.getElementById('fc-en2').textContent = w[0];
+  document.getElementById('fc-ko').textContent  = w[1];
+  document.getElementById('flash-prog').textContent = `${flash.idx + 1} / ${flash.words.length}`;
+
+  const inner = document.getElementById('fc-inner');
+  inner.classList.remove('flipped');
+
+  // 연상법
+  const mn = mnemonics[w[0]] || Utils.autoMnemonic(w[0], w[1]);
+  const mnBox = document.getElementById('fc-mnemonic');
+  if (mn) { mnBox.textContent = mn; mnBox.style.display = 'block'; }
+  else mnBox.style.display = 'none';
+
+  // Pollinations 이미지
+  const imgWrap = document.getElementById('fc-img-wrap');
+  const seed = Utils.wordSeed(w[0]);
+  imgWrap.innerHTML = `<div class="img-loading">🖼️</div>`;
+  const img = new Image();
+  img.className = 'fc-img';
+  img.onload = () => { imgWrap.innerHTML = ''; imgWrap.appendChild(img); };
+  img.onerror = () => { imgWrap.innerHTML = ''; }; // 실패 시 조용히 숨김
+  img.src = Utils.pollUrl(`${w[0]} ${w[1].split(',')[0]}`, seed);
+}
+
+function flipCard() {
+  document.getElementById('fc-inner').classList.toggle('flipped');
+  if (document.getElementById('fc-inner').classList.contains('flipped')) {
+    Utils.speak(flash.words[flash.idx][0]);
+  }
+}
+function flashPrev() { if (flash.idx > 0) { flash.idx--; renderFlash(); } }
+function flashNext() {
+  if (flash.idx < flash.words.length - 1) { flash.idx++; renderFlash(); }
+  else backToSet();
+}
+
+// ── Quiz ───────────────────────────────────────
+function goQuiz() {
+  clearInterval(quiz.timer);
+  const cnt = parseInt(document.getElementById('quiz-count').value) || 20;
+  const words = Utils.shuffle([...window._selectedWords]).slice(0, cnt);
+  quiz.words = words;
+  quiz.idx = 0; quiz.correct = 0; quiz.wrong = 0;
+  quiz.elapsed = 0; quiz.results = [];
+
+  showView('quiz');
+  renderQuiz();
+  startTimer();
+}
+
+function renderQuiz() {
+  const w = quiz.words[quiz.idx];
+  document.getElementById('quiz-word').textContent = w[0];
+  document.getElementById('quiz-prog').textContent = `${quiz.idx + 1} / ${quiz.words.length}`;
+  document.getElementById('quiz-score').textContent = `✓${quiz.correct} ✗${quiz.wrong}`;
+  document.getElementById('prog-fill').style.width = `${(quiz.idx / quiz.words.length) * 100}%`;
+  document.getElementById('quiz-ans').value = '';
+  document.getElementById('quiz-fb').style.display = 'none';
+  document.getElementById('btn-sub').style.display = 'inline-flex';
+  document.getElementById('btn-nxt').style.display = 'none';
+  document.getElementById('quiz-ans').focus();
+}
+
+function startTimer() {
+  quiz.timer = setInterval(() => {
+    quiz.elapsed++;
+    const el = document.getElementById('quiz-timer');
+    el.textContent = `⏱ ${Utils.fmtTime(quiz.elapsed)}`;
+    const rem = quiz.elapsed % 60;
+    el.className = 'timer' + (rem >= 45 ? ' danger' : rem >= 30 ? ' warn' : '');
+  }, 1000);
+}
+
+function submitAns() {
+  const inp = document.getElementById('quiz-ans').value.trim();
+  if (!inp) return;
+  const w = quiz.words[quiz.idx];
+  const result = Utils.checkAnswer(inp, w[1]);
+
+  const fb = document.getElementById('quiz-fb');
+  fb.style.display = 'block';
+  document.getElementById('btn-sub').style.display = 'none';
+  document.getElementById('btn-nxt').style.display = 'inline-flex';
+
+  const isCorrect = result !== 'wrong';
+  if (isCorrect) {
+    quiz.correct++;
+    fb.className = 'feedback fb-ok';
+    fb.textContent = result === 'close' ? '✓ 정답에 가깝습니다! ' + w[1] : '✓ 정답!';
+  } else {
+    quiz.wrong++;
+    fb.className = 'feedback fb-fail';
+    fb.textContent = `✗ 오답 — 정답: ${w[1]}`;
+  }
+
+  quiz.results.push({ word: w[0], ko: w[1], input: inp, correct: isCorrect });
+  try { DB.updateWeakWord(STU_ID, w[0], isCorrect); } catch(e) {}
+  document.getElementById('quiz-score').textContent = `✓${quiz.correct} ✗${quiz.wrong}`;
+}
+
+function nextWord() {
+  quiz.idx++;
+  if (quiz.idx >= quiz.words.length) { finishQuiz(); return; }
+  renderQuiz();
+}
+
+async function finishQuiz() {
+  clearInterval(quiz.timer);
+  const total = quiz.words.length;
+  const score = Math.round((quiz.correct / total) * 100);
+
+  try {
+    await DB.saveResult(STU_ID, {
+      setId: currentSet?.id, mode: currentMode,
+      total, correct: quiz.correct, score, elapsed: quiz.elapsed
+    });
+  } catch(e) {}
+
+  showView('result');
+  const msgs = score >= 90 ? '🏆 완벽합니다!' : score >= 70 ? '👍 잘했어요!' : score >= 50 ? '💪 더 노력해봐요' : '📚 복습이 필요해요';
+  document.getElementById('res-metrics').innerHTML = `
+    <div class="metric"><div class="metric-lbl">총 문제</div><div class="metric-val mv-gold">${total}</div></div>
+    <div class="metric"><div class="metric-lbl">정답</div><div class="metric-val mv-grn">${quiz.correct}</div></div>
+    <div class="metric"><div class="metric-lbl">점수</div><div class="metric-val ${score>=70?'mv-grn':'mv-red'}">${score}%</div></div>`;
+  document.getElementById('res-msg').textContent = msgs;
+
+  const wrongOnes = quiz.results.filter(r => !r.correct);
+  if (wrongOnes.length) {
+    document.getElementById('res-list').innerHTML = `
+      <p class="sec-title" style="margin-bottom:.75rem">틀린 단어 (${wrongOnes.length}개)</p>
+      ${wrongOnes.slice(0, 5).map(r => `
+        <div class="wrong-item">
+          <div class="wi-word">${r.word}</div>
+          <div><div class="wi-ko">${r.ko}</div><div class="wi-ans">내 답: ${r.input}</div></div>
+        </div>`).join('')}
+      ${wrongOnes.length > 5 ? `<p style="font-size:12px;color:var(--txt3);text-align:center;padding-top:.5rem">+${wrongOnes.length-5}개 더...</p>` : ''}`;
+  }
+}
+
+function showWrong() {
+  showView('wrong');
+  const wrongOnes = quiz.results.filter(r => !r.correct);
+  if (!wrongOnes.length) {
+    document.getElementById('wrong-list').innerHTML = '<div class="empty">오답이 없습니다 🎉</div>';
+    return;
+  }
+  document.getElementById('wrong-list').innerHTML = wrongOnes.map(r => `
+    <div class="wrong-item">
+      <div>
+        <div class="wi-word">${r.word}</div>
+        <button class="tts-btn" style="margin-top:4px;font-size:10px;padding:3px 8px"
+                onclick="Utils.speak('${r.word.replace(/'/,"\\'")}')">🔊</button>
+      </div>
+      <div>
+        <div class="wi-ko">${r.ko}</div>
+        <div class="wi-ans">내 답: ${r.input}</div>
+      </div>
+    </div>`).join('');
+}
+
+function showResult() { showView('result'); }
+
+// ── Init ───────────────────────────────────────
+initLibrary();
+</script>
+</body>
+</html>

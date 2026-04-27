@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>선생님 모드</title>
+<link rel="stylesheet" href="shared/theme.css">
+<style>
+.stu-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: .875rem 0; border-bottom: 1px solid var(--bdr);
+  cursor: pointer; transition: opacity .15s;
+}
+.stu-card:last-child { border-bottom: none; }
+.stu-card:hover { opacity: .75; }
+.stu-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--gold-bg); border: 1px solid var(--gold-bdr);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: var(--gold);
+  flex-shrink: 0; font-family: var(--font-mono);
+}
+.stu-name { font-size: 14px; font-weight: 500; }
+.stu-meta { font-size: 11px; color: var(--txt3); margin-top: 1px; }
+.stu-detail-card {
+  background: var(--sur2); border-radius: var(--rs);
+  padding: .75rem 1rem; margin-bottom: .75rem; font-size: 13px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">🎓</div>
+    <div>
+      <div class="logo-text-main">선생님 모드</div>
+      <div class="logo-text-sub">Teacher Dashboard</div>
+    </div>
+  </div>
+  <button class="btn btn-ghost" onclick="logout()">나가기 ›</button>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tt-students" onclick="switchT('students')">학생</button>
+  <button class="tab" id="tt-stats"    onclick="switchT('stats')">통계</button>
+  <button class="tab" id="tt-settings" onclick="switchT('settings')">설정</button>
+</div>
+
+<!-- ══ 학생 탭 ══ -->
+<div class="tsec active" id="ts-students">
+  <div class="card card-sm" style="margin-bottom:1rem">
+    <div style="display:flex;gap:8px;margin-bottom:.875rem">
+      <input id="new-stu-name" type="text" placeholder="학생 이름" style="flex:1"
+             onkeydown="if(event.key==='Enter')addStudent()">
+      <button class="btn btn-gold" onclick="addStudent()">추가</button>
+    </div>
+    <div style="font-size:12px;color:var(--red);min-height:16px" id="stu-err"></div>
+  </div>
+
+  <div class="card card-sm">
+    <p class="sec-title" style="margin-bottom:.875rem">등록 학생 <span id="stu-count" class="badge b-gold" style="vertical-align:middle"></span></p>
+    <div id="stu-list"><div class="empty">학생이 없습니다</div></div>
+  </div>
+
+  <!-- 학생 상세 패널 -->
+  <div id="stu-detail" style="display:none">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('stu-detail').style.display='none'">← 목록</button>
+        <div>
+          <div style="font-size:15px;font-weight:600" id="detail-name"></div>
+          <div style="font-size:11px;color:var(--txt3)" id="detail-joined"></div>
+        </div>
+        <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="deleteStudent()">삭제</button>
+      </div>
+      <div class="metrics" id="detail-metrics"></div>
+      <div id="detail-weak" style="margin-top:.5rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 통계 탭 ══ -->
+<div class="tsec" id="ts-stats">
+  <div class="card card-sm" style="margin-bottom:1rem">
+    <p class="sec-title" style="margin-bottom:.875rem">전체 현황</p>
+    <div class="metrics" id="global-metrics"></div>
+  </div>
+  <div class="card card-sm">
+    <p class="sec-title" style="margin-bottom:.875rem">학생별 최근 점수</p>
+    <div id="score-list"><div class="empty">데이터 없음</div></div>
+  </div>
+</div>
+
+<!-- ══ 설정 탭 ══ -->
+<div class="tsec" id="ts-settings">
+  <div class="card">
+    <p class="sec-title" style="margin-bottom:1.25rem">앱 설정</p>
+
+    <label class="label">앱 이름</label>
+    <input id="set-appname" type="text" placeholder="English Trainer" style="margin-bottom:1rem">
+
+    <label class="label">선생님 비밀번호 변경</label>
+    <input id="set-pw-old" type="password" placeholder="현재 비밀번호" style="margin-bottom:.5rem">
+    <input id="set-pw-new" type="password" placeholder="새 비밀번호" style="margin-bottom:.5rem">
+    <input id="set-pw-cfm" type="password" placeholder="새 비밀번호 확인" style="margin-bottom:1rem">
+
+    <div style="font-size:12px;color:var(--red);min-height:18px;margin-bottom:.75rem" id="set-err"></div>
+    <button class="btn btn-gold btn-full" onclick="saveSettings()">저장</button>
+  </div>
+
+  <div class="card card-sm">
+    <p class="sec-title" style="margin-bottom:.875rem">단어장 현황</p>
+    <div id="catalog-status"></div>
+  </div>
+
+  <div class="card card-sm">
+    <p class="sec-title" style="margin-bottom:.875rem">리스닝 회차 현황</p>
+    <div id="listening-status"></div>
+  </div>
+
+  <div class="card card-sm">
+    <p class="sec-title" style="margin-bottom:.875rem">Firebase 설정</p>
+    <p style="font-size:12px;color:var(--txt2);line-height:1.7">
+      <code style="background:var(--sur2);padding:2px 6px;border-radius:4px;font-size:11px">shared/db.js</code> 파일의
+      <code style="background:var(--sur2);padding:2px 6px;border-radius:4px;font-size:11px">FIREBASE_CONFIG</code>에
+      Firebase Console에서 발급받은 설정값을 입력하세요.
+    </p>
+    <div class="divider"></div>
+    <p style="font-size:12px;color:var(--txt2);line-height:1.7">
+      새 단어장 추가:<br>
+      1. <code style="background:var(--sur2);padding:2px 6px;border-radius:4px;font-size:11px">data/words/</code>에 JS 파일 추가<br>
+      2. <code style="background:var(--sur2);padding:2px 6px;border-radius:4px;font-size:11px">data/_index.js</code>의 WORD_CATALOG에 항목 추가
+    </p>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<script src="data/_index.js"></script>
+<script src="shared/utils.js"></script>
+<script src="shared/db.js"></script>
+<script>
+let students = {};
+let settings = { appName: 'English Trainer', teacherPw: '1234' };
+let selectedStuId = null;
+
+async function init() {
+  try {
+    settings = await DB.getSettings();
+    students = await DB.getStudents();
+  } catch(e) {}
+  renderStudents();
+  renderGlobalStats();
+  renderCatalogStatus();
+
+  document.getElementById('set-appname').value = settings.appName || '';
+}
+
+// ── Students ──────────────────────────────────
+function renderStudents() {
+  const list = Object.values(students);
+  document.getElementById('stu-count').textContent = list.length;
+  if (!list.length) {
+    document.getElementById('stu-list').innerHTML = '<div class="empty">학생이 없습니다</div>';
+    return;
+  }
+  document.getElementById('stu-list').innerHTML = list.map(s => `
+    <div class="stu-card" onclick="showStuDetail('${s.id}')">
+      <div class="stu-avatar">${(s.name||'?').slice(0,1)}</div>
+      <div>
+        <div class="stu-name">${s.name}</div>
+        <div class="stu-meta">${s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '날짜 없음'}</div>
+      </div>
+      <span style="margin-left:auto;font-size:18px;color:var(--txt3)">›</span>
+    </div>`).join('');
+}
+
+async function addStudent() {
+  const name = document.getElementById('new-stu-name').value.trim();
+  const err = document.getElementById('stu-err');
+  if (!name) { err.textContent = '이름을 입력하세요'; return; }
+  if (Object.values(students).some(s => s.name === name)) { err.textContent = '이미 등록된 이름입니다'; return; }
+  err.textContent = '';
+  try {
+    const id = await DB.createStudent(name);
+    students[id] = { id, name, createdAt: new Date().toISOString() };
+    document.getElementById('new-stu-name').value = '';
+    renderStudents();
+  } catch(e) { err.textContent = 'Firebase 연결 오류: ' + e.message; }
+}
+
+async function showStuDetail(stuId) {
+  selectedStuId = stuId;
+  const s = students[stuId];
+  document.getElementById('stu-detail').style.display = 'block';
+  document.getElementById('detail-name').textContent = s.name;
+  document.getElementById('detail-joined').textContent = s.createdAt ? '등록: ' + new Date(s.createdAt).toLocaleDateString('ko') : '';
+
+  try {
+    const results = await DB.getResults(stuId);
+    const weak = await DB.getWeakWords(stuId);
+    const avg = results.length ? Math.round(results.reduce((a,r) => a+(r.score||0),0)/results.length) : 0;
+    document.getElementById('detail-metrics').innerHTML = `
+      <div class="metric"><div class="metric-lbl">시험 횟수</div><div class="metric-val mv-gold">${results.length}</div></div>
+      <div class="metric"><div class="metric-lbl">평균 점수</div><div class="metric-val mv-grn">${avg}%</div></div>
+      <div class="metric"><div class="metric-lbl">취약 단어</div><div class="metric-val mv-red">${weak.length}</div></div>`;
+    if (weak.length) {
+      document.getElementById('detail-weak').innerHTML = `
+        <p class="sec-title" style="margin-bottom:.625rem">취약 단어 TOP10</p>
+        ${weak.slice(0,10).map(w => `
+          <div class="list-item">
+            <span style="font-family:var(--font-display);font-style:italic">${w.word}</span>
+            <span class="badge b-red">틀림 ${w.wrong}회</span>
+          </div>`).join('')}`;
+    }
+  } catch(e) {
+    document.getElementById('detail-metrics').innerHTML = '<div class="empty" style="padding:.5rem 0">Firebase 연결 필요</div>';
+  }
+}
+
+async function deleteStudent() {
+  if (!confirm(`${students[selectedStuId]?.name} 학생을 삭제할까요?`)) return;
+  try {
+    // Firebase에서는 null로 set
+    await DB.saveStudent(selectedStuId, null);
+    delete students[selectedStuId];
+    document.getElementById('stu-detail').style.display = 'none';
+    renderStudents();
+  } catch(e) { alert('삭제 중 오류: ' + e.message); }
+}
+
+// ── Stats ─────────────────────────────────────
+async function renderGlobalStats() {
+  const list = Object.values(students);
+  document.getElementById('global-metrics').innerHTML = `
+    <div class="metric"><div class="metric-lbl">총 학생</div><div class="metric-val mv-gold">${list.length}</div></div>
+    <div class="metric"><div class="metric-lbl">단어장</div><div class="metric-val mv-grn">${WORD_CATALOG.length}</div></div>
+    <div class="metric"><div class="metric-lbl">리스닝</div><div class="metric-val mv-amb">${LISTENING_CATALOG.length}</div></div>`;
+
+  // 학생별 최근 점수
+  if (!list.length) return;
+  const scoreEl = document.getElementById('score-list');
+  const scores = [];
+  for (const s of list.slice(0, 5)) {
+    try {
+      const results = await DB.getResults(s.id);
+      if (results.length) {
+        const last = results[results.length - 1];
+        scores.push({ name: s.name, score: last.score, date: last.date });
+      }
+    } catch(e) {}
+  }
+  if (!scores.length) { scoreEl.innerHTML = '<div class="empty">데이터 없음</div>'; return; }
+  scoreEl.innerHTML = scores.map(s => `
+    <div class="list-item">
+      <span style="font-size:13px">${s.name}</span>
+      <span class="badge ${s.score>=70?'b-grn':'b-red'}">${s.score}%</span>
+    </div>`).join('');
+}
+
+// ── Settings ───────────────────────────────────
+async function saveSettings() {
+  const err = document.getElementById('set-err');
+  err.textContent = '';
+  const newName = document.getElementById('set-appname').value.trim();
+  const oldPw = document.getElementById('set-pw-old').value;
+  const newPw = document.getElementById('set-pw-new').value;
+  const cfmPw = document.getElementById('set-pw-cfm').value;
+
+  const update = { ...settings };
+  if (newName) update.appName = newName;
+
+  if (oldPw || newPw || cfmPw) {
+    if (oldPw !== settings.teacherPw) { err.textContent = '현재 비밀번호가 틀렸습니다'; return; }
+    if (!newPw) { err.textContent = '새 비밀번호를 입력하세요'; return; }
+    if (newPw !== cfmPw) { err.textContent = '새 비밀번호가 일치하지 않습니다'; return; }
+    update.teacherPw = newPw;
+  }
+
+  try {
+    await DB.saveSettings(update);
+    settings = update;
+    err.style.color = 'var(--grn)';
+    err.textContent = '✓ 저장되었습니다';
+    document.getElementById('set-pw-old').value = '';
+    document.getElementById('set-pw-new').value = '';
+    document.getElementById('set-pw-cfm').value = '';
+    setTimeout(() => { err.textContent = ''; err.style.color = 'var(--red)'; }, 2000);
+  } catch(e) {
+    err.textContent = 'Firebase 연결 오류: ' + e.message;
+  }
+}
+
+function renderCatalogStatus() {
+  document.getElementById('catalog-status').innerHTML = WORD_CATALOG.map(s => `
+    <div class="list-item">
+      <span>${s.icon} ${s.name}</span>
+      <span class="badge b-gold">${s.tag}</span>
+    </div>`).join('');
+
+  document.getElementById('listening-status').innerHTML = LISTENING_CATALOG.map(s => `
+    <div class="list-item">
+      <span>${s.icon} ${s.name}</span>
+      <span class="badge b-amb">${s.total}문항</span>
+    </div>`).join('');
+}
+
+// ── Tabs ───────────────────────────────────────
+function switchT(name) {
+  ['students','stats','settings'].forEach(t => {
+    document.getElementById(`tt-${t}`).classList.toggle('active', t === name);
+    document.getElementById(`ts-${t}`).classList.toggle('active', t === name);
+  });
+}
+function logout() { window.location.href = 'index.html'; }
+
+init();
+</script>
+</body>
+</html>
