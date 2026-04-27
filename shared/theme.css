@@ -855,3 +855,4 @@ select option { background: var(--sur); }
   .mode-grid { grid-template-columns: 1fr; }
   .catalog-grid { grid-template-columns: 1fr; }
 }
+
