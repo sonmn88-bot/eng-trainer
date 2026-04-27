@@ -219,6 +219,7 @@
 
 </div><!-- .app -->
 
+<script src="data/words/mnemonics.js"></script>
 <script src="data/_index.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
@@ -462,15 +463,11 @@ async function renderFlash() {
   const inner = document.getElementById('fc-inner');
   inner.classList.remove('flipped');
 
-  // 연상법 — AI 생성 (로딩 표시)
+  // 연상법 — 파일 기반 즉시 표시
   const mnBox = document.getElementById('fc-mnemonic');
-  mnBox.textContent = '💭 연상법 생성 중...';
-  mnBox.style.display = 'block';
-  mnBox.style.opacity = '0.5';
-  Utils.getMnemonic(w[0], w[1]).then(mn => {
-    mnBox.textContent = mn;
-    mnBox.style.opacity = '1';
-  });
+  const mn = Utils.getMnemonic(w[0], w[1]);
+  if (mn) { mnBox.textContent = mn; mnBox.style.display = 'block'; mnBox.style.opacity = '1'; }
+  else mnBox.style.display = 'none';
 
   // Pollinations 이미지 (단어+뜻 기반으로 개선)
   const imgWrap = document.getElementById('fc-img-wrap');
