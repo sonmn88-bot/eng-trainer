@@ -4,7 +4,8 @@
    Fonts: Cormorant Garamond (display) + DM Sans (body) + DM Mono (numbers)
 ═══════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Nanum+Pen+Script&family=Gaegu:wght@300;400;700&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
 
 :root {
   /* ── Palette (Dark base) ── */
@@ -43,10 +44,10 @@
   --blue-bg:   rgba(96,165,250,.08);
 
   /* ── Typography ── */
-  --font-display: 'Cormorant Garamond', Georgia, serif;
-  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body:    'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono:    'DM Mono', monospace;
-  --font-hand:    'Nanum Pen Script', 'Gaegu', cursive;
+  --font-hand:    'Nanum Pen Script', cursive;
 
   /* ── Spacing & Shape ── */
   --r:   14px;
