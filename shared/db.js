@@ -1,13 +1,13 @@
 // ── Firebase DB ───────────────────────────────
 // 설정값을 여기에 채워 넣으세요 (Firebase Console → 프로젝트 설정 → 앱)
 const FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  databaseURL:       "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId:         "YOUR_PROJECT",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyC9HA6mCGWQEoYOCxG2rqRDv17Qi1Ubf7Y",
+  authDomain:        "eng-trainer-65cac.firebaseapp.com",
+  databaseURL:       "https://eng-trainer-65cac-default-rtdb.firebaseio.com",
+  projectId:         "eng-trainer-65cac",
+  storageBucket:     "eng-trainer-65cac.firebasestorage.app",
+  messagingSenderId: "823536158337",
+  appId:             "1:823536158337:web:a49465a60fe47be3e7af80"
 };
 
 let _db = null;
