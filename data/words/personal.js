@@ -1394,8 +1394,7 @@ window.PERSONAL = [
   ['moderate','적당한, 온건한','Day 70'],
   ['Modification','수정, 변경','Day 70'],
   ['modify','변형하다, 수정하다','Day 70'],
-  ['mold','(틀에 넣어) 만들다
-주형, 틀, 뼈대, 곰팡이','Day 70'],
+  ['mold','(틀에 넣어) 만들다, 주형, 틀, 뼈대, 곰팡이','Day 70'],
   ['moment','순간, 잠깐, 잠시','Day 70'],
   ['monarchy','군주제, 군주국','Day 70'],
   ['monetary','금전적인, 통화의','Day 70'],
