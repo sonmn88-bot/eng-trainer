@@ -1,0 +1,121 @@
+[
+  {
+    "num": 1, "type": "목적", "difficulty": "하", "speakers": "M",
+    "question": "다음을 듣고, 남자가 하는 말의 목적으로 가장 적절한 것을 고르시오.",
+    "script": "Hello, everyone. This is Principal Davidson from Riverside High School. I'm calling to inform you about an important change to our school schedule. Due to the upcoming renovation of our main building, all classes will be moved to the temporary classrooms starting next Monday. Students should check the new classroom assignments posted on the school website. Please note that the school library will remain open during regular hours. If you have any questions, please contact the main office. Thank you for your cooperation.",
+    "keyExpressions": [["renovation","보수 공사"],["temporary classrooms","임시 교실"],["classroom assignments","교실 배정"]],
+    "tip": "🎯 목적 유형: 'I'm calling to inform you about ~'가 목적을 직접 제시. 공사로 인한 교실 변경 안내."
+  },
+  {
+    "num": 2, "type": "의견", "difficulty": "하", "speakers": "W/M",
+    "question": "대화를 듣고, 여자의 의견으로 가장 적절한 것을 고르시오.",
+    "script": "M: Claire, what do you think about using social media for studying? W: I think it can actually be very effective if used correctly. M: Really? How so? W: Well, there are many educational communities where students share notes and explain concepts to each other. M: But isn't it distracting? W: It depends on how you use it. If you follow educational accounts and join study groups, it becomes a powerful learning tool. M: I've never thought about it that way. W: The key is to use it purposefully rather than just scrolling mindlessly. M: That's a good point.",
+    "keyExpressions": [["educational communities","교육 커뮤니티"],["powerful learning tool","강력한 학습 도구"],["purposefully","목적 있게"]],
+    "tip": "🎯 의견 유형: W의 첫 주장 'it can actually be very effective'가 핵심. 이후는 모두 근거 설명."
+  },
+  {
+    "num": 3, "type": "요지", "difficulty": "하", "speakers": "W",
+    "question": "다음을 듣고, 여자가 하는 말의 요지로 가장 적절한 것을 고르시오.",
+    "script": "Good afternoon. I'm Dr. Rachel Green, a nutritionist. Today I want to discuss the importance of eating breakfast. Many students skip breakfast because they're in a hurry or trying to cut calories. However, skipping breakfast can actually hurt your academic performance. Studies show that students who eat breakfast have better concentration and memory during morning classes. A healthy breakfast doesn't have to be complicated. Even a simple meal of fruit and yogurt can make a big difference. So, make time for breakfast every morning. It's one of the best investments you can make in your education.",
+    "keyExpressions": [["skip breakfast","아침을 거르다"],["academic performance","학업 성취"],["concentration and memory","집중력과 기억력"]],
+    "tip": "🎯 요지: 'However' 이후 반전이 핵심. 아침 식사가 학업 성취에 중요하다는 것이 요지."
+  },
+  {
+    "num": 4, "type": "그림", "difficulty": "중", "speakers": "M/W",
+    "question": "대화를 듣고, 그림에서 대화의 내용과 일치하지 않는 것을 고르시오.",
+    "script": "M: Honey, I just finished decorating the living room. Come take a look. W: Wow, it looks great! Is that a new clock above the fireplace? M: Yes, it's round with Roman numerals. W: I love it. And the two sofas facing each other look very cozy. M: Right. I also put a striped rug between them. W: Oh, and there's a plant in the corner by the window. M: That's a new addition. W: What's that on the coffee table? M: It's a stack of three books. W: Everything looks wonderful!",
+    "keyExpressions": [["Roman numerals","로마 숫자"],["facing each other","서로 마주보는"],["striped rug","줄무늬 러그"]],
+    "tip": "🎯 그림 유형: 위치(above, between, in the corner), 모양(round, striped), 숫자(two sofas, three books) 집중."
+  },
+  {
+    "num": 5, "type": "할일", "difficulty": "하", "speakers": "M/W",
+    "question": "대화를 듣고, 남자가 할 일로 가장 적절한 것을 고르시오.",
+    "script": "W: David, the school talent show is tomorrow. Are we all set? M: Almost. I've already arranged the stage lighting. W: Great. What about the sound system? M: It's been tested and it works perfectly. W: Did you print the programs for the audience? M: Not yet. I'll do that right after this. W: Okay. Can you also remind all the performers about the rehearsal at 4 p.m.? M: Sure, I'll send them a message now. Actually, could you handle that? I need to go print the programs right away. W: Of course, I'll take care of it.",
+    "keyExpressions": [["talent show","장기자랑"],["stage lighting","무대 조명"],["print the programs","프로그램을 인쇄하다"]],
+    "tip": "🎯 할일: 마지막 대화에서 역할 분담 재조정 주의. M이 최종적으로 하기로 한 것 = 프로그램 인쇄."
+  },
+  {
+    "num": 6, "type": "금액", "difficulty": "중", "speakers": "W/M",
+    "question": "대화를 듣고, 여자가 지불할 금액을 고르시오.",
+    "script": "M: Welcome to Sunny Flower Shop. How can I help you? W: I'd like to order a bouquet for my mother's birthday. M: Of course. We have rose bouquets for $40 and mixed flower bouquets for $60. W: I'll take the mixed flower bouquet. Can I add a greeting card? M: Sure. Cards are $5 each. W: Yes, please add one. M: Would you like a gift box as well? It's $10. W: No, thank you. Just the bouquet and card. Is there a delivery fee? M: Delivery is free for orders over $50. You qualify, so no extra charge. W: Perfect. Here's my credit card.",
+    "keyExpressions": [["mixed flower bouquet","혼합 꽃다발"],["greeting card","인사 카드"],["delivery fee","배달비"]],
+    "tip": "🎯 금액: $60(꽃다발) + $5(카드) = $65. 배달비는 $50 초과 시 무료. 최종 $65."
+  },
+  {
+    "num": 7, "type": "이유", "difficulty": "하", "speakers": "M/W",
+    "question": "대화를 듣고, 남자가 수영 수업에 참여할 수 없는 이유를 고르시오.",
+    "script": "W: Hey Mike, are you joining our swimming lessons this Saturday? M: I wish I could, but I can't make it. W: Oh, why not? Do you have other plans? M: Actually, my car is in the repair shop. W: Can't you take the bus? M: The community pool is quite far from the bus stop. W: What about getting a ride from someone? M: Everyone I know is busy that day. W: That's too bad. What about next week? M: I should have my car back by then, so I'll definitely join.",
+    "keyExpressions": [["repair shop","수리점"],["community pool","지역 수영장"],["getting a ride","차를 얻어 타다"]],
+    "tip": "🎯 이유: 여러 대안(버스, 카풀)이 제시되지만 모두 불가. 근본 원인 = 차가 수리점에 있음."
+  },
+  {
+    "num": 8, "type": "언급", "difficulty": "하", "speakers": "W/M",
+    "question": "대화를 듣고, Summer Art Camp에 관해 언급되지 않은 것을 고르시오.",
+    "script": "M: Lisa, did you see the flyer for the Summer Art Camp? W: Yes! It looks amazing. When does it start? M: It runs from July 15th to August 5th. W: Where is it held? M: At the Riverside Community Center. W: What kind of activities are there? M: They offer painting, sculpture, and digital art classes. W: That sounds great. How much does it cost? M: It's $200 for the full session. W: Is there an age requirement? M: Yes, it's for students aged 10 to 17. W: I should sign my brother up.",
+    "keyExpressions": [["sculpture","조각"],["digital art","디지털 아트"],["age requirement","나이 제한"]],
+    "tip": "🎯 언급 항목: 기간(7/15~8/5), 장소(Riverside Community Center), 활동 종류, 비용($200), 나이(10-17). 미언급 찾기."
+  },
+  {
+    "num": 9, "type": "내용일치", "difficulty": "하", "speakers": "M",
+    "question": "Greenfield Volunteer Program에 관한 다음 내용을 듣고, 일치하지 않는 것을 고르시오.",
+    "script": "Hello, everyone. I'm here to introduce the Greenfield Volunteer Program. This program was established in 2010 to support local environmental projects. Volunteers work every Saturday morning from 9 a.m. to noon. The minimum age requirement is 16 years old. Each volunteer must complete at least 20 hours of service to receive a certificate. Transportation to the volunteering sites is provided free of charge. Volunteers are also required to wear the program's official green vest during activities. If you're interested, please register on our website by the end of this month. We look forward to seeing you.",
+    "keyExpressions": [["established","설립된"],["minimum age requirement","최소 연령 요건"],["certificate","수료증"]],
+    "tip": "🎯 내용일치: 설립연도(2010), 활동시간(토요일 9-12시), 나이(16세 이상), 시간(20시간), 교통비(무료) 순으로 체크."
+  },
+  {
+    "num": 10, "type": "도표", "difficulty": "중", "speakers": "M/W",
+    "question": "다음 표를 보면서 대화를 듣고, 두 사람이 선택할 온라인 강좌를 고르시오.",
+    "script": "W: Let's pick an online course to take together this semester. M: Good idea. What's our budget? W: Let's not spend more than $100. M: Okay. How long do you want the course to be? W: At least 8 weeks. I want something comprehensive. M: Agreed. What subject interests you? W: I'm thinking programming or graphic design. M: I prefer programming. W: Me too, actually. Should we go for a beginner or intermediate level? W: Let's do intermediate. We both have some basics already. M: And do you want a course with a certificate? W: Absolutely. It'll be useful for job applications. M: Then this one is perfect for us.",
+    "keyExpressions": [["comprehensive","종합적인"],["intermediate level","중급 수준"],["certificate","수료증"]],
+    "tip": "🎯 도표: 예산($100 이하) → 기간(8주 이상) → 과목(프로그래밍) → 수준(중급) → 수료증(있음) 순으로 소거."
+  },
+  {
+    "num": 11, "type": "짧은대화응답", "difficulty": "하", "speakers": "W/M",
+    "question": "대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오.",
+    "script": "M: Excuse me, is this seat taken? W: No, it's free. Please sit down. M: Thank you. Is this the right waiting room for the career counseling session? W: Yes, it is. The sessions start in about ten minutes. M: ___",
+    "keyExpressions": [["career counseling","직업 상담"],["waiting room","대기실"],["sessions start","세션이 시작되다"]],
+    "tip": "🎯 짧은 응답: 10분 후 시작된다는 정보에 대한 자연스러운 반응. 감사 표현이나 확인이 적절."
+  },
+  {
+    "num": 12, "type": "짧은대화응답", "difficulty": "중", "speakers": "M/W",
+    "question": "대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+    "script": "W: Kevin, I need your advice. I'm thinking of starting a small online business selling handmade crafts. M: That sounds exciting! Have you done any market research? W: A little. I know there's demand, but I'm not sure how to price my products. M: Pricing handmade items can be tricky. You need to consider both material costs and your time. W: Right, but if I price too high, nobody will buy them. M: Have you looked at what similar products sell for? W: Yes, they range from $20 to $50. M: Then you should start in the middle range and adjust based on sales. What platform were you thinking of using? W: I was considering Etsy. M: ___",
+    "keyExpressions": [["market research","시장 조사"],["material costs","재료비"],["middle range","중간 가격대"]],
+    "tip": "🎯 응답: Etsy 플랫폼 선택에 대한 M의 의견. 플랫폼의 장단점 언급이나 조언이 자연스러운 응답."
+  },
+  {
+    "num": 13, "type": "짧은대화응답", "difficulty": "중", "speakers": "W/M",
+    "question": "대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+    "script": "M: Dr. Peterson, I've been having trouble sleeping lately. W: I see. How long has this been going on? M: About three weeks. I can't fall asleep until 2 or 3 in the morning. W: Do you use electronic devices before bed? M: Yes, I usually watch videos on my phone until I feel sleepy. W: That's likely contributing to your problem. The blue light from screens affects your sleep hormones. M: Really? I didn't know that. W: I recommend stopping screen use at least an hour before bedtime. M: That's going to be difficult. I usually check my emails and messages at night. W: ___",
+    "keyExpressions": [["blue light","블루라이트"],["sleep hormones","수면 호르몬"],["screen use","화면 사용"]],
+    "tip": "🎯 응답: 이메일/메시지 확인 습관에 대한 의사의 대응. 대안 제시(낮에 확인)나 중요성 강조가 자연스러움."
+  },
+  {
+    "num": 14, "type": "짧은대화응답", "difficulty": "중", "speakers": "M/W",
+    "question": "대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+    "script": "W: Hi, I'm calling about the apartment listing I saw online. M: Yes, the two-bedroom apartment on Oak Street? W: That's right. Is it still available? M: Yes, it is. Would you like to schedule a viewing? W: Absolutely. When would be convenient? M: We have openings this Thursday at 3 p.m. or Saturday at 10 a.m. W: Thursday works better for me. M: Great. May I have your name and contact number? W: Sure. I'm Jennifer Park and my number is 555-0123. M: Perfect. And just so you know, we require first and last month's rent plus a security deposit. W: ___",
+    "keyExpressions": [["apartment listing","아파트 매물"],["security deposit","보증금"],["schedule a viewing","관람 일정을 잡다"]],
+    "tip": "🎯 응답: 임대 조건(첫달+마지막달 임대료+보증금)에 대한 W의 반응. 확인이나 추가 질문이 자연스러움."
+  },
+  {
+    "num": 15, "type": "상황적절표현", "difficulty": "중", "speakers": "M",
+    "question": "다음 상황 설명을 듣고, Jason이 Emma에게 할 말로 가장 적절한 것을 고르시오.",
+    "script": "Jason and Emma are colleagues at an advertising company. They are preparing for a major client presentation next week. Emma has been working very hard on the creative concepts, while Jason is responsible for the data analysis. However, Jason realizes that he has made a significant error in his sales forecast data, which is a key part of their presentation. He knows that Emma has already incorporated his data into her slides. Jason feels he must tell Emma about the mistake immediately so they can correct it before the presentation. In this situation, what would Jason most likely say to Emma?",
+    "keyExpressions": [["significant error","중대한 오류"],["sales forecast","매출 예측"],["incorporated","통합했다"]],
+    "tip": "🎯 상황 표현: Jason이 데이터 오류를 Emma에게 알리려 하는 상황. 사과와 함께 수정 필요성을 전달하는 표현 선택."
+  },
+  {
+    "num": 16, "type": "주제", "difficulty": "중", "speakers": "M",
+    "question": "남자가 하는 말의 주제로 가장 적절한 것은?",
+    "script": "Hello, students. Today I'd like to discuss how animals use camouflage to survive in nature. Camouflage is a fascinating adaptation that allows animals to blend in with their environment. There are several types. First, background matching is when an animal's color or pattern resembles its surroundings. For example, the stick insect looks just like a twig. Second, disruptive coloration uses bold patterns to break up the animal's outline, making it harder to spot. Third, mimicry involves imitating another species, often a dangerous one, to avoid predators. The octopus can even change its color and texture to match different surfaces. These adaptations are truly remarkable examples of nature's creativity.",
+    "keyExpressions": [["camouflage","위장"],["background matching","배경 맞추기"],["disruptive coloration","파괴적 채색"]],
+    "tip": "🎯 주제: 첫 문장 'how animals use camouflage to survive'가 주제. First/Second/Third 구조로 유형 나열."
+  },
+  {
+    "num": 17, "type": "세부내용", "difficulty": "하", "speakers": "M",
+    "question": "언급된 camouflage의 유형이 아닌 것은?",
+    "script": "※ 16번과 같은 지문",
+    "keyExpressions": [["stick insect","대벌레"],["mimicry","의태"],["octopus","문어"]],
+    "tip": "🎯 세부내용: 언급된 유형 — background matching, disruptive coloration, mimicry (3가지). 미언급 유형이 정답."
+  }
+]
