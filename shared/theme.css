@@ -131,10 +131,10 @@ body::before {
 
 /* ── Typography ── */
 .display {
-  font-family: var(--font-display);
-  font-weight: 300;
-  font-style: italic;
-  letter-spacing: -.01em;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: -.02em;
 }
 .mono { font-family: var(--font-mono); }
 .label {
@@ -634,7 +634,7 @@ select option { background: var(--sur); }
   color: var(--txt2);
   border-left: 2px solid var(--gold-bdr);
 }
-.ex-en { font-style: italic; color: var(--txt); font-weight: 400; }
+.ex-en { font-style: normal; color: var(--txt); font-weight: 400; }
 .ex-ko { color: var(--txt2); }
 
 /* ── List Items ── */
@@ -822,7 +822,7 @@ select option { background: var(--sur); }
   text-align: center;
   animation: popup .2s ease-out;
 }
-.kw-popup-en { font-family: var(--font-display); font-size: 20px; font-style: italic; color: var(--gold); }
+.kw-popup-en { font-family: var(--font-body); font-size: 20px; font-weight: 700; font-style: normal; color: var(--gold); }
 .kw-popup-ko { font-size: 14px; color: var(--txt); margin-top: 4px; }
 
 /* ── Animations ── */
@@ -855,4 +855,3 @@ select option { background: var(--sur); }
   .mode-grid { grid-template-columns: 1fr; }
   .catalog-grid { grid-template-columns: 1fr; }
 }
-
