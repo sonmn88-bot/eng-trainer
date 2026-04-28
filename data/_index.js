@@ -84,11 +84,29 @@ const LISTENING_CATALOG = [
     tagColor: '#C9A961',
     total:    17,
   },
+  {
+    id:       '2026-09',
+    name:     '2026학년도 9월 모의',
+    subname:  '전국연합학력평가',
+    icon:     '📝',
+    metaFile: '2026-09-meta.json',
+    audioDir: '2026-09',
+    color:    '#60A5FA',
+    tag:      '9모',
+    tagColor: '#60A5FA',
+    total:    17,
+  },
+  {
+    id:       '2026-06',
+    name:     '2026학년도 6월 모의',
+    subname:  '전국연합학력평가',
+    icon:     '📋',
+    metaFile: '2026-06-meta.json',
+    audioDir: '2026-06',
+    color:    '#A78BFA',
+    tag:      '6모',
+    tagColor: '#A78BFA',
+    total:    17,
+  },
   // ── 여기에 새 회차 추가 ──
-  // {
-  //   id: '2026-09', name: '2026학년도 9월 모의', subname: '전국연합학력평가',
-  //   icon: '📝', metaFile: '2026-09-meta.json', audioDir: '2026-09',
-  //   color: '#60A5FA', tag: '9모', tagColor: '#60A5FA', total: 17,
-  // },
 ];
-
