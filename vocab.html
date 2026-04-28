@@ -148,6 +148,10 @@
           <div class="fc-ko" id="fc-ko"></div>
           <div class="fc-en" style="font-size:15px;color:var(--txt2);margin-top:.5rem" id="fc-en2"></div>
           <div id="fc-mnemonic" class="mnemonic-box" style="display:none"></div>
+          <div id="fc-example" style="display:none;margin-top:.75rem;padding:.5rem .75rem;background:rgba(255,255,255,.04);border-radius:8px;text-align:left;width:100%">
+            <div id="fc-ex-en" style="font-size:12px;color:var(--txt2);line-height:1.6;font-style:italic"></div>
+            <div id="fc-ex-ko" style="font-size:11px;color:var(--txt3);margin-top:3px;line-height:1.5"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -220,6 +224,7 @@
 </div><!-- .app -->
 
 <script src="data/words/mnemonics.js"></script>
+<script src="data/words/examples.js"></script>
 <script src="data/_index.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
@@ -463,11 +468,22 @@ async function renderFlash() {
   const inner = document.getElementById('fc-inner');
   inner.classList.remove('flipped');
 
-  // 연상법 — 파일 기반 즉시 표시
+  // 연상법
   const mnBox = document.getElementById('fc-mnemonic');
   const mn = Utils.getMnemonic(w[0], w[1]);
   if (mn) { mnBox.textContent = mn; mnBox.style.display = 'block'; mnBox.style.opacity = '1'; }
   else mnBox.style.display = 'none';
+
+  // 예문
+  const exBox = document.getElementById('fc-example');
+  const ex = window.EXAMPLES && window.EXAMPLES[w[0].toLowerCase()];
+  if (ex) {
+    document.getElementById('fc-ex-en').textContent = ex.en;
+    document.getElementById('fc-ex-ko').textContent = ex.ko;
+    exBox.style.display = 'block';
+  } else {
+    exBox.style.display = 'none';
+  }
 
   // Pollinations 이미지 (단어+뜻 기반으로 개선)
   const imgWrap = document.getElementById('fc-img-wrap');
