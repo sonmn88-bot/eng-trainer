@@ -1,0 +1,121 @@
+[
+  {
+    "num": 1, "type": "목적", "difficulty": "하", "speakers": "W",
+    "question": "다음을 듣고, 여자가 하는 말의 목적으로 가장 적절한 것을 고르시오.",
+    "script": "Hello, students. I'm Susan Miller, the school librarian. I'm here to tell you about our upcoming Book Fair. It will be held in the school gymnasium from October 5th to 7th. You can find a wide variety of books at discounted prices. There will also be special events such as author signings and reading competitions. This is a great opportunity to discover new books and support our school library. We hope to see you there. Thank you.",
+    "keyExpressions": [["Book Fair","도서 박람회"],["discounted prices","할인된 가격"],["author signings","작가 사인회"]],
+    "tip": "🎯 목적 유형: 첫 문장과 마지막 권유 표현 집중. 'I'm here to tell you about ~'가 목적을 직접 드러냄."
+  },
+  {
+    "num": 2, "type": "의견", "difficulty": "하", "speakers": "M/W",
+    "question": "대화를 듣고, 남자의 의견으로 가장 적절한 것을 고르시오.",
+    "script": "W: Tom, have you heard about the new community garden project? M: Yes, I have. I think participating in community gardening is really beneficial for mental health. W: Really? How so? M: Well, spending time outdoors and working with plants can reduce stress significantly. W: That makes sense. M: Also, it gives people a sense of accomplishment when they see things grow. W: I never thought about it that way. M: And it's a great way to connect with neighbors too. W: You've convinced me. I'll sign up today.",
+    "keyExpressions": [["community gardening","공동체 텃밭 가꾸기"],["reduce stress","스트레스를 줄이다"],["sense of accomplishment","성취감"]],
+    "tip": "🎯 의견 유형: 남자(M)의 'I think ~' 첫 주장이 핵심. 이후 대화는 모두 근거 설명."
+  },
+  {
+    "num": 3, "type": "요지", "difficulty": "하", "speakers": "M",
+    "question": "다음을 듣고, 남자가 하는 말의 요지로 가장 적절한 것을 고르시오.",
+    "script": "Good morning, everyone. I'm Dr. James from the wellness center. Today I want to talk about the importance of taking short breaks during work. Many people think working without breaks makes them more productive. However, research shows the opposite. Taking regular short breaks actually improves focus and creativity. For example, a five-minute break every hour can refresh your mind and help you work more efficiently. So, don't feel guilty about stepping away from your desk. Short breaks are essential for maintaining high performance throughout the day.",
+    "keyExpressions": [["short breaks","짧은 휴식"],["improves focus","집중력을 향상시키다"],["maintaining high performance","높은 성과를 유지하다"]],
+    "tip": "🎯 요지 유형: 'However' 이후 반전 문장이 핵심 요지. 마지막 문장에서 결론 확인."
+  },
+  {
+    "num": 4, "type": "그림", "difficulty": "중", "speakers": "W/M",
+    "question": "대화를 듣고, 그림에서 대화의 내용과 일치하지 않는 것을 고르시오.",
+    "script": "W: Honey, look at this photo from our camping trip. M: Oh, I love it. Do you see the tent we set up near the lake? W: Yes, and look at the bicycle leaning against the tree. M: Right. And there's the round picnic table where we had lunch. W: The children are playing with the dog in front of the tent. M: Oh, and there's the flag on top of the tent. W: That was such a great trip. M: It really was.",
+    "keyExpressions": [["leaning against","~에 기대어"],["round picnic table","둥근 피크닉 테이블"],["in front of","~ 앞에"]],
+    "tip": "🎯 그림 유형: 위치 전치사와 모양/숫자 표현 집중. 'leaning against', 'in front of' 등 즉시 그림과 대조."
+  },
+  {
+    "num": 5, "type": "할일", "difficulty": "하", "speakers": "W/M",
+    "question": "대화를 듣고, 여자가 할 일로 가장 적절한 것을 고르시오.",
+    "script": "M: Jenny, are you ready for the science fair tomorrow? W: Almost. I finished making the poster. M: Great. Did you prepare the experiment materials? W: Yes, they're all packed. M: What about the report? W: I still need to print it out. M: You should do that now. The printer in the library closes at 6. W: You're right. I'll go print it right away. M: Good. I'll set up the display board while you do that. W: Thanks, that'd be a big help.",
+    "keyExpressions": [["science fair","과학 박람회"],["print it out","출력하다"],["set up the display board","전시판을 설치하다"]],
+    "tip": "🎯 할일 유형: 마지막 대화에서 'I'll ~' 표현 집중. 이미 완료한 것과 앞으로 할 것 구분."
+  },
+  {
+    "num": 6, "type": "금액", "difficulty": "중", "speakers": "M/W",
+    "question": "대화를 듣고, 남자가 지불할 금액을 고르시오.",
+    "script": "W: Welcome to Sports World. Can I help you? M: Yes, I'm looking for a yoga mat. W: We have two types. The basic one is $30 and the premium one is $50. M: I'll take the premium one. Do you have water bottles? W: Yes. They're $15 each. M: I'll get two of those as well. W: So that's one premium yoga mat and two water bottles. M: Right. Oh, do you have any discount coupons? W: Yes, we're offering a 10% discount on purchases over $70 today. M: Perfect. Here's my card.",
+    "keyExpressions": [["premium","고급의"],["discount coupons","할인 쿠폰"],["purchases over $70","70달러 초과 구매"]],
+    "tip": "🎯 금액 계산: $50 + ($15×2) = $80. 10% 할인 적용 → $80 × 0.9 = $72. 할인 조건($70 초과) 충족 확인!"
+  },
+  {
+    "num": 7, "type": "이유", "difficulty": "하", "speakers": "W/M",
+    "question": "대화를 듣고, 여자가 동아리 모임에 참석할 수 없는 이유를 고르시오.",
+    "script": "M: Hey Sarah, are you coming to the book club meeting tonight? W: I'm afraid I can't make it, David. M: Oh no. Is everything okay? W: Yes, I'm fine. It's just that my younger sister is visiting from out of town. M: Oh, that's nice. Will she be staying long? W: Just for the weekend. I haven't seen her in months, so I want to spend time with her. M: Of course, family comes first. W: I'll definitely be at next month's meeting though. M: No worries. I'll fill you in on what we discuss.",
+    "keyExpressions": [["out of town","타지에서"],["spend time with","~와 시간을 보내다"],["family comes first","가족이 우선이다"]],
+    "tip": "🎯 이유 유형: 여러 오답 후보가 등장하지만 진짜 이유는 'It's just that ~' 이후. 부정 답변 소거 후 진짜 이유 파악."
+  },
+  {
+    "num": 8, "type": "언급", "difficulty": "하", "speakers": "M/W",
+    "question": "대화를 듣고, Green Valley Marathon에 관해 언급되지 않은 것을 고르시오.",
+    "script": "W: Kevin, I heard you're running in the Green Valley Marathon next month. M: That's right. I'm really excited about it. W: When does it take place? M: It's on November 15th. W: Where is it held? M: It starts and finishes at City Park. W: How long is the race? M: It's a full marathon, so 42 kilometers. W: That's impressive. Is there a participation fee? M: Yes, it's $25 per person. W: I might join next year. M: You should! It's a great experience.",
+    "keyExpressions": [["full marathon","풀 마라톤"],["participation fee","참가비"],["City Park","시티 파크"]],
+    "tip": "🎯 언급 유형: 날짜(11/15), 장소(City Park), 거리(42km), 참가비($25) 언급됨. 선택지에서 미언급 항목 찾기."
+  },
+  {
+    "num": 9, "type": "내용일치", "difficulty": "하", "speakers": "W",
+    "question": "Youth Photography Contest에 관한 다음 내용을 듣고, 일치하지 않는 것을 고르시오.",
+    "script": "Hello, listeners. Are you interested in photography? The Youth Photography Contest is now accepting entries. This contest is open to students between the ages of 13 and 18. The theme for this year is 'Nature in the City.' You can submit up to three photos per person. Photos must be taken within the last six months. The submission deadline is September 30th. Winners will receive cash prizes and their photos will be displayed at the City Art Gallery. For more information, visit our website. Don't miss this chance to showcase your talent!",
+    "keyExpressions": [["accepting entries","참가 신청을 받다"],["submission deadline","제출 마감일"],["City Art Gallery","시립 미술관"]],
+    "tip": "🎯 내용일치: 선택지 순서 = 지문 순서. 나이(13-18), 주제, 제출 수(3장), 기간(6개월), 마감일(9/30) 순으로 체크."
+  },
+  {
+    "num": 10, "type": "도표", "difficulty": "중", "speakers": "W/M",
+    "question": "다음 표를 보면서 대화를 듣고, 두 사람이 신청할 요리 수업을 고르시오.",
+    "script": "W: Jake, let's sign up for a cooking class together. M: Sure. What's our budget? W: I think we shouldn't spend more than $80 each. M: Agreed. What about the duration? W: I'd prefer at least 4 weeks. M: Me too. What type of cuisine are you interested in? W: I'd love to learn Italian or Japanese. M: Italian sounds great. Should we go for a weekday or weekend class? W: Weekdays are better for me. M: Same here. Then it looks like we have our answer. W: Perfect, let's sign up!",
+    "keyExpressions": [["budget","예산"],["duration","기간"],["cuisine","요리 종류"]],
+    "tip": "🎯 도표 유형: 예산($80 이하) → 기간(4주 이상) → 요리 종류(이탈리안) → 요일(평일) 순서로 조건 소거."
+  },
+  {
+    "num": 11, "type": "짧은대화응답", "difficulty": "하", "speakers": "M/W",
+    "question": "대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오.",
+    "script": "W: Excuse me, I think I left my umbrella on the bus. M: I see. Can you describe it? W: It's a blue folding umbrella with a flower pattern. M: Let me check our lost and found. [Pause] Yes, we have one that matches that description. W: ___",
+    "keyExpressions": [["lost and found","분실물 보관소"],["matches that description","그 설명과 일치하다"],["folding umbrella","접이식 우산"]],
+    "tip": "🎯 짧은 응답: 분실물을 찾았다는 M의 말에 W의 자연스러운 반응 선택. 감사 표현이나 확인 요청이 자연스러움."
+  },
+  {
+    "num": 12, "type": "짧은대화응답", "difficulty": "중", "speakers": "W/M",
+    "question": "대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+    "script": "M: Lisa, have you decided on your college major yet? W: Not yet. I'm torn between computer science and graphic design. M: What are you more passionate about? W: I love creating things visually, but I also enjoy coding. M: Have you thought about a field that combines both? W: Like what? M: There's a major called UX design that involves both visual creativity and technical skills. W: ___",
+    "keyExpressions": [["college major","대학 전공"],["passionate about","~에 열정적인"],["UX design","UX 디자인"]],
+    "tip": "🎯 응답 핵심: UX 디자인이라는 새 정보를 제시받은 W의 반응. 관심 표현이나 더 알고 싶다는 반응이 자연스러움."
+  },
+  {
+    "num": 13, "type": "짧은대화응답", "difficulty": "중", "speakers": "M/W",
+    "question": "대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+    "script": "W: Hi, I'd like to return this jacket. M: May I ask the reason? W: It's too small. I'd like to exchange it for a larger size. M: I'm sorry, but this item was purchased during our sale period. W: Does that mean I can't exchange it? M: You can exchange it, but we don't have the same jacket in a larger size right now. W: When will it be back in stock? M: It should arrive within two weeks. Would you like me to reserve one for you? W: ___",
+    "keyExpressions": [["exchange","교환하다"],["back in stock","재입고되다"],["reserve","예약하다"]],
+    "tip": "🎯 응답 핵심: 예약 여부를 묻는 M의 질문에 대한 W의 답변. 수락 또는 거절 중 상황에 맞는 선택."
+  },
+  {
+    "num": 14, "type": "짧은대화응답", "difficulty": "중", "speakers": "W/M",
+    "question": "대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+    "script": "M: Professor Kim, do you have a moment? I need some advice about my research paper. W: Of course, Michael. What's the problem? M: I've collected a lot of data, but I'm having trouble organizing it logically. W: That's a common challenge. Have you tried making an outline first? M: I did, but the sections don't flow well. W: Let me see your outline. [Pause] I see the issue. Your argument would be stronger if you put the cause before the effect. M: That makes sense. But I'm also worried about the length. It's too long. W: How many pages is it now? M: Thirty pages. The limit is twenty. W: ___",
+    "keyExpressions": [["organizing logically","논리적으로 정리하다"],["cause before the effect","원인을 결과 앞에"],["page limit","페이지 제한"]],
+    "tip": "🎯 응답 핵심: 30페이지인데 제한이 20페이지라는 상황. W 교수의 조언(삭제/편집 방법 제안)이 자연스러운 응답."
+  },
+  {
+    "num": 15, "type": "상황적절표현", "difficulty": "중", "speakers": "W",
+    "question": "다음 상황 설명을 듣고, Amy가 Brian에게 할 말로 가장 적절한 것을 고르시오.",
+    "script": "Amy and Brian are coworkers at a marketing company. They are working on an important presentation together. Brian has been creating all the visual slides while Amy handles the content. However, Amy notices that Brian has been staying very late every day and looks exhausted. She finds out that Brian is also working on another project at the same time. Amy wants to suggest that they divide the remaining work more equally so that Brian doesn't have to work so hard. In this situation, what would Amy most likely say to Brian?",
+    "keyExpressions": [["divide the work","일을 나누다"],["more equally","더 균등하게"],["exhausted","지친"]],
+    "tip": "🎯 상황 표현: 마지막 'Amy wants to suggest ~' 부분이 핵심. 업무 분담 제안 표현을 선택."
+  },
+  {
+    "num": 16, "type": "주제", "difficulty": "중", "speakers": "W",
+    "question": "여자가 하는 말의 주제로 가장 적절한 것은?",
+    "script": "Hello, students. Today I want to talk about the benefits of learning a second language. First, it improves cognitive abilities. Studies show that bilingual people are better at multitasking and problem-solving. Second, it opens up career opportunities. In our globalized world, employers increasingly value employees who can communicate in multiple languages. Third, it enhances cultural understanding. When you learn a language, you also learn about the culture and perspectives of its speakers. Finally, research suggests that learning a second language can delay the onset of dementia. So, whether you're young or old, learning a new language is always worth the effort.",
+    "keyExpressions": [["cognitive abilities","인지 능력"],["career opportunities","직업 기회"],["delay the onset of dementia","치매 발병을 늦추다"]],
+    "tip": "🎯 주제 유형: 첫 문장 'benefits of learning a second language'가 주제. First/Second/Third/Finally 구조로 나열."
+  },
+  {
+    "num": 17, "type": "세부내용", "difficulty": "하", "speakers": "W",
+    "question": "언급된 second language의 이점이 아닌 것은?",
+    "script": "※ 16번과 같은 지문",
+    "keyExpressions": [["multitasking","멀티태스킹"],["bilingual","이중 언어 사용자"],["dementia","치매"]],
+    "tip": "🎯 세부내용: 언급된 이점 — 인지능력 향상, 취업기회, 문화이해, 치매 예방. 선택지 5개 중 미언급 1개가 정답."
+  }
+]
