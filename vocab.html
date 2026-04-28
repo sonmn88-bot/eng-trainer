@@ -27,7 +27,7 @@
 .week-card:hover, .week-card.sel {
   border-color: var(--gold-bdr); background: var(--gold-bg); color: var(--gold);
 }
-.week-card-num { font-family: var(--font-mono); font-size: 18px; font-weight: 500; }
+.week-card-num { font-family: var(--font-body); font-size: 18px; font-weight: 700; }
 .week-card-cnt { font-size: 10px; color: var(--txt3); margin-top: 2px; letter-spacing:.04em; }
 .fc-nav {
   display: flex; align-items: center; justify-content: space-between;
@@ -43,7 +43,7 @@
 .mnemonic-box {
   background: var(--sur3); border-radius: var(--rs);
   padding: .625rem .875rem; font-size: 12px; color: var(--txt2);
-  font-style: italic; line-height: 1.5; margin-top: .5rem;
+  font-style: normal; line-height: 1.5; margin-top: .5rem;
   border-left: 2px solid var(--gold-bdr);
 }
 .wrong-item {
@@ -155,12 +155,12 @@
         </div>
       </div>
     </div>
-    <div class="fc-nav">
-      <button class="btn" onclick="flashPrev()">← 이전</button>
-      <button class="tts-btn" onclick="Utils.speak(flash.words[flash.idx][0])">🔊</button>
-      <button class="btn" onclick="flashNext()">다음 →</button>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn btn-full" onclick="flashPrev()">← 이전</button>
+      <button class="tts-btn" style="flex-shrink:0;padding:10px 16px" onclick="Utils.speak(flash.words[flash.idx][0])">🔊</button>
+      <button class="btn btn-full" onclick="flashNext()">다음 →</button>
     </div>
-    <div style="display:flex;gap:8px;margin-top:.75rem">
+    <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn btn-ghost btn-full" onclick="backToSet()">← 돌아가기</button>
       <button class="btn btn-gold btn-full" onclick="goQuiz()">✏️ 시험 보기</button>
     </div>
@@ -345,6 +345,9 @@ async function selectSet(setId) {
   // 단어 로드
   allWords = await loadWordFile(currentSet);
   document.getElementById('mode-random-desc').textContent = `전체 ${allWords.length.toLocaleString()}개 랜덤`;
+
+  // 이미지 백그라운드 프리로딩
+  preloadImages(allWords);
 
   // 주차 그리드
   buildWeekGrid();
@@ -635,6 +638,21 @@ function showResult() { showView('result'); }
 
 // ── Init ───────────────────────────────────────
 initLibrary();
+
+// 이미지 프리로딩 함수 - 단어장 선택 후 백그라운드에서 실행
+function preloadImages(words) {
+  const sample = words.slice(0, 50); // 처음 50개만
+  let i = 0;
+  function loadNext() {
+    if (i >= sample.length) return;
+    const w = sample[i++];
+    const img = new Image();
+    img.src = Utils.pollUrl(w[0], w[1]);
+    // 로드 성공/실패 상관없이 200ms 후 다음 로드
+    setTimeout(loadNext, 200);
+  }
+  setTimeout(loadNext, 500); // 화면 전환 후 시작
+}
 </script>
 </body>
 </html>
