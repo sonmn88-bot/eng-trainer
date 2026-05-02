@@ -2729,3 +2729,4 @@ Object.assign(window.MNEMONICS, {
   'yearn': '이이르느 소리로 → "그리워하다"',
   'yeast': '이이스트 소리로 → "효모"',
 });
+
