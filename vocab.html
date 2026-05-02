@@ -475,13 +475,14 @@ async function renderFlash() {
 
   // 연상법
   const mnBox = document.getElementById('fc-mnemonic');
-  const mn = Utils.getMnemonic(w[0], w[1]);
+  const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
   if (mn) { mnBox.textContent = mn; mnBox.style.display = 'block'; mnBox.style.opacity = '1'; }
   else mnBox.style.display = 'none';
 
   // 예문
   const exBox = document.getElementById('fc-example');
-  const ex = window.EXAMPLES && window.EXAMPLES[w[0].toLowerCase()];
+  const exKey = w[0].toLowerCase();
+  const ex = window.EXAMPLES && (window.EXAMPLES[exKey] || window.EXAMPLES[exKey.split(' ')[0]]);
   if (ex) {
     document.getElementById('fc-ex-en').textContent = ex.en;
     document.getElementById('fc-ex-ko').textContent = ex.ko;
@@ -525,7 +526,7 @@ function showHint() {
   }
 
   // 연상법 먼저, 없으면 첫 글자
-  const mn = Utils.getMnemonic(w[0], w[1]);
+  const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
   if (mn && mn !== '') {
     hintEl.textContent = '💭 ' + mn;
   } else {
