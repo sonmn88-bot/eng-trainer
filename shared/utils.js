@@ -1,5 +1,7 @@
-// ── Utils ─────────────────────────────────────
+// ── Utils ──────────────────────────────────────────────────────────────────
 const Utils = {
+
+  // ── TTS ──
   speak(text) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
@@ -8,50 +10,152 @@ const Utils = {
     window.speechSynthesis.speak(u);
   },
 
-  shuffle(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  },
-
-  normalize(s) {
-    return s.replace(/[^가-힣a-zA-Z0-9\s,]/g, '').trim().toLowerCase();
-  },
-
-  checkAnswer(input, correct) {
-    const inp = this.normalize(input);
-    const answers = correct.split(/[,\/]/).map(s => this.normalize(s));
-    if (answers.some(a => a === inp)) return 'exact';
-    if (answers.some(a => a.includes(inp) || inp.includes(a.split(' ')[0]))) return 'close';
-    return 'wrong';
-  },
-
-  fmtTime(sec) {
-    const m = Math.floor(sec / 60), s = sec % 60;
-    return `${m}:${String(s).padStart(2,'0')}`;
-  },
-
+  // ── Date ──
   today() {
-    return new Date().toISOString().slice(0, 10);
-  },
-
-  weekOf(dateStr) {
-    const d = new Date(dateStr || Date.now());
-    const day = d.getDay() || 7;
-    d.setDate(d.getDate() - day + 1);
+    const d = new Date();
     return d.toISOString().slice(0, 10);
   },
 
-  // ── 이미지 URL ──
+  // ── 이미지 URL: 단어 뜻 기반 구체적 장면 묘사 ──
   pollUrl(en, ko) {
-    const mainKo = (ko || '').split(/[,\/]/)[0].trim();
-    const prompt = `${en} ${mainKo} simple clean illustration minimal flat design no text white background`;
+    // 한국어 뜻에서 핵심어 추출
+    const mainKo = (ko || '').split(/[,\/;]/)[0].trim();
+
+    // 단어별 커스텀 프롬프트 (구체적 장면)
+    const customPrompts = {
+      'abandon': 'empty broken-down van abandoned on a road, flat illustration',
+      'absorb': 'sponge soaking up blue water, cross-section view, flat illustration',
+      'accelerate': 'sports car on highway with speed lines, flat illustration',
+      'adapt': 'chameleon changing color on different backgrounds, flat illustration',
+      'adequate': 'measuring cup filled exactly to the line, flat illustration',
+      'advocate': 'person standing at podium speaking to crowd, flat illustration',
+      'alert': 'bright red alarm bell ringing, flat illustration',
+      'ambiguous': 'optical illusion image showing two different shapes, flat illustration',
+      'ancient': 'ancient stone ruins with moss, flat illustration',
+      'anxiety': 'person with thought bubbles swirling around head, flat illustration',
+      'authentic': 'gold seal of authenticity stamp, flat illustration',
+      'barrier': 'concrete wall blocking a path, flat illustration',
+      'benefit': 'person receiving a gift wrapped in ribbon, flat illustration',
+      'bloom': 'flower blooming from bud to full flower, flat illustration',
+      'boundary': 'fence line separating two areas, flat illustration',
+      'burden': 'person carrying heavy rocks on back, flat illustration',
+      'calm': 'still lake reflecting mountains at sunrise, flat illustration',
+      'capture': 'butterfly net catching a butterfly, flat illustration',
+      'collapse': 'building crumbling into pieces, flat illustration',
+      'compassion': 'person comforting another with hand on shoulder, flat illustration',
+      'conflict': 'two opposing arrows clashing in the middle, flat illustration',
+      'courage': 'lion standing tall on a rock, flat illustration',
+      'creativity': 'colorful lightbulb with art supplies around it, flat illustration',
+      'cultivate': 'hands planting a seed in soil, flat illustration',
+      'curiosity': 'cat looking into an open box with question marks, flat illustration',
+      'decay': 'apple rotting on a wooden surface, flat illustration',
+      'dedicate': 'person kneeling in front of an altar, flat illustration',
+      'defeat': 'chess king piece toppled over, flat illustration',
+      'determination': 'person climbing steep mountain face, flat illustration',
+      'discipline': 'military-style checklist on a clipboard, flat illustration',
+      'discover': 'person with magnifying glass finding treasure, flat illustration',
+      'disperse': 'seeds flying away from a dandelion, flat illustration',
+      'dominate': 'chess queen piece towering over other pieces, flat illustration',
+      'dream': 'person sleeping with thought bubble of stars, flat illustration',
+      'drought': 'cracked dry earth with wilting plant, flat illustration',
+      'ecology': 'circular ecosystem diagram with animals and plants, flat illustration',
+      'educate': 'teacher at blackboard with students, flat illustration',
+      'emerge': 'butterfly emerging from chrysalis, flat illustration',
+      'empathy': 'two people with matching heart symbols, flat illustration',
+      'endure': 'person walking through heavy rain and wind, flat illustration',
+      'enhance': 'before and after image with improvement arrow, flat illustration',
+      'erosion': 'cliff face being worn away by waves, flat illustration',
+      'evaporate': 'puddle of water turning into steam rising up, flat illustration',
+      'evolve': 'evolution chart from fish to upright human, flat illustration',
+      'exploit': 'person extracting oil from ground with machine, flat illustration',
+      'extinction': 'last remaining dinosaur standing alone, flat illustration',
+      'failure': 'rocket crashed on launchpad, flat illustration',
+      'faith': 'person reaching toward glowing light, flat illustration',
+      'fertility': 'lush green field with abundant crops, flat illustration',
+      'flourish': 'plant growing vigorously with many leaves, flat illustration',
+      'forgive': 'broken chain being reconnected with golden link, flat illustration',
+      'foundation': 'building blueprint showing strong base, flat illustration',
+      'fragile': 'glass vase with crack lines, flat illustration',
+      'freedom': 'bird flying out of open cage, flat illustration',
+      'frustration': 'person hitting desk with fist, angry expression, flat illustration',
+      'generate': 'factory with gears producing output, flat illustration',
+      'growth': 'seedling growing into tall tree, time-lapse sequence, flat illustration',
+      'habitat': 'diverse ecosystem with various animals in natural setting, flat illustration',
+      'harvest': 'farmer collecting ripe golden wheat, flat illustration',
+      'heal': 'bandage unwrapping to reveal healthy skin, flat illustration',
+      'heritage': 'old family photo album with ancestral items, flat illustration',
+      'hierarchy': 'pyramid organizational chart, flat illustration',
+      'hope': 'tiny plant growing through crack in concrete, flat illustration',
+      'humility': 'person bowing respectfully before another, flat illustration',
+      'iceberg': 'iceberg with large portion underwater, flat illustration',
+      'illuminate': 'candle lighting up dark room, flat illustration',
+      'imagine': 'person with cloud thought bubble containing colorful images, flat illustration',
+      'immune': 'shield blocking incoming arrows, flat illustration',
+      'innovate': 'lightbulb with gears inside, flat illustration',
+      'integrity': 'unbroken circle of gold, flat illustration',
+      'isolate': 'single island in the middle of ocean, flat illustration',
+      'justice': 'balanced scales of justice, flat illustration',
+      'kindness': 'person giving flower to another person, flat illustration',
+      'knowledge': 'open book with light rays coming out, flat illustration',
+      'leadership': 'person standing at front guiding group up mountain, flat illustration',
+      'legacy': 'old tree with many branches reaching outward, flat illustration',
+      'liberate': 'person breaking free from chains, flat illustration',
+      'loyalty': 'dog sitting faithfully beside its owner, flat illustration',
+      'maintain': 'wrench maintaining a machine, flat illustration',
+      'manifest': 'hand revealing hidden object, flat illustration',
+      'migrate': 'birds flying in V-formation across sky, flat illustration',
+      'momentum': 'snowball rolling downhill growing larger, flat illustration',
+      'nourish': 'hand watering a growing plant, flat illustration',
+      'obstacle': 'large boulder blocking a path, flat illustration',
+      'overcome': 'person jumping over hurdle, flat illustration',
+      'persist': 'person continuing to walk despite heavy wind, flat illustration',
+      'pioneer': 'person standing at unexplored frontier, flat illustration',
+      'pollution': 'factory chimney with dark smoke over city, flat illustration',
+      'potential': 'acorn next to giant oak tree, flat illustration',
+      'preserve': 'jar containing preserved fruit, flat illustration',
+      'progress': 'staircase going upward with progress markers, flat illustration',
+      'protect': 'umbrella shielding from rain, flat illustration',
+      'purify': 'dirty water filtering through layers to become clean, flat illustration',
+      'purpose': 'compass pointing in clear direction, flat illustration',
+      'radical': 'tree with roots being cut at the base, flat illustration',
+      'reconcile': 'two hands shaking across a divide, flat illustration',
+      'reflect': 'mirror image of person thinking, flat illustration',
+      'reinforce': 'steel beams strengthening a structure, flat illustration',
+      'resilience': 'rubber ball bouncing back from floor, flat illustration',
+      'restore': 'before-after image of old building being renovated, flat illustration',
+      'reveal': 'curtain being pulled back to show hidden scene, flat illustration',
+      'sacrifice': 'person giving away last piece of bread, flat illustration',
+      'scatter': 'seeds being thrown into wind in all directions, flat illustration',
+      'shelter': 'small house with warm light in dark storm, flat illustration',
+      'shrink': 'object getting progressively smaller in sequence, flat illustration',
+      'simplify': 'complex equation reducing to simple expression, flat illustration',
+      'soar': 'eagle soaring high above clouds, flat illustration',
+      'stability': 'three-legged stool standing firmly, flat illustration',
+      'strength': 'muscular arm flexing, flat illustration',
+      'struggle': 'person pushing against strong wind, flat illustration',
+      'summit': 'mountain peak with flag at top, flat illustration',
+      'sustain': 'ecosystem circular flow chart, flat illustration',
+      'transform': 'caterpillar cocoon becoming butterfly, flat illustration',
+      'trust': 'two people standing on a tightrope together, flat illustration',
+      'unity': 'multiple hands joining together in circle, flat illustration',
+      'vision': 'eye with telescope looking into distance, flat illustration',
+      'vulnerable': 'turtle without its shell, flat illustration',
+      'wisdom': 'old owl with glasses reading a book, flat illustration',
+    };
+
+    const word = en.toLowerCase();
+    let prompt;
+    if (customPrompts[word]) {
+      prompt = customPrompts[word];
+    } else {
+      // 기본 프롬프트: 영어 단어 + 핵심 한국어 뜻으로 구체적 장면
+      const koClean = mainKo.replace(/[~하다하는이기]/g, '').trim();
+      prompt = `${en} concept ${koClean} simple clear scene flat illustration white background no text`;
+    }
+
     const p = encodeURIComponent(prompt);
     const seed = this.wordSeed(en);
-    return `https://image.pollinations.ai/prompt/${p}?width=200&height=200&seed=${seed}&nologo=true`;
+    return `https://image.pollinations.ai/prompt/${p}?width=300&height=300&seed=${seed}&nologo=true&model=flux`;
   },
 
   wordSeed(word) {
@@ -60,37 +164,26 @@ const Utils = {
     return h % 9999;
   },
 
-  // ── 연상법 가져오기 (파일 기반 + Firebase 저장값 우선) ──
-  getMnemonic(en, ko) {
-    // 1. Firebase에 선생님이 저장한 연상법 우선
-    if (window._mnemonicOverrides && window._mnemonicOverrides[en]) {
-      return window._mnemonicOverrides[en];
+  // ── Shuffle ──
+  shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    // 2. 미리 만든 연상법 파일 (없으면 null → 표시 안 함)
-    if (window.MNEMONICS && window.MNEMONICS[en.toLowerCase()]) {
-      return window.MNEMONICS[en.toLowerCase()];
+    return arr;
+  },
+
+  // ── 연상법 가져오기 ──
+  getMnemonic(en, ko) {
+    const key = (en || '').toLowerCase();
+    // Firebase 커스텀 연상법 우선
+    if (window._mnemonicOverrides && window._mnemonicOverrides[key]) {
+      return window._mnemonicOverrides[key];
+    }
+    // 기본 연상법
+    if (window.MNEMONICS && window.MNEMONICS[key]) {
+      return window.MNEMONICS[key];
     }
     return null;
   },
-
-  fallbackMnemonic(en, ko) {
-    const mainKo = (ko || '').split(/[,\/]/)[0].trim();
-    // 발음 근사 변환
-    const phonetic = en
-      .replace(/tion$/i, '션').replace(/sion$/i, '전')
-      .replace(/ous$/i, '어스').replace(/ive$/i, '이브')
-      .replace(/ate$/i, '에이트').replace(/ment$/i, '먼트')
-      .replace(/ness$/i, '니스').replace(/less$/i, '리스')
-      .replace(/ful$/i, '풀').replace(/able$/i, '어블')
-      .replace(/ible$/i, '이블').replace(/ity$/i, '이티')
-      .replace(/ly$/i, '리').replace(/th/gi, '드')
-      .replace(/ph/gi, '프').replace(/ch/gi, '치')
-      .replace(/sh/gi, '쉬').replace(/ck/gi, '크')
-      .replace(/ee|ea/gi, '이').replace(/ou/gi, '아우')
-      .replace(/oo/gi, '우').replace(/ai|ay/gi, '에이')
-      .replace(/a/gi, '아').replace(/e/gi, '에')
-      .replace(/i/gi, '이').replace(/o/gi, '오').replace(/u/gi, '우')
-      .replace(/[bcdfghjklmnpqrstvwxyz]/gi, '');
-    return `[${phonetic || en}] 소리로 기억 → "${mainKo}"`;
-  }
 };
