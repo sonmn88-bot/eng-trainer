@@ -26,6 +26,25 @@
   background: var(--sur2); border-radius: var(--rs);
   padding: .75rem 1rem; margin-bottom: .75rem; font-size: 13px;
 }
+.export-word-table {
+  width: 100%; border-collapse: collapse; font-size: 12px; margin-top: .5rem;
+}
+.export-word-table th {
+  background: var(--sur2); color: var(--txt3); font-weight: 600;
+  padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--bdr);
+  font-size: 11px; letter-spacing: .04em;
+}
+.export-word-table td {
+  padding: 4px 8px; border-bottom: 1px solid var(--bdr);
+  vertical-align: middle; color: var(--txt);
+}
+.export-word-table tr:last-child td { border-bottom: none; }
+.export-word-table .tag-weak { color: var(--red); font-size: 10px; font-weight: 600; }
+.export-word-table .tag-study { color: var(--gold); font-size: 10px; font-weight: 600; }
+.export-panel {
+  background: var(--sur2); border: 1px solid var(--bdr);
+  border-radius: var(--rs); padding: .875rem; margin-top: .75rem;
+}
 </style>
 </head>
 <body>
@@ -45,6 +64,7 @@
 <div class="tabs">
   <button class="tab active" id="tt-students" onclick="switchT('students')">학생</button>
   <button class="tab" id="tt-stats"    onclick="switchT('stats')">통계</button>
+  <button class="tab" id="tt-mnemonic" onclick="switchT('mnemonic')">연상법</button>
   <button class="tab" id="tt-settings" onclick="switchT('settings')">설정</button>
 </div>
 
@@ -73,10 +93,49 @@
           <div style="font-size:15px;font-weight:600" id="detail-name"></div>
           <div style="font-size:11px;color:var(--txt3)" id="detail-joined"></div>
         </div>
-        <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="deleteStudent()">삭제</button>
+        <button class="btn btn-gold btn-sm" onclick="openExportPanel()" style="margin-left:auto">📋 시험 단어</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteStudent()">삭제</button>
       </div>
       <div class="metrics" id="detail-metrics"></div>
       <div id="detail-weak" style="margin-top:.5rem"></div>
+
+      <!-- 시험 단어 내보내기 패널 -->
+      <div id="export-panel" style="display:none" class="export-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <div>
+            <div style="font-size:13px;font-weight:600">📋 이번 주 시험 단어</div>
+            <div style="font-size:11px;color:var(--txt3);margin-top:2px">공부한 단어 + 취약단어 합산</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('export-panel').style.display='none'">✕</button>
+        </div>
+        <div id="export-loading" style="text-align:center;padding:1rem;color:var(--txt3);font-size:13px">불러오는 중...</div>
+        <div id="export-content" style="display:none">
+          <div style="display:flex;gap:6px;margin-bottom:.75rem;flex-wrap:wrap">
+            <span id="export-count" class="badge b-gold"></span>
+            <span id="export-weak-count" class="badge b-red"></span>
+            <span id="export-study-count" class="badge" style="background:var(--sur3);color:var(--txt2)"></span>
+          </div>
+          <div style="max-height:280px;overflow-y:auto;border-radius:var(--rs);border:1px solid var(--bdr)">
+            <table class="export-word-table">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>영어</th>
+                  <th>한국어 뜻</th>
+                  <th>구분</th>
+                  <th>틀린 횟수</th>
+                </tr>
+              </thead>
+              <tbody id="export-table-body"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:.875rem">
+            <button class="btn btn-gold btn-full" onclick="copyToExcel()">📋 엑셀에 붙여넣기 복사</button>
+            <button class="btn btn-full" onclick="copyWordListOnly()">단어만 복사</button>
+          </div>
+          <div id="copy-msg" style="display:none;text-align:center;font-size:12px;color:var(--grn);margin-top:.5rem;font-weight:500">✓ 복사됐습니다! 엑셀에 붙여넣기 하세요.</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -90,6 +149,32 @@
   <div class="card card-sm">
     <p class="sec-title" style="margin-bottom:.875rem">학생별 최근 점수</p>
     <div id="score-list"><div class="empty">데이터 없음</div></div>
+  </div>
+</div>
+
+<!-- ══ 연상법 편집 탭 ══ -->
+<div class="tsec" id="ts-mnemonic">
+  <div class="card card-sm" style="margin-bottom:1rem">
+    <p class="sec-title" style="margin-bottom:.875rem">✏️ 연상법 직접 편집</p>
+    <p style="font-size:12px;color:var(--txt2);margin-bottom:1rem">단어를 검색하고 연상법을 직접 수정할 수 있어요. 저장하면 모든 학생에게 적용됩니다.</p>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem">
+      <input id="mn-search" type="text" placeholder="단어 검색 (예: abandon)" style="flex:1"
+             oninput="searchMnemonic()" autocomplete="off">
+    </div>
+    <div id="mn-result" style="display:none" class="card card-sm" style="margin-top:.5rem">
+      <div style="font-size:13px;font-weight:600;margin-bottom:.5rem" id="mn-word-label"></div>
+      <label class="label">현재 연상법</label>
+      <div id="mn-current" style="font-size:12px;color:var(--txt2);background:var(--sur3);border-radius:var(--rs);padding:.625rem .875rem;margin-bottom:.75rem;line-height:1.5"></div>
+      <label class="label">새 연상법</label>
+      <input id="mn-new" type="text" placeholder="새 연상법 입력..." style="margin-bottom:.75rem">
+      <button class="btn btn-gold btn-full" onclick="saveMnemonic()">저장</button>
+      <div id="mn-msg" style="font-size:12px;min-height:16px;margin-top:.5rem;text-align:center"></div>
+    </div>
+  </div>
+
+  <div class="card card-sm">
+    <p class="sec-title" style="margin-bottom:.875rem">📋 저장된 커스텀 연상법</p>
+    <div id="mn-list"><div class="empty">아직 편집한 연상법이 없습니다</div></div>
   </div>
 </div>
 
@@ -138,6 +223,7 @@
 
 </div><!-- .app -->
 
+<script src="data/words/mnemonics.js"></script>
 <script src="data/_index.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
@@ -223,12 +309,173 @@ async function showStuDetail(stuId) {
 async function deleteStudent() {
   if (!confirm(`${students[selectedStuId]?.name} 학생을 삭제할까요?`)) return;
   try {
-    // Firebase에서는 null로 set
     await DB.saveStudent(selectedStuId, null);
     delete students[selectedStuId];
     document.getElementById('stu-detail').style.display = 'none';
     renderStudents();
   } catch(e) { alert('삭제 중 오류: ' + e.message); }
+}
+
+// ── 시험 단어 내보내기 ──────────────────────────────
+let exportWords = [];
+
+async function openExportPanel() {
+  const panel = document.getElementById('export-panel');
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('export-loading').style.display = 'block';
+  document.getElementById('export-content').style.display = 'none';
+  document.getElementById('copy-msg').style.display = 'none';
+
+  try {
+    const stuId = selectedStuId;
+    const [results, weakAll] = await Promise.all([
+      DB.getResults(stuId),
+      DB.getAllWeakWords(stuId)
+    ]);
+
+    // 취약단어 map (word → { wrong, streak })
+    const weakMap = {};
+    weakAll.forEach(w => { weakMap[w.word.toLowerCase()] = w; });
+
+    // results에서 단어 수집 (최근 순으로 정렬해서 최신 결과 우선)
+    const studiedSet = new Set();
+    const studiedKoMap = {};  // word → ko
+    const sortedResults = [...results].sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
+    sortedResults.forEach(r => {
+      if (r.words && Array.isArray(r.words)) {
+        r.words.forEach(w => {
+          const word = typeof w === 'string' ? w : (w.word || w || '');
+          if (word) {
+            studiedSet.add(word.toLowerCase());
+          }
+        });
+      }
+      if (r.word) studiedSet.add(r.word.toLowerCase());
+    });
+
+    // word 파일에서 한국어 뜻 가져오기
+    function getKo(word) {
+      if (!window.WORD_CATALOG) return '';
+      for (const set of window.WORD_CATALOG) {
+        // 단어 파일 로드는 안 돼있으므로 weakMap에서 가져오기
+        const w = weakMap[word.toLowerCase()];
+        if (w && w.ko) return w.ko;
+      }
+      return '';
+    }
+
+    // 합산 - 취약단어 + 공부한 단어
+    const allWordsMap = {};
+
+    // 1) 취약단어 (streak < 3인 것)
+    weakAll.filter(w => w.streak < 3).forEach(w => {
+      const key = w.word.toLowerCase();
+      allWordsMap[key] = {
+        word: w.word,
+        ko: w.ko || '',
+        wrong: w.wrong || 0,
+        right: w.right || 0,
+        streak: w.streak || 0,
+        isWeak: true,
+        isStudied: studiedSet.has(key)
+      };
+    });
+
+    // 2) 공부한 단어 (취약단어에 없는 것 추가)
+    studiedSet.forEach(key => {
+      if (!allWordsMap[key]) {
+        allWordsMap[key] = {
+          word: key,
+          ko: '',
+          wrong: 0, right: 0, streak: 0,
+          isWeak: false,
+          isStudied: true
+        };
+      }
+    });
+
+    exportWords = Object.values(allWordsMap).sort((a, b) => {
+      // 취약단어 먼저, 그 다음 공부한 단어, 각각 알파벳순
+      if (a.isWeak && !b.isWeak) return -1;
+      if (!a.isWeak && b.isWeak) return 1;
+      return a.word.localeCompare(b.word);
+    });
+
+    const weakCount = exportWords.filter(w => w.isWeak).length;
+    const studyCount = exportWords.filter(w => !w.isWeak && w.isStudied).length;
+
+    document.getElementById('export-count').textContent = `총 ${exportWords.length}개`;
+    document.getElementById('export-weak-count').textContent = `취약 ${weakCount}개`;
+    document.getElementById('export-study-count').textContent = `학습 ${studyCount}개`;
+
+    const tbody = document.getElementById('export-table-body');
+    tbody.innerHTML = exportWords.map((w, i) => {
+      const tag = w.isWeak
+        ? '<span class="tag-weak">취약</span>'
+        : '<span class="tag-study">학습</span>';
+      const wrongStr = w.wrong > 0 ? `<span style="color:var(--red)">${w.wrong}회</span>` : '-';
+      return `<tr>
+        <td style="color:var(--txt3);font-size:11px">${i+1}</td>
+        <td style="font-family:var(--font-display);font-style:italic;font-weight:500">${w.word}</td>
+        <td style="color:var(--txt2)">${w.ko || '-'}</td>
+        <td>${tag}</td>
+        <td style="text-align:center">${wrongStr}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('export-loading').style.display = 'none';
+    document.getElementById('export-content').style.display = 'block';
+
+  } catch(e) {
+    document.getElementById('export-loading').textContent = '오류: ' + e.message;
+  }
+}
+
+function copyToExcel() {
+  if (!exportWords.length) return;
+  // 탭 구분 + 줄바꿈 → 엑셀 직접 붙여넣기
+  const header = 'No.	영어	한국어 뜻	구분	틀린 횟수';
+  const rows = exportWords.map((w, i) => {
+    const tag = w.isWeak ? '취약' : '학습';
+    return `${i+1}	${w.word}	${w.ko || ''}	${tag}	${w.wrong || 0}`;
+  });
+  const text = [header, ...rows].join('
+');
+  navigator.clipboard.writeText(text).then(() => {
+    const msg = document.getElementById('copy-msg');
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const msg = document.getElementById('copy-msg');
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  });
+}
+
+function copyWordListOnly() {
+  if (!exportWords.length) return;
+  const text = exportWords.map(w => w.word).join('
+');
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }).finally ? null : null;
+  const msg = document.getElementById('copy-msg');
+  msg.textContent = `✓ 단어 ${exportWords.length}개 복사됐습니다!`;
+  msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; msg.textContent = '✓ 복사됐습니다! 엑셀에 붙여넣기 하세요.'; }, 3000);
 }
 
 // ── Stats ─────────────────────────────────────
@@ -309,11 +556,73 @@ function renderCatalogStatus() {
 
 // ── Tabs ───────────────────────────────────────
 function switchT(name) {
-  ['students','stats','settings'].forEach(t => {
-    document.getElementById(`tt-${t}`).classList.toggle('active', t === name);
-    document.getElementById(`ts-${t}`).classList.toggle('active', t === name);
+  ['students','stats','mnemonic','settings'].forEach(t => {
+    document.getElementById('tt-' + t).classList.toggle('active', t === name);
+    document.getElementById('ts-' + t).classList.toggle('active', t === name);
   });
+  if (name === 'mnemonic') loadMnemonicList();
 }
+// ── Mnemonic Editor ────────────────────────────
+let allMnemonics = {};
+
+async function loadMnemonicList() {
+  try {
+    allMnemonics = await DB.getMnemonics();
+    const list = document.getElementById('mn-list');
+    const entries = Object.entries(allMnemonics);
+    if (!entries.length) {
+      list.innerHTML = '<div class="empty">아직 편집한 연상법이 없습니다</div>';
+      return;
+    }
+    list.innerHTML = entries.map(([word, mn]) =>
+      '<div class="list-item">' +
+      '<div><div style="font-weight:600;font-size:13px">' + word + '</div>' +
+      '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + mn + '</div></div>' +
+      '<button class="btn btn-ghost btn-sm" onclick="editMnemonic('' + word + '')">편집</button>' +
+      '</div>'
+    ).join('');
+  } catch(e) {}
+}
+
+function searchMnemonic() {
+  const q = document.getElementById('mn-search').value.trim().toLowerCase();
+  const result = document.getElementById('mn-result');
+  if (!q || q.length < 2) { result.style.display = 'none'; return; }
+
+  // utils.js의 MNEMONICS에서 찾기
+  const mn = (window.MNEMONICS && window.MNEMONICS[q]) || allMnemonics[q] || '등록된 연상법 없음';
+  document.getElementById('mn-word-label').textContent = q;
+  document.getElementById('mn-current').textContent = mn;
+  document.getElementById('mn-new').value = allMnemonics[q] || '';
+  document.getElementById('mn-msg').textContent = '';
+  result.style.display = 'block';
+}
+
+function editMnemonic(word) {
+  switchT('mnemonic');
+  document.getElementById('mn-search').value = word;
+  searchMnemonic();
+}
+
+async function saveMnemonic() {
+  const word = document.getElementById('mn-search').value.trim().toLowerCase();
+  const newMn = document.getElementById('mn-new').value.trim();
+  const msg = document.getElementById('mn-msg');
+  if (!word || !newMn) { msg.style.color = 'var(--red)'; msg.textContent = '단어와 연상법을 입력하세요'; return; }
+  try {
+    await DB.saveMnemonic(word, newMn);
+    allMnemonics[word] = newMn;
+    document.getElementById('mn-current').textContent = newMn;
+    msg.style.color = 'var(--grn)';
+    msg.textContent = '✓ 저장되었습니다!';
+    loadMnemonicList();
+    setTimeout(() => msg.textContent = '', 2000);
+  } catch(e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Firebase 연결 오류';
+  }
+}
+
 function logout() { window.location.href = 'index.html'; }
 
 init();
