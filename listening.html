@@ -159,6 +159,13 @@ var scriptVisible = true;
 var audio = document.getElementById('player-audio');
 var ttsRate = 1.0;
 
+function fmtTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  var m = Math.floor(s / 60);
+  var sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
 var VIEWS = ['library','set','question'];
 function showView(name) {
   VIEWS.forEach(function(v) {
@@ -321,8 +328,39 @@ async function openQuestion(idx) {
 function renderScript(q) {
   var script = q.script || '';
 
-  // 문장 단위로 분리 (.!? 기준, 약어 처리)
-  var sentences = script.match(/[^.!?]+[.!?]+["']?/g) || [script];
+  // W: M: 화자 레이블을 파싱해서 대화형 스크립트 처리
+  // "W: 대사. M: 대사." 패턴 감지
+  var dialogPattern = /^(?:[WM]\s*:\s*)/;
+  var isDialog = dialogPattern.test(script.trim());
+
+  var sentences = [];
+  if (isDialog) {
+    // 화자 레이블 기준으로 발화 분리
+    var parts = script.split(/(?=[WM]\s*:)/);
+    for (var p = 0; p < parts.length; p++) {
+      var part = parts[p].trim();
+      if (!part) continue;
+      // 화자 레이블과 대사 분리
+      var labelMatch = part.match(/^([WM])\s*:\s*([\s\S]+)/);
+      if (labelMatch) {
+        var speaker = labelMatch[1]; // 'W' or 'M'
+        var utterance = labelMatch[2].trim();
+        // 대사 안에서 문장 분리
+        var subSents = utterance.match(/[^.!?]+[.!?]+["']?/g) || [utterance];
+        for (var ss = 0; ss < subSents.length; ss++) {
+          sentences.push({ text: subSents[ss].trim(), speaker: speaker, tts: subSents[ss].trim() });
+        }
+      } else {
+        sentences.push({ text: part, speaker: null, tts: part });
+      }
+    }
+  } else {
+    // 일반 독백 - 문장 단위 분리
+    var rawSents = script.match(/[^.!?]+[.!?]+["']?/g) || [script];
+    for (var r = 0; r < rawSents.length; r++) {
+      sentences.push({ text: rawSents[r].trim(), speaker: null, tts: rawSents[r].trim() });
+    }
+  }
 
   // 키 표현 강조 처리 함수
   function highlightKeywords(text) {
@@ -336,17 +374,27 @@ function renderScript(q) {
     return text;
   }
 
-  var html = '<div class="tts-hint">💡 문장 클릭 → TTS 재생 &nbsp;|&nbsp; 밑줄 단어 클릭 → 단어만 재생</div>';
+  var speakerColors = { 'W': 'var(--gold)', 'M': '#60A5FA' };
+  var speakerLabels = { 'W': '여', 'M': '남' };
+  var htmlStr = '<div class="tts-hint">💡 문장 클릭 → TTS 재생 &nbsp;|&nbsp; 밑줄 단어 클릭 → 단어만 재생</div>';
   for (var s = 0; s < sentences.length; s++) {
-    var sent = sentences[s].trim();
-    if (!sent) continue;
-    var highlighted = highlightKeywords(sent);
-    // data-text에 원문 텍스트 저장 (키워드 span 제거한 순수 텍스트)
-    var plain = sent.replace(/<[^>]+>/g, '');
-    html += '<span class="sentence" data-idx="' + s + '" onclick="speakSentence(this, \'' + plain.replace(/\\/g, '\\\\').replace(/'/g, '\\\'') + '\')">' + highlighted + '</span>';
+    var sentObj = sentences[s];
+    if (!sentObj || !sentObj.text) continue;
+    var highlighted = highlightKeywords(sentObj.text);
+    var ttsText = sentObj.tts || sentObj.text;
+    var plain = ttsText.replace(/<[^>]+>/g, '').replace(/'/g, "\'");
+    var speakerBadge = '';
+    if (sentObj.speaker) {
+      var color = speakerColors[sentObj.speaker] || 'var(--txt3)';
+      var label = speakerLabels[sentObj.speaker] || sentObj.speaker;
+      speakerBadge = '<span style="font-size:10px;font-weight:700;color:' + color + ';margin-right:4px;flex-shrink:0">' + label + '</span>';
+      htmlStr += '<span class="sentence" style="display:flex;align-items:baseline;gap:2px" data-idx="' + s + '" onclick="speakSentence(this, \'' + plain + '\')">' + speakerBadge + '<span>' + highlighted + '</span></span>';
+    } else {
+      htmlStr += '<span class="sentence" data-idx="' + s + '" onclick="speakSentence(this, \'' + plain + '\')">' + highlighted + '</span>';
+    }
   }
 
-  document.getElementById('script-text').innerHTML = html;
+  document.getElementById('script-text').innerHTML = htmlStr;
   scriptVisible = true;
   document.getElementById('script-toggle').textContent = '숨기기';
 }
@@ -425,10 +473,10 @@ function switchTab(name) {
 audio.addEventListener('timeupdate', function() {
   var pct = audio.duration ? (audio.currentTime / audio.duration * 100) : 0;
   document.getElementById('audio-fill').style.width = pct + '%';
-  document.getElementById('time-cur').textContent = Utils.fmtTime(Math.floor(audio.currentTime));
+  document.getElementById('time-cur').textContent = fmtTime(Math.floor(audio.currentTime));
 });
 audio.addEventListener('loadedmetadata', function() {
-  document.getElementById('time-dur').textContent = Utils.fmtTime(Math.floor(audio.duration));
+  document.getElementById('time-dur').textContent = fmtTime(Math.floor(audio.duration));
 });
 audio.addEventListener('ended', function() {
   document.getElementById('play-btn').textContent = '▶';
