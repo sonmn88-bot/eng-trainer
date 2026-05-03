@@ -615,7 +615,7 @@ function submitAns() {
   }
 
   quiz.results.push({ word: w[0], ko: w[1], input: inp, correct: isCorrect });
-  try { DB.updateWeakWord(STU_ID, w[0], isCorrect); } catch(e) {}
+  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); } catch(e) {}
   document.getElementById('quiz-score').textContent = `✓${quiz.correct} ✗${quiz.wrong}`;
 }
 
@@ -631,9 +631,12 @@ async function finishQuiz() {
   const score = Math.round((quiz.correct / total) * 100);
 
   try {
+    // 단어 목록 저장 (선생님 내보내기용) - 중복 방지로 unique만
+    const wordsSeen = [...new Set(quiz.results.map(r => r.word))];
     await DB.saveResult(STU_ID, {
       setId: currentSet?.id, mode: currentMode,
-      total, correct: quiz.correct, score, elapsed: quiz.elapsed
+      total, correct: quiz.correct, score, elapsed: quiz.elapsed,
+      words: wordsSeen
     });
   } catch(e) {}
 
