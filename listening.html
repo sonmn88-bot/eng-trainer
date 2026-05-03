@@ -24,6 +24,12 @@
 .kw-ko { color:var(--txt); }
 .speed-row { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.875rem; }
 .sub-tab { display:flex;gap:4px;margin-bottom:1rem; }
+.sentence { display:block;padding:4px 6px;margin:2px 0;border-radius:6px;cursor:pointer;line-height:1.85;transition:background .15s; }
+.sentence:hover { background:var(--sur2); }
+.sentence.speaking { background:var(--gold-bg);border-left:2px solid var(--gold);padding-left:8px; }
+.keyword { color:var(--gold);font-weight:600;cursor:pointer;border-bottom:1px dotted var(--gold-bdr); }
+.keyword:hover { background:var(--gold-bg);border-radius:3px; }
+.tts-hint { font-size:10px;color:var(--txt3);margin-bottom:.5rem; }
 .sub-tab-btn { flex:1;padding:7px;text-align:center;border:1px solid var(--bdr);background:var(--sur2);border-radius:var(--rs);cursor:pointer;font-size:11px;font-family:var(--font-body);font-weight:500;color:var(--txt2);transition:all .15s; }
 .sub-tab-btn.active { background:var(--gold-bg);border-color:var(--gold-bdr);color:var(--gold);font-weight:600; }
 </style>
@@ -151,6 +157,7 @@ var currentQIdx = 0;
 var progress = {};
 var scriptVisible = true;
 var audio = document.getElementById('player-audio');
+var ttsRate = 1.0;
 
 var VIEWS = ['library','set','question'];
 function showView(name) {
@@ -283,7 +290,7 @@ async function openQuestion(idx) {
       kwHtml += '<div class="kw-card">' +
         '<div class="kw-en">' + en + '</div>' +
         '<div class="kw-ko">' + ko + '</div>' +
-        '<button class="tts-btn" style="margin-left:auto;font-size:10px;padding:3px 8px" onclick="Utils.speak(\'' + en.replace(/'/g, '') + '\')">🔊</button>' +
+        '<button class="tts-btn" style="margin-left:auto;font-size:10px;padding:3px 8px" onclick="speakText(\'' + en.replace(/'/g, '') + '\')">🔊</button>' +
         '</div>';
     }
   } else {
@@ -315,17 +322,90 @@ async function openQuestion(idx) {
 
 function renderScript(q) {
   var script = q.script || '';
-  if (q.keyExpressions) {
+
+  // 문장 단위로 분리 (.!? 기준, 약어 처리)
+  var sentences = script.match(/[^.!?]+[.!?]+["']?/g) || [script];
+
+  // 키 표현 강조 처리 함수
+  function highlightKeywords(text) {
+    if (!q.keyExpressions) return text;
     for (var i = 0; i < q.keyExpressions.length; i++) {
       var en = q.keyExpressions[i][0];
       var escaped = en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       var re = new RegExp('(' + escaped + ')', 'gi');
-      script = script.replace(re, '<span class="keyword" onclick="Utils.speak(this.textContent)">$1</span>');
+      text = text.replace(re, '<span class="keyword" onclick="event.stopPropagation();speakText(this.textContent)">$1</span>');
     }
+    return text;
   }
-  document.getElementById('script-text').innerHTML = script;
+
+  var html = '<div class="tts-hint">💡 문장 클릭 → TTS 재생 &nbsp;|&nbsp; 밑줄 단어 클릭 → 단어만 재생</div>';
+  for (var s = 0; s < sentences.length; s++) {
+    var sent = sentences[s].trim();
+    if (!sent) continue;
+    var highlighted = highlightKeywords(sent);
+    // data-text에 원문 텍스트 저장 (키워드 span 제거한 순수 텍스트)
+    var plain = sent.replace(/<[^>]+>/g, '');
+    html += '<span class="sentence" data-idx="' + s + '" onclick="speakSentence(this, \'' + plain.replace(/\\/g, '\\\\').replace(/'/g, '\\\'') + '\')">' + highlighted + '</span>';
+  }
+
+  document.getElementById('script-text').innerHTML = html;
   scriptVisible = true;
   document.getElementById('script-toggle').textContent = '숨기기';
+}
+
+// 현재 말하고 있는 문장 엘리먼트
+var currentSpeakingEl = null;
+
+function speakSentence(el, text) {
+  // 이미 같은 문장이면 취소 (토글)
+  if (currentSpeakingEl === el) {
+    window.speechSynthesis.cancel();
+    el.classList.remove('speaking');
+    currentSpeakingEl = null;
+    return;
+  }
+  // 이전 하이라이트 제거
+  if (currentSpeakingEl) currentSpeakingEl.classList.remove('speaking');
+  window.speechSynthesis.cancel();
+
+  currentSpeakingEl = el;
+  el.classList.add('speaking');
+
+  speakText(text, function() {
+    el.classList.remove('speaking');
+    currentSpeakingEl = null;
+  });
+}
+
+function speakText(text, onend) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = ttsRate;
+  u.pitch = 1.0;
+
+  // 영어 원어민 음성 선택 (있으면)
+  var voices = window.speechSynthesis.getVoices();
+  var preferred = ['Google US English', 'Samantha', 'Alex', 'Karen', 'Daniel'];
+  for (var p = 0; p < preferred.length; p++) {
+    for (var v = 0; v < voices.length; v++) {
+      if (voices[v].name === preferred[p] || voices[v].name.indexOf(preferred[p]) !== -1) {
+        u.voice = voices[v];
+        break;
+      }
+    }
+    if (u.voice) break;
+  }
+  // fallback: en-US 아무 목소리
+  if (!u.voice) {
+    for (var v = 0; v < voices.length; v++) {
+      if (voices[v].lang === 'en-US') { u.voice = voices[v]; break; }
+    }
+  }
+
+  if (onend) u.onend = onend;
+  window.speechSynthesis.speak(u);
 }
 
 function toggleScript() {
@@ -392,7 +472,17 @@ function seekAudio(e) {
 }
 function setSpeed(rate) {
   audio.playbackRate = rate;
-  document.querySelectorAll('.speed-btn').forEach(function(b) {
+  // 🎵 음원 속도 버튼만 active (첫 번째 speed-row)
+  var rows = document.querySelectorAll('.speed-row');
+  if (rows[0]) rows[0].querySelectorAll('.speed-btn').forEach(function(b) {
+    b.classList.toggle('active', parseFloat(b.textContent) === rate);
+  });
+}
+function setTtsRate(rate) {
+  ttsRate = rate;
+  // 🔊 TTS 속도 버튼만 active (두 번째 speed-row)
+  var rows = document.querySelectorAll('.speed-row');
+  if (rows[1]) rows[1].querySelectorAll('.speed-btn').forEach(function(b) {
     b.classList.toggle('active', parseFloat(b.textContent) === rate);
   });
 }
