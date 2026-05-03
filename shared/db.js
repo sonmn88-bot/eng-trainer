@@ -1,13 +1,13 @@
 // ── Firebase DB ───────────────────────────────
 // 설정값을 여기에 채워 넣으세요 (Firebase Console → 프로젝트 설정 → 앱)
 const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyC9HA6mCGWQEoYOCxG2rqRDv17Qi1Ubf7Y",
-  authDomain:        "eng-trainer-65cac.firebaseapp.com",
-  databaseURL:       "https://eng-trainer-65cac-default-rtdb.firebaseio.com",
-  projectId:         "eng-trainer-65cac",
-  storageBucket:     "eng-trainer-65cac.firebasestorage.app",
-  messagingSenderId: "823536158337",
-  appId:             "1:823536158337:web:a49465a60fe47be3e7af80"
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT.firebaseapp.com",
+  databaseURL:       "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId:         "YOUR_PROJECT",
+  storageBucket:     "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
 };
 
 let _db = null;
@@ -62,11 +62,12 @@ const DB = {
   },
 
   // ── Weak Words ──
-  async updateWeakWord(stuId, word, correct) {
+  async updateWeakWord(stuId, word, ko, correct) {
     const { db, ref, get, update } = await initDB();
     const path = `students/${stuId}/weakWords/${btoa(word).replace(/=/g,'')}`;
     const snap = await get(ref(db, path));
-    const curr = snap.exists() ? snap.val() : { word, wrong: 0, right: 0, streak: 0 };
+    const curr = snap.exists() ? snap.val() : { word, ko: ko||'', wrong: 0, right: 0, streak: 0 };
+    if (ko && !curr.ko) curr.ko = ko;  // 뜻 없으면 저장
     if (correct) {
       curr.right++; curr.streak++;
     } else {
@@ -80,6 +81,13 @@ const DB = {
     const snap = await get(ref(db, `students/${stuId}/weakWords`));
     if (!snap.exists()) return [];
     return Object.values(snap.val()).filter(w => w.streak < 3);
+  },
+
+  async getAllWeakWords(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `students/${stuId}/weakWords`));
+    if (!snap.exists()) return [];
+    return Object.values(snap.val());
   },
 
   // ── App Settings ──
