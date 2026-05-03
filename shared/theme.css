@@ -451,26 +451,28 @@ select option { background: var(--sur); }
 .quiz-input::placeholder { color: var(--txt3); font-size: 13px; }
 
 /* ── Flashcard ── */
-.flashcard { perspective: 900px; margin: 1rem 0; cursor: pointer; }
+.flashcard { perspective: 1200px; margin: 1rem 0; cursor: pointer; }
 .fc-inner {
   position: relative;
   transition: transform .5s cubic-bezier(.4,0,.2,1);
   transform-style: preserve-3d;
-  min-height: 180px;
+  min-height: 220px;
 }
 .fc-inner.flipped { transform: rotateY(180deg); }
 .fc-front, .fc-back {
   position: absolute;
   width: 100%;
-  min-height: 180px;
+  min-height: 220px;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   border-radius: var(--r);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1.5rem;
+  padding: 1.75rem 1.5rem;
   text-align: center;
+  box-sizing: border-box;
 }
 .fc-front {
   background: var(--sur);
