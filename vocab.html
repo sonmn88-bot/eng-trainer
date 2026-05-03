@@ -499,6 +499,22 @@ async function renderFlash() {
   img.onload = () => { imgWrap.innerHTML = ''; imgWrap.appendChild(img); };
   img.onerror = () => { imgWrap.innerHTML = ''; };
   img.src = Utils.pollUrl(w[0], w[1]);
+
+  // 뒷면 높이를 내용에 맞게 동적 조정
+  requestAnimationFrame(() => {
+    const back = document.querySelector('.fc-back');
+    const inner = document.getElementById('fc-inner');
+    if (back && inner) {
+      back.style.position = 'absolute';
+      back.style.height = 'auto';
+      const backH = back.scrollHeight;
+      const minH = 220;
+      const finalH = Math.max(minH, backH + 8);
+      inner.style.minHeight = finalH + 'px';
+      document.querySelector('.fc-front').style.minHeight = finalH + 'px';
+      back.style.minHeight = finalH + 'px';
+    }
+  });
 }
 
 function flipCard() {
