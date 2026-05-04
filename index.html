@@ -333,6 +333,7 @@ async function doLogin() {
   const pw = document.getElementById('pw-input').value;
   const correct = state.settings.teacherPw || '1234';
   if (pw === correct) {
+    localStorage.setItem('teacher_pw', pw);
     window.location.href = 'teacher.html';
   } else {
     document.getElementById('pw-err').textContent = '비밀번호가 틀렸습니다';
@@ -349,4 +350,3 @@ init();
 </script>
 </body>
 </html>
-
