@@ -228,51 +228,68 @@
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
 <script>
+// -- State --
 let students = {};
-let settings = { appName: 'English Trainer', teacherPw: '1234' };
 let selectedStuId = null;
+let settings = {};
+let allMnemonics = {};
+let exportWords = [];
 
+// -- Init --
 async function init() {
   try {
-    settings = await DB.getSettings();
+    const pw = localStorage.getItem('teacher_pw');
+    if (!pw) { location.href = 'index.html'; return; }
+    const saved = await DB.getSettings();
+    if (pw !== saved.teacherPw) { localStorage.removeItem('teacher_pw'); location.href = 'index.html'; return; }
+    settings = saved;
     students = await DB.getStudents();
-  } catch(e) {}
-  renderStudents();
-  renderGlobalStats();
-  renderCatalogStatus();
-
-  document.getElementById('set-appname').value = settings.appName || '';
-}
-
-// ── Students ──────────────────────────────────
-function renderStudents() {
-  const list = Object.values(students);
-  document.getElementById('stu-count').textContent = list.length;
-  if (!list.length) {
-    document.getElementById('stu-list').innerHTML = '<div class="empty">학생이 없습니다</div>';
-    return;
+    renderStudents();
+    loadStats();
+    loadMnemonicEditor();
+    renderSettings();
+  } catch(e) {
+    console.warn('init error', e);
   }
-  document.getElementById('stu-list').innerHTML = list.map(s => `
-    <div class="stu-card" onclick="showStuDetail('${s.id}')">
-      <div class="stu-avatar">${(s.name||'?').slice(0,1)}</div>
-      <div>
-        <div class="stu-name">${s.name}</div>
-        <div class="stu-meta">${s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '날짜 없음'}</div>
-      </div>
-      <span style="margin-left:auto;font-size:18px;color:var(--txt3)">›</span>
-    </div>`).join('');
+}
+init();
+
+function logout() {
+  localStorage.removeItem('teacher_pw');
+  location.href = 'index.html';
 }
 
+// -- Students --
+function renderStudents() {
+  const list = document.getElementById('stu-list');
+  const arr = Object.values(students);
+  document.getElementById('stu-count').textContent = arr.length;
+  if (!arr.length) { list.innerHTML = '<div class="empty">학생이 없습니다</div>'; return; }
+  list.innerHTML = arr.map(function(s) {
+    var initials = s.name.slice(0,2).toUpperCase();
+    var card = '<div class="stu-card" data-id="' + s.id + '">' +
+      '<div><div class="stu-name">' + s.name + '</div>' +
+      '<div class="stu-meta">등록: ' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '-') + '</div></div>' +
+      '<span style="margin-left:auto;font-size:18px;color:var(--txt3)">&#8250;</span>' +
+      '</div>';
+    return card;
+  }).join('');
+  list.querySelectorAll('.stu-card').forEach(function(el) {
+    el.addEventListener('click', function() { showStuDetail(this.dataset.id); });
+  });
+
+}
 async function addStudent() {
-  const name = document.getElementById('new-stu-name').value.trim();
+  const inp = document.getElementById('new-stu-name');
   const err = document.getElementById('stu-err');
+  const name = inp.value.trim();
   if (!name) { err.textContent = '이름을 입력하세요'; return; }
   if (Object.values(students).some(s => s.name === name)) { err.textContent = '이미 등록된 이름입니다'; return; }
   err.textContent = '';
   try {
     const id = await DB.createStudent(name);
     students[id] = { id, name, createdAt: new Date().toISOString() };
-    document.getElementById('new-stu-name').value = '';
+    inp.value = '';
     renderStudents();
   } catch(e) { err.textContent = 'Firebase 연결 오류: ' + e.message; }
 }
@@ -287,19 +304,20 @@ async function showStuDetail(stuId) {
   try {
     const results = await DB.getResults(stuId);
     const weak = await DB.getWeakWords(stuId);
-    const avg = results.length ? Math.round(results.reduce((a,r) => a+(r.score||0),0)/results.length) : 0;
-    document.getElementById('detail-metrics').innerHTML = `
-      <div class="metric"><div class="metric-lbl">시험 횟수</div><div class="metric-val mv-gold">${results.length}</div></div>
-      <div class="metric"><div class="metric-lbl">평균 점수</div><div class="metric-val mv-grn">${avg}%</div></div>
-      <div class="metric"><div class="metric-lbl">취약 단어</div><div class="metric-val mv-red">${weak.length}</div></div>`;
+    const avg = results.length ? Math.round(results.reduce(function(a,r){ return a+(r.score||0); },0)/results.length) : 0;
+    document.getElementById('detail-metrics').innerHTML =
+      '<div class="metric"><div class="metric-lbl">시험 횟수</div><div class="metric-val mv-gold">' + results.length + '</div></div>' +
+      '<div class="metric"><div class="metric-lbl">평균 점수</div><div class="metric-val mv-grn">' + avg + '%</div></div>' +
+      '<div class="metric"><div class="metric-lbl">취약 단어</div><div class="metric-val mv-red">' + weak.length + '</div></div>';
     if (weak.length) {
-      document.getElementById('detail-weak').innerHTML = `
-        <p class="sec-title" style="margin-bottom:.625rem">취약 단어 TOP10</p>
-        ${weak.slice(0,10).map(w => `
-          <div class="list-item">
-            <span style="font-family:var(--font-display);font-style:italic">${w.word}</span>
-            <span class="badge b-red">틀림 ${w.wrong}회</span>
-          </div>`).join('')}`;
+      document.getElementById('detail-weak').innerHTML =
+        '<p class="sec-title" style="margin-bottom:.625rem">취약 단어 TOP10</p>' +
+        weak.slice(0,10).map(function(w) {
+          return '<div class="list-item">' +
+            '<span style="font-family:var(--font-display);font-style:italic">' + w.word + '</span>' +
+            '<span class="badge b-red">틀림 ' + w.wrong + '회</span>' +
+            '</div>';
+        }).join('');
     }
   } catch(e) {
     document.getElementById('detail-metrics').innerHTML = '<div class="empty" style="padding:.5rem 0">Firebase 연결 필요</div>';
@@ -307,7 +325,7 @@ async function showStuDetail(stuId) {
 }
 
 async function deleteStudent() {
-  if (!confirm(`${students[selectedStuId]?.name} 학생을 삭제할까요?`)) return;
+  if (!confirm(students[selectedStuId]?.name + ' 학생을 삭제할까요?')) return;
   try {
     await DB.saveStudent(selectedStuId, null);
     delete students[selectedStuId];
@@ -316,9 +334,7 @@ async function deleteStudent() {
   } catch(e) { alert('삭제 중 오류: ' + e.message); }
 }
 
-// ── 시험 단어 내보내기 ──────────────────────────────
-let exportWords = [];
-
+// -- 시험 단어 내보내기 --
 async function openExportPanel() {
   const panel = document.getElementById('export-panel');
   panel.style.display = 'block';
@@ -329,104 +345,63 @@ async function openExportPanel() {
 
   try {
     const stuId = selectedStuId;
-    const [results, weakAll] = await Promise.all([
-      DB.getResults(stuId),
-      DB.getAllWeakWords(stuId)
-    ]);
+    const results = await DB.getResults(stuId);
+    const weakAll = await DB.getAllWeakWords(stuId);
 
-    // 취약단어 map (word → { wrong, streak })
     const weakMap = {};
-    weakAll.forEach(w => { weakMap[w.word.toLowerCase()] = w; });
+    weakAll.forEach(function(w) { weakMap[w.word.toLowerCase()] = w; });
 
-    // results에서 단어 수집 (최근 순으로 정렬해서 최신 결과 우선)
     const studiedSet = new Set();
-    const studiedKoMap = {};  // word → ko
-    const sortedResults = [...results].sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
-    sortedResults.forEach(r => {
+    var sorted = results.slice().sort(function(a,b){ return new Date(b.date||0) - new Date(a.date||0); });
+    sorted.forEach(function(r) {
       if (r.words && Array.isArray(r.words)) {
-        r.words.forEach(w => {
-          const word = typeof w === 'string' ? w : (w.word || w || '');
-          if (word) {
-            studiedSet.add(word.toLowerCase());
-          }
+        r.words.forEach(function(w) {
+          var word = typeof w === 'string' ? w : (w.word || '');
+          if (word) studiedSet.add(word.toLowerCase());
         });
       }
       if (r.word) studiedSet.add(r.word.toLowerCase());
     });
 
-    // word 파일에서 한국어 뜻 가져오기
-    function getKo(word) {
-      if (!window.WORD_CATALOG) return '';
-      for (const set of window.WORD_CATALOG) {
-        // 단어 파일 로드는 안 돼있으므로 weakMap에서 가져오기
-        const w = weakMap[word.toLowerCase()];
-        if (w && w.ko) return w.ko;
-      }
-      return '';
-    }
-
-    // 합산 - 취약단어 + 공부한 단어
     const allWordsMap = {};
-
-    // 1) 취약단어 (streak < 3인 것)
-    weakAll.filter(w => w.streak < 3).forEach(w => {
-      const key = w.word.toLowerCase();
-      allWordsMap[key] = {
-        word: w.word,
-        ko: w.ko || '',
-        wrong: w.wrong || 0,
-        right: w.right || 0,
-        streak: w.streak || 0,
-        isWeak: true,
-        isStudied: studiedSet.has(key)
-      };
+    weakAll.filter(function(w){ return w.streak < 3; }).forEach(function(w) {
+      var key = w.word.toLowerCase();
+      allWordsMap[key] = { word: w.word, ko: w.ko||'', wrong: w.wrong||0, right: w.right||0, streak: w.streak||0, isWeak: true, isStudied: studiedSet.has(key) };
     });
-
-    // 2) 공부한 단어 (취약단어에 없는 것 추가)
-    studiedSet.forEach(key => {
+    studiedSet.forEach(function(key) {
       if (!allWordsMap[key]) {
-        allWordsMap[key] = {
-          word: key,
-          ko: '',
-          wrong: 0, right: 0, streak: 0,
-          isWeak: false,
-          isStudied: true
-        };
+        allWordsMap[key] = { word: key, ko: '', wrong: 0, right: 0, streak: 0, isWeak: false, isStudied: true };
       }
     });
 
-    exportWords = Object.values(allWordsMap).sort((a, b) => {
-      // 취약단어 먼저, 그 다음 공부한 단어, 각각 알파벳순
+    exportWords = Object.values(allWordsMap).sort(function(a,b) {
       if (a.isWeak && !b.isWeak) return -1;
       if (!a.isWeak && b.isWeak) return 1;
       return a.word.localeCompare(b.word);
     });
 
-    const weakCount = exportWords.filter(w => w.isWeak).length;
-    const studyCount = exportWords.filter(w => !w.isWeak && w.isStudied).length;
+    var weakCount = exportWords.filter(function(w){ return w.isWeak; }).length;
+    var studyCount = exportWords.filter(function(w){ return !w.isWeak && w.isStudied; }).length;
 
-    document.getElementById('export-count').textContent = `총 ${exportWords.length}개`;
-    document.getElementById('export-weak-count').textContent = `취약 ${weakCount}개`;
-    document.getElementById('export-study-count').textContent = `학습 ${studyCount}개`;
+    document.getElementById('export-count').textContent = '총 ' + exportWords.length + '개';
+    document.getElementById('export-weak-count').textContent = '취약 ' + weakCount + '개';
+    document.getElementById('export-study-count').textContent = '학습 ' + studyCount + '개';
 
-    const tbody = document.getElementById('export-table-body');
-    tbody.innerHTML = exportWords.map((w, i) => {
-      const tag = w.isWeak
-        ? '<span class="tag-weak">취약</span>'
-        : '<span class="tag-study">학습</span>';
-      const wrongStr = w.wrong > 0 ? `<span style="color:var(--red)">${w.wrong}회</span>` : '-';
-      return `<tr>
-        <td style="color:var(--txt3);font-size:11px">${i+1}</td>
-        <td style="font-family:var(--font-display);font-style:italic;font-weight:500">${w.word}</td>
-        <td style="color:var(--txt2)">${w.ko || '-'}</td>
-        <td>${tag}</td>
-        <td style="text-align:center">${wrongStr}</td>
-      </tr>`;
+    var tbody = document.getElementById('export-table-body');
+    tbody.innerHTML = exportWords.map(function(w, i) {
+      var tag = w.isWeak ? '<span class="tag-weak">취약</span>' : '<span class="tag-study">학습</span>';
+      var wrongStr = w.wrong > 0 ? '<span style="color:var(--red)">' + w.wrong + '회</span>' : '-';
+      return '<tr>' +
+        '<td style="color:var(--txt3);font-size:11px">' + (i+1) + '</td>' +
+        '<td style="font-family:var(--font-display);font-style:italic;font-weight:500">' + w.word + '</td>' +
+        '<td style="color:var(--txt2)">' + (w.ko||'-') + '</td>' +
+        '<td>' + tag + '</td>' +
+        '<td style="text-align:center">' + wrongStr + '</td>' +
+        '</tr>';
     }).join('');
 
     document.getElementById('export-loading').style.display = 'none';
     document.getElementById('export-content').style.display = 'block';
-
   } catch(e) {
     document.getElementById('export-loading').textContent = '오류: ' + e.message;
   }
@@ -434,198 +409,149 @@ async function openExportPanel() {
 
 function copyToExcel() {
   if (!exportWords.length) return;
-  // 탭 구분 + 줄바꿈 → 엑셀 직접 붙여넣기
-  const header = 'No.	영어	한국어 뜻	구분	틀린 횟수';
-  const rows = exportWords.map((w, i) => {
-    const tag = w.isWeak ? '취약' : '학습';
-    return `${i+1}	${w.word}	${w.ko || ''}	${tag}	${w.wrong || 0}`;
+  var header = 'No.	영어	한국어 뜻	구분	틀린 횟수';
+  var rows = exportWords.map(function(w, i) {
+    var tag = w.isWeak ? '취약' : '학습';
+    return (i+1) + '	' + w.word + '	' + (w.ko||'') + '	' + tag + '	' + (w.wrong||0);
   });
-  const text = [header, ...rows].join('
-');
-  navigator.clipboard.writeText(text).then(() => {
-    const msg = document.getElementById('copy-msg');
+  var text = [header].concat(rows).join('\n');
+  var msg = document.getElementById('copy-msg');
+  navigator.clipboard.writeText(text).then(function() {
+    msg.textContent = 'v 복사됐습니다! 엑셀에 붙여넣기 하세요.';
     msg.style.display = 'block';
-    setTimeout(() => { msg.style.display = 'none'; }, 3000);
-  }).catch(() => {
-    // fallback
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    const msg = document.getElementById('copy-msg');
+    setTimeout(function(){ msg.style.display='none'; }, 3000);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    msg.textContent = 'v 복사됐습니다! 엑셀에 붙여넣기 하세요.';
     msg.style.display = 'block';
-    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+    setTimeout(function(){ msg.style.display='none'; }, 3000);
   });
 }
 
 function copyWordListOnly() {
   if (!exportWords.length) return;
-  const text = exportWords.map(w => w.word).join('
-');
-  navigator.clipboard.writeText(text).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-  }).finally ? null : null;
-  const msg = document.getElementById('copy-msg');
-  msg.textContent = `✓ 단어 ${exportWords.length}개 복사됐습니다!`;
-  msg.style.display = 'block';
-  setTimeout(() => { msg.style.display = 'none'; msg.textContent = '✓ 복사됐습니다! 엑셀에 붙여넣기 하세요.'; }, 3000);
-}
-
-// ── Stats ─────────────────────────────────────
-async function renderGlobalStats() {
-  const list = Object.values(students);
-  document.getElementById('global-metrics').innerHTML = `
-    <div class="metric"><div class="metric-lbl">총 학생</div><div class="metric-val mv-gold">${list.length}</div></div>
-    <div class="metric"><div class="metric-lbl">단어장</div><div class="metric-val mv-grn">${WORD_CATALOG.length}</div></div>
-    <div class="metric"><div class="metric-lbl">리스닝</div><div class="metric-val mv-amb">${LISTENING_CATALOG.length}</div></div>`;
-
-  // 학생별 최근 점수
-  if (!list.length) return;
-  const scoreEl = document.getElementById('score-list');
-  const scores = [];
-  for (const s of list.slice(0, 5)) {
-    try {
-      const results = await DB.getResults(s.id);
-      if (results.length) {
-        const last = results[results.length - 1];
-        scores.push({ name: s.name, score: last.score, date: last.date });
-      }
-    } catch(e) {}
-  }
-  if (!scores.length) { scoreEl.innerHTML = '<div class="empty">데이터 없음</div>'; return; }
-  scoreEl.innerHTML = scores.map(s => `
-    <div class="list-item">
-      <span style="font-size:13px">${s.name}</span>
-      <span class="badge ${s.score>=70?'b-grn':'b-red'}">${s.score}%</span>
-    </div>`).join('');
-}
-
-// ── Settings ───────────────────────────────────
-async function saveSettings() {
-  const err = document.getElementById('set-err');
-  err.textContent = '';
-  const newName = document.getElementById('set-appname').value.trim();
-  const oldPw = document.getElementById('set-pw-old').value;
-  const newPw = document.getElementById('set-pw-new').value;
-  const cfmPw = document.getElementById('set-pw-cfm').value;
-
-  const update = { ...settings };
-  if (newName) update.appName = newName;
-
-  if (oldPw || newPw || cfmPw) {
-    if (oldPw !== settings.teacherPw) { err.textContent = '현재 비밀번호가 틀렸습니다'; return; }
-    if (!newPw) { err.textContent = '새 비밀번호를 입력하세요'; return; }
-    if (newPw !== cfmPw) { err.textContent = '새 비밀번호가 일치하지 않습니다'; return; }
-    update.teacherPw = newPw;
-  }
-
-  try {
-    await DB.saveSettings(update);
-    settings = update;
-    err.style.color = 'var(--grn)';
-    err.textContent = '✓ 저장되었습니다';
-    document.getElementById('set-pw-old').value = '';
-    document.getElementById('set-pw-new').value = '';
-    document.getElementById('set-pw-cfm').value = '';
-    setTimeout(() => { err.textContent = ''; err.style.color = 'var(--red)'; }, 2000);
-  } catch(e) {
-    err.textContent = 'Firebase 연결 오류: ' + e.message;
-  }
-}
-
-function renderCatalogStatus() {
-  document.getElementById('catalog-status').innerHTML = WORD_CATALOG.map(s => `
-    <div class="list-item">
-      <span>${s.icon} ${s.name}</span>
-      <span class="badge b-gold">${s.tag}</span>
-    </div>`).join('');
-
-  document.getElementById('listening-status').innerHTML = LISTENING_CATALOG.map(s => `
-    <div class="list-item">
-      <span>${s.icon} ${s.name}</span>
-      <span class="badge b-amb">${s.total}문항</span>
-    </div>`).join('');
-}
-
-// ── Tabs ───────────────────────────────────────
-function switchT(name) {
-  ['students','stats','mnemonic','settings'].forEach(t => {
-    document.getElementById('tt-' + t).classList.toggle('active', t === name);
-    document.getElementById('ts-' + t).classList.toggle('active', t === name);
+  var text = exportWords.map(function(w){ return w.word; }).join('\n');
+  var msg = document.getElementById('copy-msg');
+  navigator.clipboard.writeText(text).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
   });
-  if (name === 'mnemonic') loadMnemonicList();
+  msg.textContent = 'v 단어 ' + exportWords.length + '개 복사됐습니다!';
+  msg.style.display = 'block';
+  setTimeout(function(){ msg.style.display='none'; msg.textContent='v 복사됐습니다!'; }, 3000);
 }
-// ── Mnemonic Editor ────────────────────────────
-let allMnemonics = {};
 
-async function loadMnemonicList() {
+// -- Stats --
+async function loadStats() {
   try {
-    allMnemonics = await DB.getMnemonics();
-    const list = document.getElementById('mn-list');
-    const entries = Object.entries(allMnemonics);
-    if (!entries.length) {
-      list.innerHTML = '<div class="empty">아직 편집한 연상법이 없습니다</div>';
-      return;
-    }
-    list.innerHTML = entries.map(([word, mn]) =>
-      '<div class="list-item">' +
-      '<div><div style="font-weight:600;font-size:13px">' + word + '</div>' +
-      '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + mn + '</div></div>' +
-      '<button class="btn btn-ghost btn-sm" onclick="editMnemonic('' + word + '')">편집</button>' +
-      '</div>'
-    ).join('');
+    const allStudents = Object.values(students);
+    document.getElementById('global-metrics').innerHTML =
+      '<div class="metric"><div class="metric-lbl">총 학생</div><div class="metric-val mv-gold">' + allStudents.length + '</div></div>' +
+      '<div class="metric"><div class="metric-lbl">단어 세트</div><div class="metric-val mv-grn">' + (window.WORD_CATALOG ? window.WORD_CATALOG.length : 0) + '</div></div>' +
+      '<div class="metric"><div class="metric-lbl">리스닝</div><div class="metric-val mv-amb">' + (window.LISTENING_CATALOG ? window.LISTENING_CATALOG.length : 0) + '</div></div>';
+
+    const scoreEl = document.getElementById('score-list');
+    if (!allStudents.length) { scoreEl.innerHTML = '<div class="empty">학생 없음</div>'; return; }
+    const scoreData = await Promise.all(allStudents.map(async function(s) {
+      const r = await DB.getResults(s.id);
+      const last = r.length ? r[r.length-1] : null;
+      return { name: s.name, last };
+    }));
+    scoreEl.innerHTML = scoreData.map(function(d) {
+      return '<div class="list-item">' +
+        '<span>' + d.name + '</span>' +
+        '<span class="badge ' + (d.last ? (d.last.score>=70?'b-grn':'b-red') : '') + '">' +
+        (d.last ? d.last.score+'%' : '-') + '</span></div>';
+    }).join('');
   } catch(e) {}
 }
 
-function searchMnemonic() {
-  const q = document.getElementById('mn-search').value.trim().toLowerCase();
-  const result = document.getElementById('mn-result');
-  if (!q || q.length < 2) { result.style.display = 'none'; return; }
-
-  // utils.js의 MNEMONICS에서 찾기
-  const mn = (window.MNEMONICS && window.MNEMONICS[q]) || allMnemonics[q] || '등록된 연상법 없음';
-  document.getElementById('mn-word-label').textContent = q;
-  document.getElementById('mn-current').textContent = mn;
-  document.getElementById('mn-new').value = allMnemonics[q] || '';
-  document.getElementById('mn-msg').textContent = '';
-  result.style.display = 'block';
-}
-
-function editMnemonic(word) {
-  switchT('mnemonic');
-  document.getElementById('mn-search').value = word;
-  searchMnemonic();
-}
-
-async function saveMnemonic() {
-  const word = document.getElementById('mn-search').value.trim().toLowerCase();
-  const newMn = document.getElementById('mn-new').value.trim();
-  const msg = document.getElementById('mn-msg');
-  if (!word || !newMn) { msg.style.color = 'var(--red)'; msg.textContent = '단어와 연상법을 입력하세요'; return; }
-  try {
-    await DB.saveMnemonic(word, newMn);
-    allMnemonics[word] = newMn;
-    document.getElementById('mn-current').textContent = newMn;
-    msg.style.color = 'var(--grn)';
-    msg.textContent = '✓ 저장되었습니다!';
-    loadMnemonicList();
-    setTimeout(() => msg.textContent = '', 2000);
-  } catch(e) {
-    msg.style.color = 'var(--red)';
-    msg.textContent = 'Firebase 연결 오류';
+// -- Settings --
+function renderSettings() {
+  document.getElementById('set-appname').value = settings.appName || 'English Trainer';
+  document.getElementById('set-pw').value = settings.teacherPw || '1234';
+  const statusEl = document.getElementById('catalog-status');
+  const listenEl = document.getElementById('listening-status');
+  if (statusEl && window.WORD_CATALOG) {
+    statusEl.innerHTML = window.WORD_CATALOG.map(function(s) {
+      return '<div class="list-item"><span>' + s.name + '</span><span class="badge b-gold">' + (s.totalWords||'?') + '개</span></div>';
+    }).join('');
+  }
+  if (listenEl && window.LISTENING_CATALOG) {
+    listenEl.innerHTML = window.LISTENING_CATALOG.map(function(s) {
+      return '<div class="list-item"><span>' + s.name + '</span><span class="badge b-grn">' + (s.total||'?') + '문항</span></div>';
+    }).join('');
   }
 }
 
-function logout() { window.location.href = 'index.html'; }
+async function saveSettings() {
+  const update = { appName: document.getElementById('set-appname').value.trim(), teacherPw: document.getElementById('set-pw').value.trim() };
+  if (!update.teacherPw) { alert('비밀번호를 입력하세요'); return; }
+  try {
+    await DB.saveSettings(update);
+    settings = update;
+    const err = document.getElementById('settings-msg');
+    err.textContent = 'v 저장되었습니다';
+    setTimeout(function(){ err.textContent=''; }, 2000);
+  } catch(e) { alert('저장 오류: '+e.message); }
+}
 
-init();
+// -- Tabs --
+function switchT(tab) {
+  document.querySelectorAll('.tsec').forEach(function(el){ el.classList.remove('active'); });
+  document.querySelectorAll('.tabs .tab').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById('ts-'+tab).classList.add('active');
+  document.getElementById('tt-'+tab).classList.add('active');
+}
+
+// -- Mnemonic Editor --
+async function loadMnemonicEditor() {
+  try {
+    allMnemonics = await DB.getMnemonics();
+    renderMnemonicList();
+  } catch(e) {}
+}
+
+function renderMnemonicList() {
+  var search = (document.getElementById('mn-search')||{value:''}).value.toLowerCase();
+  var entries = Object.entries(allMnemonics).filter(function(e){ return !search || e[0].includes(search) || e[1].includes(search); });
+  var list = document.getElementById('mn-list');
+  if (!entries.length) { list.innerHTML = '<div class="empty">없음</div>'; return; }
+  list.innerHTML = entries.slice(0,50).map(function(e) {
+    var word = e[0], mn = e[1];
+    var safeWord = word;
+    return '<div class="list-item">' +
+      '<div><div style="font-weight:600;font-size:13px">' + word + '</div>' +
+      '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + mn + '</div></div>' +
+      '<button class="btn btn-ghost btn-sm" data-w="' + safeWord + '" onclick="editMnemonic(this.dataset.w)">편집</button>' +
+      '</div>';
+  }).join('');
+}
+
+function editMnemonic(word) {
+  document.getElementById('mn-word').value = word;
+  document.getElementById('mn-text').value = allMnemonics[word] || '';
+  document.getElementById('mn-word').focus();
+}
+
+async function saveMnemonic() {
+  var word = document.getElementById('mn-word').value.trim().toLowerCase();
+  var mn = document.getElementById('mn-text').value.trim();
+  var msg = document.getElementById('mn-msg');
+  if (!word || !mn) { msg.textContent = '단어와 연상법을 입력하세요'; return; }
+  try {
+    await DB.saveMnemonic(word, mn);
+    allMnemonics[word] = mn;
+    renderMnemonicList();
+    document.getElementById('mn-word').value = '';
+    document.getElementById('mn-text').value = '';
+    msg.textContent = 'v 저장되었습니다!';
+    setTimeout(function(){ msg.textContent=''; }, 2000);
+  } catch(e) { msg.textContent = '오류: '+e.message; }
+}
 </script>
 </body>
 </html>
