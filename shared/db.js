@@ -4,8 +4,8 @@ const FIREBASE_CONFIG = {
   databaseURL:       "https://eng-trainer-65cac-default-rtdb.firebaseio.com",
   projectId:         "eng-trainer-65cac",
   storageBucket:     "eng-trainer-65cac.appspot.com",
-  messagingSenderId: "",
-  appId:             ""
+  messagingSenderId: "823536158337",
+  appId:             "1:823536158337:web:a49465a60fe47be3e7af80"
 };
 
 let _db = null;
