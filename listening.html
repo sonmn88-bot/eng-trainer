@@ -317,20 +317,9 @@ async function openQuestion(idx) {
 
   // 오디오
   var fileNum = String(q.num).padStart(2, '0');
-  var mp3Url = 'https://github.com/sonmn88-bot/eng-trainer/releases/download/audio-' + currentSetInfo.audioDir + '/' + fileNum + '.mp3';
-  // iOS Safari CORS 우회: fetch로 blob URL 생성
-  fetch(mp3Url)
-    .then(function(res) { return res.blob(); })
-    .then(function(blob) {
-      var blobUrl = URL.createObjectURL(blob);
-      audio.src = blobUrl;
-      audio.playbackRate = 1.0;
-    })
-    .catch(function(e) {
-      // fallback: 직접 URL
-      audio.src = mp3Url;
-      audio.playbackRate = 1.0;
-    });
+  // jsDelivr CDN - iOS Safari 완벽 호환
+  audio.src = 'https://cdn.jsdelivr.net/gh/sonmn88-bot/eng-trainer@audio-' + currentSetInfo.audioDir + '/' + fileNum + '.mp3';
+  audio.playbackRate = 1.0;
   document.getElementById('play-btn').textContent = '▶';
 
   // 스크립트
