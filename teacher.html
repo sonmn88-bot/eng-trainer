@@ -181,6 +181,18 @@
 <!-- ══ 설정 탭 ══ -->
 <div class="tsec" id="ts-settings">
   <div class="card">
+    <p class="sec-title" style="margin-bottom:.75rem">퀴즈 채점 설정</p>
+    <div class="stu-detail-card" style="margin-bottom:1.25rem">
+      <div style="font-size:13px;font-weight:600;margin-bottom:.375rem">AI 유사 뜻 인정</div>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:.75rem">학생이 비슷한 맥락의 뜻을 쓰면 AI가 정답으로 인정합니다</div>
+      <select id="ai-grade-mode" style="width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;color:var(--txt);font-size:13px;margin-bottom:.75rem">
+        <option value="off">끄기 (완전 일치만)</option>
+        <option value="close" selected>유사 뜻 허용 (기본)</option>
+        <option value="ai">AI 판정 (가장 유연)</option>
+      </select>
+      <button class="btn btn-gold" style="width:100%" onclick="saveGradeMode()">저장</button>
+      <div id="grade-mode-msg" style="font-size:11px;color:var(--grn);margin-top:6px;display:none;text-align:center">✓ 저장됐습니다</div>
+    </div>
     <p class="sec-title" style="margin-bottom:1.25rem">앱 설정</p>
 
     <label class="label">앱 이름</label>
@@ -248,6 +260,7 @@ async function init() {
     loadStats();
     loadMnemonicEditor();
     renderSettings();
+    loadGradeMode();
   } catch(e) {
     console.warn('init error', e);
   }
@@ -364,7 +377,7 @@ async function openExportPanel() {
     });
 
     const allWordsMap = {};
-    weakAll.filter(function(w){ return w.streak < 3; }).forEach(function(w) {
+    weakAll.filter(function(w){ return w.streak < 5; }).forEach(function(w) {
       var key = w.word.toLowerCase();
       allWordsMap[key] = { word: w.word, ko: w.ko||'', wrong: w.wrong||0, right: w.right||0, streak: w.streak||0, isWeak: true, isStudied: studiedSet.has(key) };
     });
@@ -535,6 +548,56 @@ function editMnemonic(word) {
   document.getElementById('mn-word').value = word;
   document.getElementById('mn-text').value = allMnemonics[word] || '';
   document.getElementById('mn-word').focus();
+}
+
+// -- AI 채점 설정 --
+function saveGradeMode() {
+  var mode = document.getElementById('ai-grade-mode').value;
+  localStorage.setItem('grade_mode', mode);
+  var msg = document.getElementById('grade-mode-msg');
+  msg.style.display = 'block';
+  setTimeout(function(){ msg.style.display='none'; }, 2000);
+}
+
+function loadGradeMode() {
+  var mode = localStorage.getItem('grade_mode') || 'close';
+  var sel = document.getElementById('ai-grade-mode');
+  if (sel) sel.value = mode;
+}
+
+async function checkAnswerWithAI(input, correct, en) {
+  // 1단계: 기본 유사 매칭
+  function normalize(s) {
+    return (s||'').replace(/[~\-().\[\]?!]/g,' ').replace(/\s+/,' ').trim().toLowerCase();
+  }
+  var inp = normalize(input);
+  var answers = (correct||'').split(/[,\/]/).map(function(s){ return normalize(s); });
+  if (answers.some(function(a){ return a === inp; })) return 'exact';
+  if (answers.some(function(a){ return a.includes(inp) || inp.includes(a.split(' ')[0]); })) return 'close';
+
+  // 2단계: AI 판정 (grade_mode === 'ai' 일 때)
+  var mode = localStorage.getItem('grade_mode') || 'close';
+  if (mode !== 'ai') return 'wrong';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 10,
+        messages: [{
+          role: 'user',
+          content: '영어단어: ' + en + '\n정답: ' + correct + '\n학생답안: ' + input + '\n\n학생 답안이 정답과 같은 의미면 "ok", 아니면 "no"만 답해.'
+        }]
+      })
+    });
+    var data = await res.json();
+    var reply = (data.content && data.content[0] && data.content[0].text || '').toLowerCase().trim();
+    return reply.includes('ok') ? 'close' : 'wrong';
+  } catch(e) {
+    return 'wrong';
+  }
 }
 
 async function saveMnemonic() {
