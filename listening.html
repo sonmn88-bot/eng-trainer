@@ -479,9 +479,6 @@ function switchTab(name) {
   });
 }
 
-audio.addEventListener('ended', function() {
-  document.getElementById('play-btn').textContent = '▶';
-});
 audio.addEventListener('timeupdate', function() {
   var pct = audio.duration ? (audio.currentTime / audio.duration * 100) : 0;
   document.getElementById('audio-fill').style.width = pct + '%';
@@ -496,17 +493,8 @@ audio.addEventListener('ended', function() {
 
 function togglePlay() {
   if (audio.paused) {
-    var p = audio.play();
-    if (p && p.then) {
-      p.then(function() {
-        document.getElementById('play-btn').textContent = '⏸';
-      }).catch(function(e) {
-        console.warn('재생 실패:', e);
-        document.getElementById('play-btn').textContent = '▶';
-      });
-    } else {
-      document.getElementById('play-btn').textContent = '⏸';
-    }
+    audio.play();
+    document.getElementById('play-btn').textContent = '⏸';
   } else {
     audio.pause();
     document.getElementById('play-btn').textContent = '▶';
