@@ -158,6 +158,22 @@ var progress = {};
 var scriptVisible = true;
 var audio = document.getElementById('player-audio');
 var ttsRate = 1.0;
+var audioUnlocked = false;
+
+// iOS Safari: 첫 터치 시 audio context unlock
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audio.load();
+  audio.play().then(function() {
+    audio.pause();
+    audio.currentTime = 0;
+    audioUnlocked = true;
+  }).catch(function() {
+    audioUnlocked = true;
+  });
+}
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('touchend', unlockAudio, { once: true });
 
 function fmtTime(s) {
   if (!s || isNaN(s)) return '0:00';
