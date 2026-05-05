@@ -318,7 +318,7 @@ async function openQuestion(idx) {
   // 오디오
   var fileNum = String(q.num).padStart(2, '0');
   // jsDelivr CDN - iOS Safari 완벽 호환
-  audio.src = 'audio/' + currentSetInfo.audioDir + '/' + fileNum + '.mp3';
+  audio.src = 'https://pub-01b22b967750499fbe6e99725c749e93.r2.dev/' + currentSetInfo.audioDir + '/' + fileNum + '.mp3';
   audio.playbackRate = 1.0;
   document.getElementById('play-btn').textContent = '▶';
 
