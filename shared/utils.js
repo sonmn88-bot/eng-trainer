@@ -2,12 +2,43 @@
 const Utils = {
 
   // ── TTS ──
-  speak(text) {
+  speak(text, rate) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US'; u.rate = 0.9;
-    window.speechSynthesis.speak(u);
+    u.lang = 'en-US';
+    u.rate = rate || 0.85;
+    u.pitch = 1.0;
+
+    // 영어 원어민 음성 선택 (품질 순서)
+    const preferred = [
+      'Google US English', 'Samantha', 'Alex',
+      'Karen', 'Daniel', 'Moira', 'Rishi'
+    ];
+    const getVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      for (const name of preferred) {
+        const v = voices.find(v => v.name === name || v.name.includes(name));
+        if (v) return v;
+      }
+      // fallback: en-US 아무 목소리
+      return voices.find(v => v.lang === 'en-US') ||
+             voices.find(v => v.lang.startsWith('en')) || null;
+    };
+
+    const voice = getVoice();
+    if (voice) {
+      u.voice = voice;
+      window.speechSynthesis.speak(u);
+    } else {
+      // 음성 목록이 아직 로드 안 됐을 경우 대기
+      window.speechSynthesis.onvoiceschanged = () => {
+        u.voice = getVoice();
+        window.speechSynthesis.speak(u);
+        window.speechSynthesis.onvoiceschanged = null;
+      };
+      window.speechSynthesis.speak(u);
+    }
   },
 
   // ── Date ──
@@ -187,4 +218,3 @@ const Utils = {
     return null;
   },
 };
-
