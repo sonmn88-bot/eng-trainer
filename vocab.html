@@ -592,11 +592,30 @@ function startTimer() {
   }, 1000);
 }
 
-function submitAns() {
+async function submitAns() {
   const inp = document.getElementById('quiz-ans').value.trim();
   if (!inp) return;
   const w = quiz.words[quiz.idx];
-  const result = Utils.checkAnswer(inp, w[1]);
+  // AI 채점 모드 확인
+  const gradeMode = localStorage.getItem('grade_mode') || 'close';
+  let result = Utils.checkAnswer(inp, w[1]);
+  // AI 모드: wrong인데 ai 모드면 API 판정
+  if (result === 'wrong' && gradeMode === 'ai') {
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 10,
+          messages: [{ role: 'user', content: '영어단어: ' + w[0] + '\n정답: ' + w[1] + '\n학생답안: ' + inp + '\n\n같은 의미면 ok, 아니면 no만 답해.' }]
+        })
+      });
+      const data = await res.json();
+      const reply = (data.content?.[0]?.text || '').toLowerCase();
+      if (reply.includes('ok')) result = 'close';
+    } catch(e) {}
+  }
 
   const fb = document.getElementById('quiz-fb');
   fb.style.display = 'block';
@@ -704,4 +723,3 @@ function preloadImages(words) {
 </script>
 </body>
 </html>
-
