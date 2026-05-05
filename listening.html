@@ -382,19 +382,28 @@ function renderScript(q) {
     if (!sentObj || !sentObj.text) continue;
     var highlighted = highlightKeywords(sentObj.text);
     var ttsText = sentObj.tts || sentObj.text;
-    var plain = ttsText.replace(/<[^>]+>/g, '').replace(/'/g, "\'");
+    var plain = ttsText.replace(/<[^>]+>/g, '');
+    var encodedTts = encodeURIComponent(plain);
     var speakerBadge = '';
     if (sentObj.speaker) {
       var color = speakerColors[sentObj.speaker] || 'var(--txt3)';
       var label = speakerLabels[sentObj.speaker] || sentObj.speaker;
       speakerBadge = '<span style="font-size:10px;font-weight:700;color:' + color + ';margin-right:4px;flex-shrink:0">' + label + '</span>';
-      htmlStr += '<span class="sentence" style="display:flex;align-items:baseline;gap:2px" data-idx="' + s + '" onclick="speakSentence(this, \'' + plain + '\')">' + speakerBadge + '<span>' + highlighted + '</span></span>';
+      htmlStr += '<span class="sentence" style="display:flex;align-items:baseline;gap:2px" data-idx="' + s + '" data-tts="' + encodedTts + '">' + speakerBadge + '<span>' + highlighted + '</span></span>';
     } else {
-      htmlStr += '<span class="sentence" data-idx="' + s + '" onclick="speakSentence(this, \'' + plain + '\')">' + highlighted + '</span>';
+      htmlStr += '<span class="sentence" data-idx="' + s + '" data-tts="' + encodedTts + '">' + highlighted + '</span>';
     }
   }
 
   document.getElementById('script-text').innerHTML = htmlStr;
+  // 클릭 이벤트를 addEventListener로 등록 (onclick 속성 따옴표 문제 해결)
+  document.querySelectorAll('#script-text .sentence').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      if (e.target.classList.contains('keyword')) return; // 키워드 클릭은 별도 처리
+      var tts = decodeURIComponent(this.dataset.tts || '');
+      if (tts) speakSentence(this, tts);
+    });
+  });
   scriptVisible = true;
   document.getElementById('script-toggle').textContent = '숨기기';
 }
@@ -470,6 +479,9 @@ function switchTab(name) {
   });
 }
 
+audio.addEventListener('ended', function() {
+  document.getElementById('play-btn').textContent = '▶';
+});
 audio.addEventListener('timeupdate', function() {
   var pct = audio.duration ? (audio.currentTime / audio.duration * 100) : 0;
   document.getElementById('audio-fill').style.width = pct + '%';
@@ -484,8 +496,17 @@ audio.addEventListener('ended', function() {
 
 function togglePlay() {
   if (audio.paused) {
-    audio.play();
-    document.getElementById('play-btn').textContent = '⏸';
+    var p = audio.play();
+    if (p && p.then) {
+      p.then(function() {
+        document.getElementById('play-btn').textContent = '⏸';
+      }).catch(function(e) {
+        console.warn('재생 실패:', e);
+        document.getElementById('play-btn').textContent = '▶';
+      });
+    } else {
+      document.getElementById('play-btn').textContent = '⏸';
+    }
   } else {
     audio.pause();
     document.getElementById('play-btn').textContent = '▶';
@@ -561,4 +582,3 @@ initLibrary();
 </script>
 </body>
 </html>
-
