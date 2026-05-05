@@ -195,6 +195,25 @@ const Utils = {
     return h % 9999;
   },
 
+  // ── 정답 체크 ──
+  normalize(s) {
+    return (s || '').replace(/[~\-().\[\]?!]/g, ' ')
+      .replace(/\s+/g, ' ').trim().toLowerCase();
+  },
+
+  checkAnswer(input, correct) {
+    const inp = this.normalize(input);
+    const answers = (correct || '').split(/[,\/]/).map(s => this.normalize(s));
+    if (answers.some(a => a === inp)) return 'exact';
+    if (answers.some(a => a.includes(inp) || inp.includes(a.split(' ')[0]))) return 'close';
+    return 'wrong';
+  },
+
+  fmtTime(sec) {
+    const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return m + ':' + String(s).padStart(2, '0');
+  },
+
   // ── Shuffle ──
   shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
