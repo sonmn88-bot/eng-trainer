@@ -13,7 +13,7 @@ let _db = null;
 async function initDB() {
   if (_db) return _db;
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-  const { getDatabase, ref, get, set, update, push, serverTimestamp }
+  const { getDatabase, ref, get, set, update, push, remove, serverTimestamp }
     = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
   const app = initializeApp(FIREBASE_CONFIG);
   _db = { db: getDatabase(app), ref, get, set, update, push, serverTimestamp };
@@ -34,8 +34,13 @@ const DB = {
   },
 
   async saveStudent(id, data) {
-    const { db, ref, update } = await initDB();
-    await update(ref(db, `students/${id}`), data);
+    const { db, ref, update, set } = await initDB();
+    if (data === null) {
+      // 삭제
+      await set(ref(db, `students/${id}`), null);
+    } else {
+      await update(ref(db, `students/${id}`), data);
+    }
   },
 
   async createStudent(name) {
@@ -72,7 +77,7 @@ const DB = {
     const { db, ref, get } = await initDB();
     const snap = await get(ref(db, `students/${stuId}/weakWords`));
     if (!snap.exists()) return [];
-    return Object.values(snap.val()).filter(w => w.streak < 3);
+    return Object.values(snap.val()).filter(w => w.streak < 5);
   },
 
   async getAllWeakWords(stuId) {
