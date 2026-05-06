@@ -267,8 +267,18 @@ let flipSetIdx = 0;         // 현재 세트 번호 (0~4)
 let flipSourceWords = [];   // 전체 100개
 
 function goFlipMode() {
-  // 전체 단어 중 최대 100개 (주별 설정 참고)
+  // 전체랜덤 → 전체 단어 100개
   flipSourceWords = allWords.slice(0, 100);
+  flipSetIdx = 0;
+  showView('flip');
+  renderFlipSetButtons();
+  loadFlipSet(0);
+}
+
+function goFlipModeFromWeek(wk) {
+  // 주차에서 진입 → 해당 주차 100개
+  const info = window._weekWords && window._weekWords[wk];
+  flipSourceWords = info ? info.words : allWords.slice(0, 100);
   flipSetIdx = 0;
   showView('flip');
   renderFlipSetButtons();
@@ -509,14 +519,29 @@ function selectWeek(wk) {
   document.querySelectorAll('.week-card').forEach(c => c.classList.remove('sel'));
   document.getElementById(`wk-${wk}`).classList.add('sel');
 
-  // 해당 주차 단어 수집
-  const info = window._weeks[wk];
-  const days = window._days;
-  const words = [];
-  for (const d of info.days) words.push(...(days[d] || []));
-  selectedDay = `__week__${wk}`;
+  // 100개 고정 단어 수집
+  const info = window._weekWords[wk];
+  const words = info ? info.words : [];
+  selectedDay = '__week__' + wk;
   window._selectedWords = words;
+  window._selectedWeek = wk;
+
+  // 카드연습 버튼 추가해서 start-panel 표시
   showStartPanel(words);
+
+  // start-panel에 카드연습 버튼 동적 추가
+  const sp = document.getElementById('start-panel');
+  if (sp && !document.getElementById('btn-flip-week')) {
+    const flipBtn = document.createElement('button');
+    flipBtn.id = 'btn-flip-week';
+    flipBtn.className = 'btn btn-full';
+    flipBtn.style.marginTop = '8px';
+    flipBtn.textContent = '🃏 카드로 연습하기';
+    flipBtn.onclick = function() { goFlipModeFromWeek(wk); };
+    sp.appendChild(flipBtn);
+  } else if (document.getElementById('btn-flip-week')) {
+    document.getElementById('btn-flip-week').onclick = function() { goFlipModeFromWeek(wk); };
+  }
 }
 
 // ── Mode Selection ─────────────────────────────
@@ -528,13 +553,23 @@ async function selectMode(mode) {
   if (mode === 'flip') {
     document.getElementById('week-panel').style.display = 'none';
     document.getElementById('start-panel').style.display = 'none';
-    goFlipMode();
+    // 주별학습 선택 중이면 week-panel에서 주차 선택하도록 안내
+    // 전체랜덤 상태면 바로 전체 100개로 진입
+    if (window._selectedWeek) {
+      goFlipModeFromWeek(window._selectedWeek);
+    } else {
+      goFlipMode();
+    }
     return;
   }
 
   if (mode === 'week') {
+    window._selectedWeek = null;
     document.getElementById('week-panel').style.display = 'block';
     document.getElementById('start-panel').style.display = 'none';
+    // 카드연습 버튼 제거 (주차 재선택 필요)
+    const old = document.getElementById('btn-flip-week');
+    if (old) old.remove();
     return;
   }
 
