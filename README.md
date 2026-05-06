@@ -128,4 +128,4 @@ english-trainer/
 - EBS 리스닝 자료는 저작권이 있으므로 **비공개 repo** 또는 **비공개 URL** 운영 권장
 - Firebase Realtime Database는 기본 1GB 저장 / 10GB 다운로드 무료
 - GitHub Pages는 public repo 무료 / private repo는 유료 플랜 필요
-  → 대안: Cloudflare Pages (private repo도 무료)
+  → 대안: Cloudflare Pages (private repo도 무료)-
