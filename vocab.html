@@ -810,6 +810,134 @@ function preloadImages(words) {
   }
   setTimeout(loadNext, 500); // 화면 전환 후 시작
 }
+
+
+// ── Mode Selection ──────────────────────────────
+async function selectMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('sel'));
+  document.getElementById('mode-' + mode).classList.add('sel');
+
+  if (mode === 'flip') {
+    document.getElementById('week-panel').style.display = 'none';
+    document.getElementById('start-panel').style.display = 'none';
+    if (window._selectedWeek) {
+      goFlipModeFromWeek(window._selectedWeek);
+    } else {
+      goFlipMode();
+    }
+    return;
+  }
+
+  if (mode === 'week') {
+    window._selectedWeek = null;
+    var old = document.getElementById('btn-flip-week');
+    if (old) old.remove();
+    document.getElementById('week-panel').style.display = 'block';
+    document.getElementById('start-panel').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('week-panel').style.display = 'none';
+
+  if (mode === 'random') {
+    window._selectedWords = allWords;
+    showStartPanel(allWords);
+  } else if (mode === 'weak') {
+    let weakList = [];
+    try { weakList = await DB.getWeakWords(STU_ID); } catch(e) {}
+    const weakSet = new Set(weakList.map(w => w.word.toLowerCase()));
+    const words = allWords.filter(w => weakSet.has(w[0].toLowerCase()));
+    window._selectedWords = words.length ? words : allWords;
+    const notice = document.getElementById('weak-notice');
+    const msg = document.getElementById('weak-cnt-msg');
+    if (notice) notice.style.display = 'block';
+    if (msg) msg.textContent = words.length
+      ? '취약 단어 ' + words.length + '개 집중훈련'
+      : '취약 단어가 없어서 전체 단어로 진행합니다';
+    showStartPanel(window._selectedWords);
+  }
+}
+
+// ── 카드 플립 연습 ───────────────────────────────
+let flipSourceWords = [];
+let flipSetIdx = 0;
+const FLIP_SET_SIZE = 20;
+const FLIP_SETS = 5;
+
+function goFlipMode() {
+  flipSourceWords = allWords.slice(0, 100);
+  flipSetIdx = 0;
+  showView('flip');
+  renderFlipSetButtons();
+  loadFlipSet(0);
+}
+
+function goFlipModeFromWeek(wk) {
+  const info = window._weekWords && window._weekWords[wk];
+  flipSourceWords = info ? info.words : allWords.slice(0, 100);
+  flipSetIdx = 0;
+  showView('flip');
+  renderFlipSetButtons();
+  loadFlipSet(0);
+}
+
+function renderFlipSetButtons() {
+  const grid = document.getElementById('flip-set-grid');
+  if (!grid) return;
+  let html = '';
+  for (let i = 0; i < FLIP_SETS; i++) {
+    const start = i * FLIP_SET_SIZE + 1;
+    const end = Math.min((i + 1) * FLIP_SET_SIZE, flipSourceWords.length);
+    if (start > flipSourceWords.length) break;
+    html += '<div class="flip-set-btn' + (i === flipSetIdx ? ' active' : '') + '" onclick="loadFlipSet(' + i + ')">' +
+      'Set ' + (i + 1) + '<br><span style="font-size:10px;font-weight:400;color:var(--txt3)">' + start + '-' + end + '</span></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function loadFlipSet(idx) {
+  flipSetIdx = idx;
+  const start = idx * FLIP_SET_SIZE;
+  const words = flipSourceWords.slice(start, start + FLIP_SET_SIZE);
+
+  document.querySelectorAll('.flip-set-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === idx);
+  });
+
+  const prog = document.getElementById('flip-progress');
+  if (prog) prog.textContent = 'Set ' + (idx + 1) + ' · ' + words.length + '개 · 카드를 탭해서 뜻을 확인하세요';
+
+  const grid = document.getElementById('flip-cards-grid');
+  if (!grid) return;
+  grid.innerHTML = words.map(function(w, i) {
+    const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
+    const backContent = mn
+      ? '<div>' + w[1] + '</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">' + mn + '</div>'
+      : w[1];
+    return '<div class="flip-card-wrap" id="fc-flip-' + i + '" onclick="toggleFlipCard(' + i + ')">' +
+      '<div class="flip-card-inner">' +
+        '<div class="flip-card-front">' + w[0] + '</div>' +
+        '<div class="flip-card-back">' + backContent + '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+function toggleFlipCard(i) {
+  const el = document.getElementById('fc-flip-' + i);
+  if (el) el.classList.toggle('flipped');
+}
+
+function flipResetAll() {
+  document.querySelectorAll('.flip-card-wrap').forEach(el => el.classList.remove('flipped'));
+}
+
+function goQuizFromFlip() {
+  const start = flipSetIdx * FLIP_SET_SIZE;
+  window._selectedWords = flipSourceWords.slice(start, start + FLIP_SET_SIZE);
+  currentMode = 'flip';
+  goQuiz();
+}
 </script>
 </body>
 </html>
