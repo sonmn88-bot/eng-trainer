@@ -113,6 +113,7 @@
         <div class="dd" id="stu-dd"></div>
       </div>
       <input type="hidden" id="stu-id">
+      <div id="stu-err" style="color:var(--red);font-size:12px;text-align:center;margin-bottom:.5rem;min-height:16px"></div>
       <button class="btn btn-gold btn-full" onclick="doStuLogin()">입장 →</button>
       <p style="text-align:center;margin-top:1rem">
         <button class="btn btn-ghost btn-sm" onclick="goTeacher()">선생님 모드</button>
@@ -249,19 +250,15 @@ async function doStuLogin() {
 
   let id = document.getElementById('stu-id').value;
 
-  // 기존 학생 검색
+  // 기존 학생만 허용
   if (!id) {
     const match = Object.values(state.students).find(s => s.name === nameVal);
     if (match) {
       id = match.id;
     } else {
-      // 신규 생성
-      try {
-        id = await DB.createStudent(nameVal);
-        state.students[id] = { id, name: nameVal };
-      } catch(e) {
-        id = 'local_' + nameVal;
-      }
+      const err = document.getElementById('stu-err');
+      if (err) err.textContent = '등록되지 않은 학생입니다. 선생님에게 문의하세요.';
+      return;
     }
   }
 
@@ -269,7 +266,7 @@ async function doStuLogin() {
   state.stuName = nameVal;
   sessionStorage.setItem('stuId', id);
   sessionStorage.setItem('stuName', nameVal);
-  await showMain();
+  showMain();
 }
 
 async function showMain() {
