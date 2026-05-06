@@ -117,7 +117,7 @@
            style="grid-column:span 2">
         <div class="mode-icon">⚡</div>
         <div class="mode-name">취약단어 집중훈련</div>
-        <div class="mode-desc">3회 연속 정답 시 졸업</div>
+        <div class="mode-desc">5회 연속 정답 시 졸업</div>
       </div>
     </div>
   </div>
@@ -373,7 +373,7 @@ const flash = { words: [], idx: 0 };
 const quiz  = { words: [], idx: 0, correct: 0, wrong: 0, timer: null, elapsed: 0, results: [] };
 
 // ── Views ──────────────────────────────────────
-const VIEWS = ['library','set','flash','quiz','result','wrong'];
+const VIEWS = ['library','set','flash','quiz','result','wrong','flip'];
 function showView(name) {
   VIEWS.forEach(v => {
     const el = document.getElementById(`view-${v}`);
@@ -484,26 +484,16 @@ async function selectSet(setId) {
 }
 
 function buildWeekGrid() {
-  // Day별 그루핑
-  const days = {};
-  for (const w of allWords) {
-    const d = w[2] || 'Day 01';
-    if (!days[d]) days[d] = [];
-    days[d].push(w);
-  }
-
-  // 20개씩 주차 묶기 (day 기준이 없으면 인덱스 기반)
-  const dayKeys = Object.keys(days).sort();
-  const DAYS_PER_WEEK = 5;
+  // 100개씩 고정 분할
+  const WORDS_PER_WEEK = 100;
   const weeks = {};
-  dayKeys.forEach((d, i) => {
-    const wk = Math.floor(i / DAYS_PER_WEEK) + 1;
-    if (!weeks[wk]) weeks[wk] = { days: [], count: 0 };
-    weeks[wk].days.push(d);
-    weeks[wk].count += days[d].length;
-  });
-
-  window._days = days;
+  for (let i = 0; i < allWords.length; i++) {
+    const wk = Math.floor(i / WORDS_PER_WEEK) + 1;
+    if (!weeks[wk]) weeks[wk] = { words: [], count: 0 };
+    weeks[wk].words.push(allWords[i]);
+    weeks[wk].count++;
+  }
+  window._weekWords = weeks;
   window._weeks = weeks;
 
   const grid = document.getElementById('week-grid');
@@ -517,82 +507,28 @@ function buildWeekGrid() {
 
 function selectWeek(wk) {
   document.querySelectorAll('.week-card').forEach(c => c.classList.remove('sel'));
-  document.getElementById(`wk-${wk}`).classList.add('sel');
+  document.getElementById('wk-' + wk).classList.add('sel');
 
-  // 100개 고정 단어 수집
   const info = window._weekWords[wk];
   const words = info ? info.words : [];
   selectedDay = '__week__' + wk;
   window._selectedWords = words;
   window._selectedWeek = wk;
 
-  // 카드연습 버튼 추가해서 start-panel 표시
   showStartPanel(words);
 
-  // start-panel에 카드연습 버튼 동적 추가
-  const sp = document.getElementById('start-panel');
-  if (sp && !document.getElementById('btn-flip-week')) {
-    const flipBtn = document.createElement('button');
+  // 카드연습 버튼 동적 추가
+  var sp = document.getElementById('start-panel');
+  var existing = document.getElementById('btn-flip-week');
+  if (existing) existing.remove();
+  if (sp) {
+    var flipBtn = document.createElement('button');
     flipBtn.id = 'btn-flip-week';
     flipBtn.className = 'btn btn-full';
     flipBtn.style.marginTop = '8px';
     flipBtn.textContent = '🃏 카드로 연습하기';
     flipBtn.onclick = function() { goFlipModeFromWeek(wk); };
     sp.appendChild(flipBtn);
-  } else if (document.getElementById('btn-flip-week')) {
-    document.getElementById('btn-flip-week').onclick = function() { goFlipModeFromWeek(wk); };
-  }
-}
-
-// ── Mode Selection ─────────────────────────────
-async function selectMode(mode) {
-  currentMode = mode;
-  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('sel'));
-  document.getElementById(`mode-${mode}`).classList.add('sel');
-
-  if (mode === 'flip') {
-    document.getElementById('week-panel').style.display = 'none';
-    document.getElementById('start-panel').style.display = 'none';
-    // 주별학습 선택 중이면 week-panel에서 주차 선택하도록 안내
-    // 전체랜덤 상태면 바로 전체 100개로 진입
-    if (window._selectedWeek) {
-      goFlipModeFromWeek(window._selectedWeek);
-    } else {
-      goFlipMode();
-    }
-    return;
-  }
-
-  if (mode === 'week') {
-    window._selectedWeek = null;
-    document.getElementById('week-panel').style.display = 'block';
-    document.getElementById('start-panel').style.display = 'none';
-    // 카드연습 버튼 제거 (주차 재선택 필요)
-    const old = document.getElementById('btn-flip-week');
-    if (old) old.remove();
-    return;
-  }
-
-  document.getElementById('week-panel').style.display = 'none';
-
-  if (mode === 'random') {
-    window._selectedWords = allWords;
-    showStartPanel(allWords);
-  } else if (mode === 'weak') {
-    let weakList = [];
-    try { weakList = await DB.getWeakWords(STU_ID); } catch(e) {}
-    // weakWords의 단어명으로 allWords에서 매칭
-    const weakSet = new Set(weakList.map(w => w.word.toLowerCase()));
-    const words = allWords.filter(w => weakSet.has(w[0].toLowerCase()));
-    window._selectedWords = words.length ? words : allWords;
-    if (!words.length) {
-      document.getElementById('weak-notice').style.display = 'block';
-      document.getElementById('weak-cnt-msg').textContent = '취약 단어가 없어서 전체 단어로 진행합니다';
-    } else {
-      document.getElementById('weak-notice').style.display = 'block';
-      document.getElementById('weak-cnt-msg').textContent = `취약 단어 ${words.length}개 집중훈련`;
-    }
-    showStartPanel(window._selectedWords);
   }
 }
 
