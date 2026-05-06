@@ -55,6 +55,19 @@
 .wi-word { font-family: var(--font-display); font-size: 16px; font-style: italic; color: var(--txt); min-width: 100px; }
 .wi-ko { color: var(--gold); font-weight: 500; }
 .wi-ans { color: var(--red); font-size: 12px; margin-top: 2px; }
+
+/* ── 카드 플립 연습 모드 ── */
+.flip-set-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1rem; }
+.flip-set-btn { background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.625rem .5rem;text-align:center;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s; }
+.flip-set-btn:hover,.flip-set-btn.active { background:var(--gold-bg);border-color:var(--gold-bdr);color:var(--gold); }
+.flip-cards-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1rem; }
+.flip-card-wrap { perspective:600px;cursor:pointer;min-height:90px; }
+.flip-card-inner { position:relative;width:100%;min-height:90px;transform-style:preserve-3d;transition:transform .4s cubic-bezier(.4,0,.2,1); }
+.flip-card-wrap.flipped .flip-card-inner { transform:rotateY(180deg); }
+.flip-card-front,.flip-card-back { position:absolute;width:100%;min-height:90px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;padding:.75rem;text-align:center;box-sizing:border-box; }
+.flip-card-front { background:var(--sur);border:1px solid var(--bdr);font-family:var(--font-display);font-style:italic;font-size:15px;font-weight:600;color:var(--txt); }
+.flip-card-back { background:var(--gold-bg);border:1px solid var(--gold-bdr);transform:rotateY(180deg);font-size:13px;color:var(--txt);line-height:1.5; }
+.flip-progress { font-size:11px;color:var(--txt3);text-align:center;margin-bottom:.75rem; }
 </style>
 </head>
 <body>
@@ -94,6 +107,11 @@
         <div class="mode-icon">📅</div>
         <div class="mode-name">주별 학습</div>
         <div class="mode-desc">Day별 단어 세트</div>
+      </div>
+      <div class="mode-card" id="mode-flip" onclick="selectMode('flip')">
+        <div class="mode-icon">🃏</div>
+        <div class="mode-name">카드 연습</div>
+        <div class="mode-desc">20개씩 뒤집어보기</div>
       </div>
       <div class="mode-card" id="mode-weak" onclick="selectMode('weak')"
            style="grid-column:span 2">
@@ -212,6 +230,21 @@
   </div>
 </div>
 
+<!-- ══ VIEW 7: 카드 플립 연습 ══ -->
+<div id="view-flip" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+    <p class="sec-title" style="margin:0">🃏 카드 연습</p>
+    <button class="btn btn-ghost btn-sm" onclick="backToSet()">← 돌아가기</button>
+  </div>
+  <div class="flip-set-grid" id="flip-set-grid"></div>
+  <div class="flip-progress" id="flip-progress"></div>
+  <div class="flip-cards-grid" id="flip-cards-grid"></div>
+  <div style="display:flex;gap:8px;margin-top:.5rem">
+    <button class="btn btn-full" onclick="flipResetAll()">🔄 다시 다 뒤집기</button>
+    <button class="btn btn-gold btn-full" onclick="goQuizFromFlip()">✏️ 이 세트 시험보기</button>
+  </div>
+</div>
+
 <!-- ══ VIEW 6: 오답 노트 ══ -->
 <div id="view-wrong" style="display:none">
   <div class="card">
@@ -225,7 +258,86 @@
 
 </div><!-- .app -->
 
-<script src="data/words/mnemonics.js"></script>
+<script src="data/words/mnemonics.js">
+// ── 카드 플립 연습 모드 ─────────────────────────
+const FLIP_SET_SIZE = 20;  // 세트당 20개
+const FLIP_SETS = 5;       // 5세트
+let flipWords = [];         // 현재 세트 단어
+let flipSetIdx = 0;         // 현재 세트 번호 (0~4)
+let flipSourceWords = [];   // 전체 100개
+
+function goFlipMode() {
+  // 전체 단어 중 최대 100개 (주별 설정 참고)
+  flipSourceWords = allWords.slice(0, 100);
+  flipSetIdx = 0;
+  showView('flip');
+  renderFlipSetButtons();
+  loadFlipSet(0);
+}
+
+function renderFlipSetButtons() {
+  const grid = document.getElementById('flip-set-grid');
+  let html = '';
+  for (let i = 0; i < FLIP_SETS; i++) {
+    const start = i * FLIP_SET_SIZE + 1;
+    const end = Math.min((i + 1) * FLIP_SET_SIZE, flipSourceWords.length);
+    if (start > flipSourceWords.length) break;
+    html += '<div class="flip-set-btn' + (i === flipSetIdx ? ' active' : '') + '" onclick="loadFlipSet(' + i + ')">' +
+      'Set ' + (i + 1) + '<br><span style="font-size:10px;font-weight:400;color:var(--txt3)">' + start + '-' + end + '</span></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function loadFlipSet(idx) {
+  flipSetIdx = idx;
+  const start = idx * FLIP_SET_SIZE;
+  flipWords = flipSourceWords.slice(start, start + FLIP_SET_SIZE);
+
+  // 세트 버튼 active 업데이트
+  document.querySelectorAll('.flip-set-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === idx);
+  });
+
+  // 진행 표시
+  const prog = document.getElementById('flip-progress');
+  prog.textContent = 'Set ' + (idx + 1) + ' · ' + flipWords.length + '개 · 카드를 탭해서 뜻을 확인하세요';
+
+  renderFlipCards();
+}
+
+function renderFlipCards() {
+  const grid = document.getElementById('flip-cards-grid');
+  grid.innerHTML = flipWords.map((w, i) => {
+    const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
+    const backContent = mn
+      ? '<div>' + w[1] + '</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">' + mn + '</div>'
+      : w[1];
+    return '<div class="flip-card-wrap" id="fc-flip-' + i + '" onclick="toggleFlipCard(' + i + ')">' +
+      '<div class="flip-card-inner">' +
+        '<div class="flip-card-front">' + w[0] + '</div>' +
+        '<div class="flip-card-back">' + backContent + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleFlipCard(i) {
+  const el = document.getElementById('fc-flip-' + i);
+  if (el) el.classList.toggle('flipped');
+}
+
+function flipResetAll() {
+  document.querySelectorAll('.flip-card-wrap').forEach(el => el.classList.remove('flipped'));
+}
+
+function goQuizFromFlip() {
+  // 현재 플립 세트 단어로 퀴즈 시작
+  window._selectedWords = flipWords;
+  currentMode = 'flip';
+  goQuiz();
+}
+
+</script>
 <script src="data/words/examples.js"></script>
 <script src="data/_index.js"></script>
 <script src="shared/utils.js"></script>
@@ -412,6 +524,13 @@ async function selectMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('sel'));
   document.getElementById(`mode-${mode}`).classList.add('sel');
+
+  if (mode === 'flip') {
+    document.getElementById('week-panel').style.display = 'none';
+    document.getElementById('start-panel').style.display = 'none';
+    goFlipMode();
+    return;
+  }
 
   if (mode === 'week') {
     document.getElementById('week-panel').style.display = 'block';
