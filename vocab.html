@@ -398,11 +398,29 @@
     <div style="font-size:11px;color:var(--txt3);margin-bottom:.5rem">3초 안에 뜻이 떠오르면 ✅</div>
     <div class="big-word" id="speed-word" style="font-size:28px;margin:1.5rem 0"></div>
     <div id="speed-hint" style="font-size:12px;color:var(--txt3);min-height:18px;margin-bottom:1rem"></div>
-    <div style="display:flex;gap:12px;justify-content:center">
+    <!-- 기본 버튼 -->
+    <div id="speed-btns" style="display:flex;gap:12px;justify-content:center">
       <button class="btn" style="flex:1;background:var(--red,#e53935);color:#fff;font-size:16px;padding:1rem" onclick="speedAnswer(false)">❌ 몰라요</button>
       <button class="btn btn-gold" style="flex:1;font-size:16px;padding:1rem" onclick="speedAnswer(true)">✅ 알아요</button>
     </div>
-    <div id="speed-meaning" style="display:none;margin-top:.75rem;font-size:14px;color:var(--txt);background:var(--sur2);border-radius:var(--rs);padding:.75rem"></div>
+    <!-- 알아요 눌렀을 때 뜻 확인 패널 -->
+    <div id="speed-check-panel" style="display:none;margin-top:.75rem">
+      <div id="speed-meaning" style="font-size:15px;font-weight:600;color:var(--gold);background:var(--sur2);border-radius:var(--rs);padding:.75rem;margin-bottom:.625rem"></div>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">진짜 알고 있었나요?</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn" style="flex:1;font-size:13px" onclick="speedRecheck(false)">🤔 몰랐어요</button>
+        <button class="btn btn-ghost btn-sm" onclick="speedBmCurrent()" style="padding:.5rem .875rem">☆</button>
+        <button class="btn btn-gold" style="flex:1;font-size:13px" onclick="speedRecheck(true)">✓ 맞아요</button>
+      </div>
+    </div>
+    <!-- 몰라요 눌렀을 때 뜻 + 북마크 -->
+    <div id="speed-meaning-dont" style="display:none;margin-top:.75rem">
+      <div id="speed-meaning-dont-text" style="font-size:14px;color:var(--txt);background:var(--sur2);border-radius:var(--rs);padding:.75rem;margin-bottom:.5rem"></div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn btn-ghost btn-sm" onclick="speedBmCurrent()">☆ 북마크</button>
+        <button class="btn btn-gold" onclick="speedNext()">다음 →</button>
+      </div>
+    </div>
   </div>
   <div style="text-align:center;margin-top:.5rem">
     <button class="btn btn-ghost btn-sm" onclick="backToSet()">그만두기</button>
@@ -487,6 +505,16 @@
     <p class="sec-title" style="margin:0" id="folder-detail-title"></p>
   </div>
   <div id="folder-detail-list"></div>
+  <!-- 폴더 단어로 학습 -->
+  <div id="folder-study-btns" style="display:none;margin-top:.875rem">
+    <p class="sec-title" style="margin-bottom:.5rem">이 폴더로 학습</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn btn-full" onclick="startFolderMode('flash')">📖 플래시카드</button>
+      <button class="btn btn-gold btn-full" onclick="startFolderMode('quiz')">✏️ 퀴즈</button>
+      <button class="btn btn-full" onclick="startFolderMode('choice')">🎯 4지선다</button>
+      <button class="btn btn-full" onclick="startFolderMode('speed')">⚡ 속도인식</button>
+    </div>
+  </div>
   <div style="text-align:center;margin-top:.75rem">
     <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteCurrentFolder()">🗑 이 폴더 삭제</button>
   </div>
@@ -631,33 +659,33 @@ function renderBlank() {
   const total = blank.words.length;
   const ex = window.EXAMPLES[w[0].toLowerCase()];
 
-  // 진행 표시
   document.getElementById('blank-prog').textContent = (blank.idx + 1) + ' / ' + total;
   document.getElementById('blank-score').textContent = '✓ ' + blank.correct + '  ✗ ' + blank.wrong;
   document.getElementById('blank-fill').style.width = (blank.idx / total * 100) + '%';
-
-  // 힌트: 뜻 표시
   document.getElementById('blank-hint').textContent = '뜻: ' + w[1];
 
-  // 예문에서 단어 숨기기 (대소문자 무시, 단어 형태 그대로)
   const word = w[0];
-  const regex = new RegExp('\\b(' + word + 's?|' + word + 'ed?|' + word + 'ing)\\b', 'gi');
-  const blanked = ex.en.replace(regex, function(match) {
-    return '<span class="blank-hole" style="display:inline-block;min-width:80px;border-bottom:2px solid var(--gold);background:var(--gold-bg);padding:0 4px;border-radius:3px;color:transparent">'+match+'</span>';
-  });
-  // 빈칸이 없으면 단어 전체를 대체
-  const hasBlanked = blanked.includes('blank-hole');
-  const finalSentence = hasBlanked ? blanked : ex.en.replace(
-    new RegExp('\\b' + word + '\\b', 'i'),
-    '<span class="blank-hole" style="display:inline-block;min-width:80px;border-bottom:2px solid var(--gold);background:var(--gold-bg);padding:0 4px;border-radius:3px;color:transparent">'+word+'</span>'
-  );
+  const HOLE = '<span class="blank-hole" style="display:inline-block;min-width:80px;height:1.4em;border-bottom:2px solid var(--gold);background:var(--gold-bg);padding:0 4px;border-radius:3px;color:var(--gold-bg);user-select:none">____</span>';
 
-  document.getElementById('blank-sentence').innerHTML = finalSentence;
+  // 단어 원형 + 파생형 패턴으로 치환
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp('\\b(' + escaped + "(?:s|es|ed|ing|er|ly|tion|ness)?)\\b", 'gi');
+  let blanked = ex.en.replace(regex, HOLE);
+
+  // 치환이 안 됐으면 강제로 첫 등장 단어 치환
+  if (!blanked.includes('blank-hole')) {
+    blanked = ex.en.replace(new RegExp('\\b' + escaped + '\\b', 'i'), HOLE);
+  }
+  // 그래도 없으면 단어가 아예 없는 예문 → 단어만 따로 표시
+  if (!blanked.includes('blank-hole')) {
+    blanked = HOLE + ' <span style="font-size:11px;color:var(--txt3)">(위 빈칸에 단어 입력)</span><br><em style="font-size:12px;color:var(--txt3)">' + ex.en + '</em>';
+  }
+
+  document.getElementById('blank-sentence').innerHTML = blanked;
   if (ex.ko) {
     document.getElementById('blank-sentence').innerHTML += '<div style="font-size:12px;color:var(--txt3);margin-top:.5rem">' + ex.ko + '</div>';
   }
 
-  // 입력 초기화
   document.getElementById('blank-ans').value = '';
   document.getElementById('blank-fb').style.display = 'none';
   document.getElementById('blank-sub').style.display = 'inline-flex';
@@ -830,12 +858,20 @@ function goBack() {
   });
   if (visible === 'library' || !visible) {
     window.location.href = `index.html?stu=${STU_ID}&name=${encodeURIComponent(STU_NAME)}`;
-  } else if (visible === 'flash' || visible === 'quiz') {
+  } else if (['flash','quiz','blank','choice','speed','flip'].includes(visible)) {
     backToSet();
   } else if (visible === 'set') {
     showView('library');
     document.getElementById('back-btn').textContent = '← 홈';
-  } else if (visible === 'result' || visible === 'wrong') {
+  } else if (['result','wrong','calendar'].includes(visible)) {
+    backToSet();
+  } else if (visible === 'folder-detail') {
+    showView('folders');
+    loadFolders();
+  } else if (visible === 'folders') {
+    showView('library');
+    document.getElementById('back-btn').textContent = '← 홈';
+  } else {
     backToSet();
   }
 }
@@ -1875,35 +1911,87 @@ function renderSpeed() {
   document.getElementById('speed-fill').style.width = (speed.idx/total*100) + '%';
   document.getElementById('speed-word').textContent = w[0];
   document.getElementById('speed-hint').textContent = '';
-  document.getElementById('speed-meaning').style.display = 'none';
-  document.getElementById('speed-meaning').textContent = '';
+  // 패널 초기화
+  document.getElementById('speed-btns').style.display = 'flex';
+  document.getElementById('speed-check-panel').style.display = 'none';
+  document.getElementById('speed-meaning-dont').style.display = 'none';
+  Utils.speak(w[0]);
 }
 
 function speedAnswer(know) {
   const w = speed.words[speed.idx];
   const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
+  const meanText = w[1] + (mn ? '\n💡 ' + mn : '');
 
-  if (know) { speed.know++; }
-  else {
+  // 버튼 숨기기
+  document.getElementById('speed-btns').style.display = 'none';
+
+  if (know) {
+    // 알아요 → 뜻 보여주고 재확인
+    document.getElementById('speed-check-panel').style.display = 'block';
+    document.getElementById('speed-meaning-dont').style.display = 'none';
+    document.getElementById('speed-meaning').textContent = w[1];
+    // 북마크 버튼 상태 업데이트
+    var bmBtn = document.querySelector('#speed-check-panel .btn-ghost');
+    if (bmBtn) bmBtn.textContent = (window._bookmarks && window._bookmarks[w[0]]) ? '★' : '☆';
+  } else {
+    // 몰라요 → 뜻 보여주고 북마크 옵션
+    document.getElementById('speed-check-panel').style.display = 'none';
+    document.getElementById('speed-meaning-dont').style.display = 'block';
+    document.getElementById('speed-meaning-dont-text').textContent = meanText;
     speed.dontKnow++;
-    // 모를 때 뜻 + 연상법 잠깐 보여주기
-    const meanEl = document.getElementById('speed-meaning');
-    meanEl.textContent = w[1] + (mn ? ' — ' + mn : '');
-    meanEl.style.display = 'block';
+    speed.results.push({ word: w[0], ko: w[1], correct: false });
+    try { DB.updateWeakWord(STU_ID, w[0], w[1], false); } catch(e) {}
+    document.getElementById('speed-score').textContent = '✓' + speed.know + ' ✗' + speed.dontKnow;
   }
+}
 
-  speed.results.push({ word: w[0], ko: w[1], correct: know });
-  try { DB.updateWeakWord(STU_ID, w[0], w[1], know); } catch(e) {}
+function speedRecheck(wasCorrect) {
+  const w = speed.words[speed.idx];
+  if (wasCorrect) {
+    speed.know++;
+    speed.results.push({ word: w[0], ko: w[1], correct: true });
+    try { DB.updateWeakWord(STU_ID, w[0], w[1], true); } catch(e) {}
+  } else {
+    speed.dontKnow++;
+    speed.results.push({ word: w[0], ko: w[1], correct: false });
+    try { DB.updateWeakWord(STU_ID, w[0], w[1], false); } catch(e) {}
+  }
+  document.getElementById('speed-score').textContent = '✓' + speed.know + ' ✗' + speed.dontKnow;
+  speedNext();
+}
 
-  setTimeout(function() {
-    speed.idx++;
-    if (speed.idx >= speed.words.length) {
-      quiz.correct = speed.know; quiz.wrong = speed.dontKnow; quiz.results = speed.results; quiz.elapsed = 0;
-      var sc2 = Math.round(speed.know/speed.words.length*100);
-      showResult(sc2, speed.words.length);
-      renderResultDetail(sc2, speed.words.length);
-    } else { renderSpeed(); }
-  }, know ? 300 : 1000);
+async function speedBmCurrent() {
+  const w = speed.words[speed.idx];
+  try {
+    var added = await DB.toggleBookmark(STU_ID, w[0], w[1]);
+    if (!window._bookmarks) window._bookmarks = {};
+    if (added) window._bookmarks[w[0]] = true;
+    else delete window._bookmarks[w[0]];
+    // 버튼 업데이트
+    document.querySelectorAll('#speed-check-panel .btn-ghost, #speed-meaning-dont .btn-ghost').forEach(function(b) {
+      if (b.textContent.includes('★') || b.textContent.includes('☆') || b.textContent.includes('북마크')) {
+        b.textContent = added ? '★ 북마크됨' : '☆ 북마크';
+      }
+    });
+    showToast(added ? '⭐ 북마크에 추가됐어요' : '☆ 북마크에서 제거됐어요');
+  } catch(e) {}
+}
+
+function speedNext() {
+  document.getElementById('speed-check-panel').style.display = 'none';
+  document.getElementById('speed-meaning-dont').style.display = 'none';
+  document.getElementById('speed-btns').style.display = 'flex';
+
+  speed.idx++;
+  if (speed.idx >= speed.words.length) {
+    quiz.correct = speed.know; quiz.wrong = speed.dontKnow; quiz.results = speed.results; quiz.elapsed = 0;
+    var sc2 = Math.round(speed.know / speed.words.length * 100);
+    showResult(sc2, speed.words.length);
+    renderResultDetail(sc2, speed.words.length);
+  } else {
+    renderSpeed();
+  }
 }
 
 // ══════════════════════════════════════════════════
@@ -2055,10 +2143,14 @@ function renderFolderDetail(fid) {
   var f = foldersCache[fid];
   var words = f && f.words ? Object.values(f.words) : [];
   var listEl = document.getElementById('folder-detail-list');
+  var studyBtns = document.getElementById('folder-study-btns');
+
   if (!words.length) {
     listEl.innerHTML = '<div class="empty" style="padding:1rem 0">단어가 없어요.<br>플래시카드에서 📁 버튼으로 추가하세요!</div>';
+    if (studyBtns) studyBtns.style.display = 'none';
     return;
   }
+
   listEl.innerHTML = words.map(function(w) {
     var safeWord = (w.word||'').replace(/'/g,"\\'");
     return '<div class="list-item" style="justify-content:space-between">' +
@@ -2069,6 +2161,37 @@ function renderFolderDetail(fid) {
       '<button class="tts-btn" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="removeFromFolder(\'' + safeWord + '\',\'' + fid + '\')">✕</button>' +
       '</div></div>';
   }).join('');
+
+  if (studyBtns) studyBtns.style.display = 'block';
+  // 폴더 단어를 _selectedWords에 저장
+  window._folderStudyWords = words.map(function(w){ return [w.word, w.ko||'']; });
+}
+
+function startFolderMode(mode) {
+  var words = window._folderStudyWords;
+  if (!words || !words.length) { showToast('단어가 없어요'); return; }
+  window._selectedWords = words;
+  currentMode = mode;
+  if (mode === 'flash') {
+    flash.words = Utils.shuffle(words.slice());
+    flash.idx = 0;
+    showView('flash');
+    renderFlash();
+  } else if (mode === 'quiz') {
+    var cnt = Math.min(words.length, 20);
+    // quiz-count 없을 수 있으므로 직접 설정
+    quiz.words = Utils.shuffle(words.slice()).slice(0, cnt);
+    quiz.idx = 0; quiz.correct = 0; quiz.wrong = 0;
+    quiz.elapsed = 0; quiz.results = []; quiz.combo = 0; quiz.maxCombo = 0; quiz.focusMode = false;
+    quiz.weakStreakMap = {}; quiz.wrongCountMap = {};
+    showView('quiz');
+    renderQuiz();
+    startTimer();
+  } else if (mode === 'choice') {
+    goChoiceQuiz();
+  } else if (mode === 'speed') {
+    goSpeedMode();
+  }
 }
 
 async function removeFromFolder(word, fid) {
