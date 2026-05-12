@@ -101,6 +101,21 @@
   <div class="hero">
     <div id="app-title-display" class="hero-title">English Trainer</div>
     <div class="hero-sub">수능 영어 전문</div>
+    <!-- D-day + 목표 -->
+    <div id="dday-wrap" style="margin-top:.875rem">
+      <div id="dday-count" style="font-size:28px;font-weight:800;color:var(--gold);letter-spacing:-.02em"></div>
+      <div id="dday-detail" style="font-size:11px;color:var(--txt3);margin-top:2px"></div>
+      <!-- 목표 등급 설정 (로그인 후에만) -->
+      <div id="dday-goal-wrap" style="display:none;margin-top:.5rem">
+        <select id="dday-goal-select" onchange="saveDdayGoal()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:6px;padding:3px 8px;color:var(--txt);font-size:11px;text-align:center">
+          <option value="">목표 등급 설정</option>
+          <option value="1">1등급 (90점+)</option>
+          <option value="2">2등급 (80점+)</option>
+          <option value="3">3등급 (70점+)</option>
+        </select>
+        <div id="dday-words-needed" style="font-size:11px;color:var(--txt2);margin-top:4px"></div>
+      </div>
+    </div>
   </div>
 
   <!-- 로그인 전 -->
@@ -134,7 +149,62 @@
 
     <div class="greeting" id="greeting"></div>
 
+    <!-- 선생님 공지 배너 -->
+    <div id="notice-banner" style="display:none;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <span style="font-size:16px;flex-shrink:0">📢</span>
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--txt3);margin-bottom:2px">선생님 공지</div>
+          <div style="font-size:13px;color:var(--txt);line-height:1.6" id="notice-text"></div>
+        </div>
+        <button onclick="dismissNotice()" style="background:none;border:none;color:var(--txt3);font-size:16px;cursor:pointer;padding:0;line-height:1">×</button>
+      </div>
+    </div>
+
+    <!-- 오늘의 복습 알림 배너 -->
+    <div id="review-alert" style="display:none;background:var(--gold-bg);border:1px solid var(--gold-bdr);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem;cursor:pointer"
+         onclick="goToReview()">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">🔔</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--gold)" id="review-alert-title">오늘의 복습</div>
+          <div style="font-size:12px;color:var(--txt2);margin-top:2px" id="review-alert-msg"></div>
+        </div>
+        <span style="font-size:18px;color:var(--gold)">›</span>
+      </div>
+    </div>
+
+    <!-- 취약단어 긴급 알림 -->
+    <div id="weak-alert" style="display:none;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:.625rem 1rem;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">⚡</span>
+        <div style="font-size:12px;color:var(--txt2)" id="weak-alert-msg"></div>
+      </div>
+    </div>
+
     <p class="sec-title">학습 시작</p>
+
+    <!-- 오늘의 한 단어 -->
+    <div id="word-of-day" style="display:none;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+        <p class="sec-title" style="margin:0">✨ 오늘의 단어</p>
+        <span id="wod-date" style="font-size:11px;color:var(--txt3)"></span>
+      </div>
+      <div class="card card-sm" style="position:relative">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:.375rem">
+              <span id="wod-en" style="font-size:22px;font-weight:700;color:var(--txt);font-style:italic"></span>
+              <button onclick="Utils.speak(document.getElementById('wod-en').textContent)" class="tts-btn" style="font-size:11px;padding:3px 8px">🔊</button>
+            </div>
+            <div id="wod-ko" style="font-size:14px;color:var(--gold);font-weight:500;margin-bottom:.375rem"></div>
+            <div id="wod-mnemonic" style="display:none;font-size:12px;color:var(--txt2);background:var(--sur2);border-radius:var(--rs);padding:.375rem .625rem;border-left:2px solid var(--gold-bdr);line-height:1.5;margin-bottom:.375rem"></div>
+            <div id="wod-example" style="display:none;font-size:12px;color:var(--txt3);font-style:italic;line-height:1.6"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="module-grid">
       <a class="module-card" href="vocab.html" id="mod-vocab"
          style="--accent-color:rgba(201,169,97,.1);--accent-bdr:var(--gold-bdr)">
@@ -183,7 +253,36 @@
 
 </div><!-- .app -->
 
+<!-- 주간 학습 리포트 팝업 -->
+<div id="weekly-report-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9997;align-items:flex-start;justify-content:center;padding-top:60px;overflow-y:auto">
+  <div style="background:var(--sur);border-radius:20px;padding:1.5rem;max-width:320px;width:90%;position:relative">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div>
+        <div style="font-size:11px;color:var(--txt3);margin-bottom:2px">지난 주 학습 요약</div>
+        <div style="font-size:17px;font-weight:700;color:var(--txt)">📊 주간 리포트</div>
+      </div>
+      <button onclick="closeWeeklyReport()" style="background:none;border:none;color:var(--txt3);font-size:20px;cursor:pointer">×</button>
+    </div>
+    <div id="weekly-report-content"></div>
+    <button class="btn btn-gold btn-full" style="margin-top:1rem" onclick="closeWeeklyReport()">이번 주도 화이팅! 💪</button>
+  </div>
+</div>
+<div id="sticker-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center">
+  <div style="background:var(--sur);border-radius:20px;padding:2rem 1.5rem;text-align:center;max-width:280px;width:90%;position:relative;animation:pop-in .35s cubic-bezier(.175,.885,.32,1.275)">
+    <div id="sticker-popup-emoji" style="font-size:64px;margin-bottom:.75rem;line-height:1"></div>
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">선생님이 보낸 메시지</div>
+    <div id="sticker-popup-msg" style="font-size:16px;font-weight:600;color:var(--txt);margin-bottom:1.25rem;line-height:1.5"></div>
+    <button class="btn btn-gold btn-full" onclick="closeSticker()">감사해요! 😊</button>
+  </div>
+</div>
+<style>
+@keyframes pop-in { from { transform:scale(0.6); opacity:0; } to { transform:scale(1); opacity:1; } }
+</style>
+
 <script src="data/_index.js"></script>
+<script src="data/words/personal.js"></script>
+<script src="data/words/mnemonics.js"></script>
+<script src="data/words/examples.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
 <script>
@@ -213,6 +312,20 @@ async function init() {
 
   try {
     state.students = await DB.getStudents();
+  } catch(e) {}
+
+  // D-day 계산 (2026 수능: 11월 12일)
+  try {
+    var suneung = new Date('2026-11-12T00:00:00');
+    var today2 = new Date(); today2.setHours(0,0,0,0);
+    var diff = Math.ceil((suneung - today2) / 86400000);
+    var ddayEl = document.getElementById('dday-count');
+    var ddayDetail = document.getElementById('dday-detail');
+    if (ddayEl) {
+      if (diff > 0) { ddayEl.textContent = 'D-' + diff; if(ddayDetail) ddayDetail.textContent = '2026학년도 수능까지'; }
+      else if (diff === 0) { ddayEl.textContent = 'D-DAY!'; }
+      else { ddayEl.textContent = '수능 완료 🎉'; }
+    }
   } catch(e) {}
 }
 
@@ -266,6 +379,8 @@ async function doStuLogin() {
   state.stuName = nameVal;
   sessionStorage.setItem('stuId', id);
   sessionStorage.setItem('stuName', nameVal);
+  // 마지막 접속일 업데이트
+  try { DB.saveStudent(id, { lastSeen: new Date().toISOString() }); } catch(e) {}
   showMain();
 }
 
@@ -282,6 +397,79 @@ async function showMain() {
   const greet = h < 12 ? '좋은 아침이에요' : h < 18 ? '안녕하세요' : '오늘도 수고했어요';
   document.getElementById('greeting').innerHTML = `<strong>${state.stuName}</strong>님, ${greet} 👋`;
 
+  // D-day 목표 설정 표시
+  document.getElementById('dday-goal-wrap').style.display = 'block';
+  var savedGoal = localStorage.getItem('dday_goal_' + state.stuId);
+  if (savedGoal) {
+    document.getElementById('dday-goal-select').value = savedGoal;
+    updateDdayGoal(savedGoal);
+  }
+
+  // 오늘의 한 단어
+  showWordOfDay();
+
+  // 월요일이면 주간 리포트 표시
+  try {
+    var now = new Date();
+    var isMonday = now.getDay() === 1;
+    var weekKey = 'weekly_report_' + state.stuId + '_' + getWeekKey();
+    var alreadyShown = localStorage.getItem(weekKey);
+    if (isMonday && !alreadyShown) {
+      var [results2, weakList2] = await Promise.all([
+        DB.getResults(state.stuId),
+        DB.getAllWeakWords(state.stuId)
+      ]);
+      showWeeklyReport(results2, weakList2, weekKey);
+    }
+  } catch(e) {}
+
+  // 시험 범위 배너
+  try {
+    var examRange = await DB.getExamRange();
+    if (examRange && examRange.setId && examRange.week) {
+      var examBanner = document.getElementById('exam-range-banner');
+      if (!examBanner) {
+        examBanner = document.createElement('div');
+        examBanner.id = 'exam-range-banner';
+        examBanner.style.cssText = 'background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:.625rem 1rem;margin-bottom:1rem;cursor:pointer';
+        examBanner.innerHTML = '<div style="display:flex;align-items:center;gap:8px">' +
+          '<span style="font-size:16px">📝</span>' +
+          '<div><div style="font-size:12px;color:var(--txt3)">이번 주 시험 범위</div>' +
+          '<div id="exam-banner-text" style="font-size:13px;font-weight:600;color:var(--txt)"></div></div>' +
+          '<span style="margin-left:auto;font-size:14px;color:var(--txt3)">›</span></div>';
+        examBanner.onclick = function() {
+          window.location.href = 'vocab.html?stu=' + state.stuId + '&name=' + encodeURIComponent(state.stuName) +
+            '&examSet=' + examRange.setId + '&examWeek=' + examRange.week;
+        };
+        var weakAlertEl = document.getElementById('weak-alert');
+        weakAlertEl.parentNode.insertBefore(examBanner, weakAlertEl);
+      }
+      document.getElementById('exam-banner-text').textContent = examRange.setName + ' ' + examRange.week + '주차';
+      examBanner.style.display = 'block';
+    }
+  } catch(e) {}
+  try {
+    var sticker = await DB.getSticker(state.stuId);
+    if (sticker && !sticker.read) {
+      document.getElementById('sticker-popup-emoji').textContent = sticker.emoji || '🌟';
+      document.getElementById('sticker-popup-msg').textContent = sticker.message || '잘하고 있어요!';
+      document.getElementById('sticker-popup').style.display = 'flex';
+      window._pendingStickerStuId = state.stuId;
+    }
+  } catch(e) {}
+  try {
+    var notice = await DB.getNotice();
+    if (notice && notice.text) {
+      var dismissed = localStorage.getItem('notice_dismissed_' + notice.updatedAt);
+      if (!dismissed) {
+        document.getElementById('notice-text').textContent = notice.text;
+        document.getElementById('notice-banner').style.display = 'block';
+        // 읽음 처리용 updatedAt 저장
+        document.getElementById('notice-banner').dataset.ts = notice.updatedAt;
+      }
+    }
+  } catch(e) {}
+
   // 스트릭
   try {
     const cnt = await DB.updateStreak(state.stuId);
@@ -292,21 +480,216 @@ async function showMain() {
     }
   } catch(e) {}
 
-  // 현황 통계
+  // 현황 통계 + 복습/취약 알림 (동시에)
   try {
-    const results = await DB.getResults(state.stuId);
+    const [results, weakList] = await Promise.all([
+      DB.getResults(state.stuId),
+      DB.getWeakWords(state.stuId)
+    ]);
+
     if (results.length) {
       const total = results.length;
       const avg = Math.round(results.reduce((s,r) => s + (r.score||0), 0) / total);
-      const weak = (await DB.getWeakWords(state.stuId)).length;
       document.getElementById('stats-grid').innerHTML = `
         <div class="metric"><div class="metric-lbl">총 시험</div><div class="metric-val mv-gold">${total}</div></div>
         <div class="metric"><div class="metric-lbl">평균 점수</div><div class="metric-val mv-grn">${avg}%</div></div>
-        <div class="metric"><div class="metric-lbl">취약 단어</div><div class="metric-val mv-red">${weak}</div></div>`;
+        <div class="metric"><div class="metric-lbl">취약 단어</div><div class="metric-val mv-red">${weakList.length}</div></div>`;
       document.getElementById('my-stats').style.display = 'block';
+    }
+
+    // 망각 예측 + 복습 알림
+    if (weakList.length) {
+      const now = Date.now();
+      const DAY = 86400000;
+
+      // SM-2 기반 망각 예측: wrong↑ streak↓ 일수록 빨리 잊음
+      const atRisk = weakList.filter(w => {
+        if (!w.lastStudied) return true; // 오래된 단어
+        const elapsed = (now - w.lastStudied) / DAY;
+        const streak = w.streak || 0;
+        const wrong = w.wrong || 0;
+        // 복습 주기 계산: streak 높을수록 주기 길어짐
+        const interval = Math.max(0.5, Math.pow(2, streak - 1) * (wrong > 3 ? 0.5 : 1));
+        return elapsed >= interval;
+      });
+
+      // 일반 복습 타이밍 (기존 1/3/7/14일 기준)
+      const reviewWords = weakList.filter(w => {
+        if (!w.lastStudied) return false;
+        const elapsed = (now - w.lastStudied) / DAY;
+        return [1,3,7,14].some(d => elapsed >= d - 0.5 && elapsed <= d + 0.5);
+      });
+
+      if (atRisk.length >= 2) {
+        document.getElementById('review-alert').style.display = 'block';
+        document.getElementById('review-alert-title').textContent = '⚠️ 잊기 전에 복습하세요';
+        document.getElementById('review-alert-msg').textContent =
+          atRisk.length + '개 단어를 곧 잊을 수 있어요. 지금 바로 복습하세요!';
+        document.getElementById('review-alert').onclick = function() {
+          window.location.href = 'vocab.html?stu=' + state.stuId + '&name=' + encodeURIComponent(state.stuName) + '&mode=review';
+        };
+      } else if (reviewWords.length >= 2) {
+        document.getElementById('review-alert').style.display = 'block';
+        document.getElementById('review-alert-title').textContent = '오늘의 복습 단어';
+        document.getElementById('review-alert-msg').textContent =
+          reviewWords.length + '개 단어가 복습 타이밍이에요. 탭해서 바로 시작하세요!';
+        document.getElementById('review-alert').onclick = function() {
+          window.location.href = 'vocab.html?stu=' + state.stuId + '&name=' + encodeURIComponent(state.stuName) + '&mode=review';
+        };
+      }
+
+      if (weakList.length >= 10) {
+        document.getElementById('weak-alert').style.display = 'block';
+        document.getElementById('weak-alert-msg').textContent =
+          '⚡ 취약 단어 ' + weakList.length + '개 쌓였어요. 집중훈련 모드로 줄여보세요!';
+      }
     }
   } catch(e) {}
 }
+
+function getWeekKey() {
+  var d = new Date();
+  var jan1 = new Date(d.getFullYear(), 0, 1);
+  var week = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return d.getFullYear() + 'W' + week;
+}
+
+function showWeeklyReport(results, weakList, weekKey) {
+  // 지난 7일 데이터 필터
+  var now = Date.now();
+  var DAY7 = 7 * 86400000;
+  var lastWeek = (results || []).filter(function(r) {
+    return r.date && (now - new Date(r.date).getTime()) <= DAY7;
+  });
+
+  if (!lastWeek.length) return; // 지난 주 학습 없으면 표시 안 함
+
+  var totalQuiz = lastWeek.length;
+  var avgScore = Math.round(lastWeek.reduce(function(s,r){ return s+(r.score||0); },0) / totalQuiz);
+  var bestScore = Math.max.apply(null, lastWeek.map(function(r){ return r.score||0; }));
+
+  // 지난 주 학습 날짜 수 (스트릭)
+  var days = new Set(lastWeek.map(function(r){ return r.date && r.date.slice(0,10); })).size;
+
+  // TOP3 틀린 단어
+  var wrongWords = (weakList || [])
+    .filter(function(w){ return w.wrong > 0; })
+    .sort(function(a,b){ return b.wrong - a.wrong; })
+    .slice(0, 3);
+
+  var scoreColor = avgScore >= 80 ? 'var(--grn,#4caf50)' : avgScore >= 60 ? 'var(--gold)' : 'var(--red,#e53935)';
+  var scoreMsg = avgScore >= 80 ? '훌륭해요! 🌟' : avgScore >= 60 ? '잘하고 있어요 👍' : '더 열심히 해봐요 💪';
+
+  var html =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem">' +
+    '<div style="background:var(--sur2);border-radius:var(--rs);padding:.75rem;text-align:center">' +
+    '<div style="font-size:22px;font-weight:700;color:' + scoreColor + '">' + avgScore + '%</div>' +
+    '<div style="font-size:11px;color:var(--txt3)">평균 점수</div></div>' +
+    '<div style="background:var(--sur2);border-radius:var(--rs);padding:.75rem;text-align:center">' +
+    '<div style="font-size:22px;font-weight:700;color:var(--gold)">' + days + '일</div>' +
+    '<div style="font-size:11px;color:var(--txt3)">출석일</div></div>' +
+    '<div style="background:var(--sur2);border-radius:var(--rs);padding:.75rem;text-align:center">' +
+    '<div style="font-size:22px;font-weight:700;color:var(--txt)">' + totalQuiz + '회</div>' +
+    '<div style="font-size:11px;color:var(--txt3)">시험 횟수</div></div>' +
+    '<div style="background:var(--sur2);border-radius:var(--rs);padding:.75rem;text-align:center">' +
+    '<div style="font-size:22px;font-weight:700;color:var(--grn,#4caf50)">' + bestScore + '%</div>' +
+    '<div style="font-size:11px;color:var(--txt3)">최고 점수</div></div>' +
+    '</div>' +
+    '<div style="font-size:13px;font-weight:600;text-align:center;color:var(--txt2);margin-bottom:.75rem">' + scoreMsg + '</div>';
+
+  if (wrongWords.length) {
+    html += '<div style="background:rgba(239,68,68,.06);border-radius:var(--rs);padding:.625rem .875rem">' +
+      '<div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">⚡ 취약 단어 TOP3</div>' +
+      wrongWords.map(function(w) {
+        return '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">' +
+          '<span style="font-style:italic;font-weight:600">' + w.word + '</span>' +
+          '<span style="color:var(--red,#e53935)">' + w.wrong + '회 틀림</span></div>';
+      }).join('') + '</div>';
+  }
+
+  document.getElementById('weekly-report-content').innerHTML = html;
+  document.getElementById('weekly-report-popup').style.display = 'flex';
+  localStorage.setItem(weekKey, '1');
+}
+
+function closeWeeklyReport() {
+  document.getElementById('weekly-report-popup').style.display = 'none';
+}
+
+function closeSticker() {
+  document.getElementById('sticker-popup').style.display = 'none';
+  if (window._pendingStickerStuId) {
+    try { DB.markStickerRead(window._pendingStickerStuId); } catch(e) {}
+    window._pendingStickerStuId = null;
+  }
+}
+
+function dismissNotice() {
+  var banner = document.getElementById('notice-banner');
+  var ts = banner.dataset.ts;
+  if (ts) localStorage.setItem('notice_dismissed_' + ts, '1');
+  banner.style.display = 'none';
+}
+
+function saveDdayGoal() {
+  var goal = document.getElementById('dday-goal-select').value;
+  if (state.stuId) localStorage.setItem('dday_goal_' + state.stuId, goal);
+  updateDdayGoal(goal);
+}
+
+function updateDdayGoal(goal) {
+  var el = document.getElementById('dday-words-needed');
+  if (!goal || !el) return;
+  var suneung = new Date('2026-11-12T00:00:00');
+  var today = new Date(); today.setHours(0,0,0,0);
+  var daysLeft = Math.max(1, Math.ceil((suneung - today) / 86400000));
+  // 목표별 필요 단어 수 (수능 영어 어휘 기준)
+  var targetWords = { '1': 3000, '2': 2000, '3': 1500 };
+  var target = targetWords[goal] || 2000;
+  var studied = 0; // 간단히 0으로 시작 (정확한 집계는 DB 필요)
+  var remaining = Math.max(0, target - studied);
+  var perDay = Math.ceil(remaining / daysLeft);
+  var gradeLabel = {'1':'1등급','2':'2등급','3':'3등급'}[goal];
+  el.textContent = gradeLabel + ' 목표: 하루 ' + perDay + '개 필요 (남은 ' + remaining.toLocaleString() + '개)';
+}
+
+function showWordOfDay() {
+  try {
+    var words = window.PERSONAL;
+    if (!words || !words.length) return;
+    // 날짜 기반 시드로 매일 같은 단어 선택
+    var today = new Date();
+    var seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
+    var idx = seed % words.length;
+    var w = words[idx];
+    if (!w) return;
+
+    var en = w[0], ko = w[1];
+    document.getElementById('wod-en').textContent = en;
+    document.getElementById('wod-ko').textContent = ko;
+    document.getElementById('wod-date').textContent = (today.getMonth()+1) + '/' + today.getDate();
+
+    // 연상법
+    var mn = Utils.getMnemonic(en.toLowerCase(), ko);
+    if (mn) {
+      var mnEl = document.getElementById('wod-mnemonic');
+      mnEl.textContent = '💡 ' + mn;
+      mnEl.style.display = 'block';
+    }
+
+    // 예문
+    var ex = window.EXAMPLES && window.EXAMPLES[en.toLowerCase()];
+    if (ex && ex.en) {
+      var exEl = document.getElementById('wod-example');
+      exEl.textContent = '"' + ex.en + '"';
+      exEl.style.display = 'block';
+    }
+
+    document.getElementById('word-of-day').style.display = 'block';
+  } catch(e) {}
+}
+
+function goToReview() {} // review-alert onclick에서 직접 처리
 
 function logout() {
   state.stuId = null; state.stuName = null;
