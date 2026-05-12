@@ -1469,25 +1469,6 @@ async function finishQuiz() {
     }
   }
 }
-  showView('wrong');
-  const wrongOnes = quiz.results.filter(r => !r.correct);
-  if (!wrongOnes.length) {
-    document.getElementById('wrong-list').innerHTML = '<div class="empty">오답이 없습니다 🎉</div>';
-    return;
-  }
-  document.getElementById('wrong-list').innerHTML = wrongOnes.map(r => `
-    <div class="wrong-item">
-      <div>
-        <div class="wi-word">${r.word}</div>
-        <button class="tts-btn" style="margin-top:4px;font-size:10px;padding:3px 8px"
-                onclick="Utils.speak('${r.word.replace(/'/,"\\'")}')">🔊</button>
-      </div>
-      <div>
-        <div class="wi-ko">${r.ko}</div>
-        <div class="wi-ans">내 답: ${r.input}</div>
-      </div>
-    </div>`).join('');
-}
 
 function showResult(score, total, skipSave) {
   showView('result');
