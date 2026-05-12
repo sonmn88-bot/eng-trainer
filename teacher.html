@@ -919,6 +919,19 @@ function switchT(tab) {
   if (tab === 'stats') loadStats();
   if (tab === 'progress') loadProgress();
   if (tab === 'report') loadWeeklyReports();
+  if (tab === 'settings') initExamSetSelect();
+}
+
+function initExamSetSelect() {
+  var setSelect = document.getElementById('exam-set-select');
+  if (!setSelect || !window.WORD_CATALOG) return;
+  // 이미 옵션 있으면 스킵
+  if (setSelect.options.length > 1) return;
+  window.WORD_CATALOG.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.name;
+    setSelect.appendChild(opt);
+  });
 }
 
 // -- Mnemonic Editor --
@@ -1059,48 +1072,47 @@ async function loadProgress() {
       } catch(e) {}
     }
 
-    // 주차별 완료 현황 (최근 결과 기준)
-    var weekStats = {}; // week → { done: [], scores: [] }
+    // 주차별 완료 현황 - 날짜 기반 (최근 8주)
+    var now2 = new Date(); now2.setHours(0,0,0,0);
+    var weekStats = {}; // 'YYYY-Www' → { done: Set, scores: [] }
+
     stuList.forEach(function(stu) {
       var results = allResults[stu.id] || [];
-      // 주차별로 그룹화
       results.forEach(function(r) {
-        if (!r.setId) return;
-        var wk = r.setId.match(/week(\d+)/);
-        if (!wk) return;
-        var w = wk[1];
-        if (!weekStats[w]) weekStats[w] = { done: [], scores: [] };
-        if (!weekStats[w].done.includes(stu.name)) {
-          weekStats[w].done.push(stu.name);
-          weekStats[w].scores.push(r.score || 0);
-        }
+        if (!r.date) return;
+        var d = new Date(r.date);
+        // ISO 주차 계산
+        var jan1 = new Date(d.getFullYear(), 0, 1);
+        var wk = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+        var wkKey = d.getFullYear() + '-W' + String(wk).padStart(2,'0');
+        if (!weekStats[wkKey]) weekStats[wkKey] = { done: new Set(), scores: [], label: wkKey };
+        weekStats[wkKey].done.add(stu.id);
+        weekStats[wkKey].scores.push(r.score || 0);
       });
     });
 
-    // 주차 현황 렌더
+    // 주차 현황 렌더 (최근 8주만)
     var total = stuList.length;
     var weekHtml = '';
-    var weeks = Object.keys(weekStats).sort(function(a,b){ return +a - +b; });
+    var weeks = Object.keys(weekStats).sort().slice(-8);
 
     if (weeks.length === 0) {
-      weekHtml = '<div style="color:var(--txt3);font-size:13px">아직 주별 학습 데이터가 없습니다.</div>';
+      weekHtml = '<div style="color:var(--txt3);font-size:13px;padding:.5rem 0">아직 학습 데이터가 없습니다.</div>';
     } else {
       weeks.forEach(function(wk) {
         var stat = weekStats[wk];
-        var done = stat.done.length;
+        var done = stat.done.size;
         var pct = Math.round(done / total * 100);
         var avgScore = stat.scores.length ? Math.round(stat.scores.reduce(function(a,b){return a+b;},0) / stat.scores.length) : 0;
         var barColor = pct >= 80 ? 'var(--grn,#4caf50)' : pct >= 50 ? 'var(--gold)' : 'var(--red,#e53935)';
-
         weekHtml += '<div style="margin-bottom:.875rem">' +
           '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:.25rem">' +
-            '<span style="font-weight:600">' + wk + '주차</span>' +
+            '<span style="font-weight:600">' + wk + '</span>' +
             '<span style="color:var(--txt3)">' + done + '/' + total + '명 · 평균 ' + avgScore + '점</span>' +
           '</div>' +
           '<div style="background:var(--sur2);border-radius:99px;height:8px;overflow:hidden">' +
             '<div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:99px;transition:width .4s"></div>' +
-          '</div>' +
-        '</div>';
+          '</div></div>';
       });
     }
 
