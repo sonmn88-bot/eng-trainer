@@ -63,7 +63,9 @@
 
 <div class="tabs">
   <button class="tab active" id="tt-students" onclick="switchT('students')">학생</button>
+  <button class="tab" id="tt-progress" onclick="switchT('progress')">진도</button>
   <button class="tab" id="tt-stats"    onclick="switchT('stats')">통계</button>
+  <button class="tab" id="tt-report"   onclick="switchT('report')">리포트</button>
   <button class="tab" id="tt-mnemonic" onclick="switchT('mnemonic')">연상법</button>
   <button class="tab" id="tt-settings" onclick="switchT('settings')">설정</button>
 </div>
@@ -98,6 +100,38 @@
       </div>
       <div class="metrics" id="detail-metrics"></div>
       <div id="detail-weak" style="margin-top:.5rem"></div>
+      <div id="detail-graph" style="display:none;margin-top:1rem">
+        <p class="sec-title" style="margin-bottom:.5rem">📈 점수 추이 (최근 10회)</p>
+        <div style="position:relative;height:80px;background:var(--sur2);border-radius:var(--rs);overflow:hidden">
+          <canvas id="score-chart" style="width:100%;height:80px"></canvas>
+        </div>
+      </div>
+
+      <!-- 선생님 메모 -->
+      <div style="margin-top:1rem">
+        <p class="sec-title" style="margin-bottom:.5rem">📝 선생님 메모</p>
+        <textarea id="detail-memo" style="width:100%;height:72px;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.5rem;font-size:12px;color:var(--txt);resize:none;box-sizing:border-box" placeholder="이 학생에 대한 메모를 남겨보세요..."></textarea>
+        <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="saveMemo()">저장</button>
+        <span id="memo-saved" style="font-size:11px;color:var(--grn,#4caf50);margin-left:8px;display:none">✓ 저장됨</span>
+      </div>
+
+      <!-- 칭찬 스티커 -->
+      <div style="margin-top:1rem">
+        <p class="sec-title" style="margin-bottom:.5rem">🌟 칭찬 스티커 보내기</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.625rem" id="sticker-options">
+          <button class="btn btn-sm" onclick="sendSticker('🌟','정말 잘했어요!')" style="font-size:18px;padding:6px 10px">🌟</button>
+          <button class="btn btn-sm" onclick="sendSticker('🔥','완전 불타오르고 있어요!')" style="font-size:18px;padding:6px 10px">🔥</button>
+          <button class="btn btn-sm" onclick="sendSticker('💪','포기하지 마세요!')" style="font-size:18px;padding:6px 10px">💪</button>
+          <button class="btn btn-sm" onclick="sendSticker('🏆','최고예요!')" style="font-size:18px;padding:6px 10px">🏆</button>
+          <button class="btn btn-sm" onclick="sendSticker('👑','왕중왕!')" style="font-size:18px;padding:6px 10px">👑</button>
+          <button class="btn btn-sm" onclick="sendSticker('💯','완벽해요!')" style="font-size:18px;padding:6px 10px">💯</button>
+        </div>
+        <div style="display:flex;gap:6px">
+          <input id="sticker-msg" type="text" placeholder="직접 메시지 입력 (선택)" style="flex:1;font-size:12px">
+          <button class="btn btn-gold btn-sm" onclick="sendStickerCustom()">보내기</button>
+        </div>
+        <div id="sticker-sent-msg" style="font-size:11px;min-height:16px;margin-top:.375rem;text-align:center"></div>
+      </div>
 
       <!-- 시험 단어 내보내기 패널 -->
       <div id="export-panel" style="display:none" class="export-panel">
@@ -140,15 +174,79 @@
   </div>
 </div>
 
+<!-- ══ 진도 탭 ══ -->
+<div class="tsec" id="ts-progress">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <p class="sec-title" style="margin:0">📊 반 진도 현황</p>
+      <div style="display:flex;gap:6px">
+      <button class="btn btn-ghost btn-sm" onclick="exportAllExcel()">📥 전체 엑셀</button>
+      <button class="btn btn-ghost btn-sm" onclick="generateTestSheet()">📄 시험지 생성</button>
+    </div>
+    </div>
+    <div id="progress-loading" style="text-align:center;color:var(--txt3);padding:2rem">탭을 눌러 불러오세요</div>
+    <div id="progress-body" style="display:none">
+      <div id="week-progress-grid" style="margin-bottom:1.5rem"></div>
+      <p class="sec-title" style="margin-top:1.25rem">🔥 전체 취약단어 TOP 10</p>
+      <div id="class-weak-list"></div>
+      <!-- AI 반 전체 분석 -->
+      <div style="margin-top:1.25rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+          <p class="sec-title" style="margin:0">🤖 AI 반 취약 분석</p>
+          <button class="btn btn-ghost btn-sm" id="class-ai-btn" onclick="requestClassAI()">분석 받기</button>
+        </div>
+        <div id="class-ai-content" style="display:none;background:var(--sur2);border-radius:var(--rs);padding:.75rem 1rem;font-size:13px;color:var(--txt2);line-height:1.7;border-left:2px solid var(--gold-bdr)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ 통계 탭 ══ -->
 <div class="tsec" id="ts-stats">
   <div class="card card-sm" style="margin-bottom:1rem">
     <p class="sec-title" style="margin-bottom:.875rem">전체 현황</p>
     <div class="metrics" id="global-metrics"></div>
   </div>
-  <div class="card card-sm">
+  <div class="card card-sm" style="margin-bottom:1rem">
     <p class="sec-title" style="margin-bottom:.875rem">학생별 최근 점수</p>
     <div id="score-list"><div class="empty">데이터 없음</div></div>
+  </div>
+  <!-- 학습 시간대 분석 -->
+  <div class="card card-sm" style="margin-bottom:1rem">
+    <p class="sec-title" style="margin-bottom:.875rem">⏰ 학습 시간대 분석</p>
+    <div id="time-analysis-list"><div class="empty" style="font-size:12px">통계 탭을 열면 불러와요</div></div>
+  </div>
+  <!-- 출석 히트맵 -->
+  <div class="card card-sm">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem">
+      <p class="sec-title" style="margin:0">📅 출석 히트맵</p>
+      <select id="heatmap-stu-select" style="font-size:11px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;padding:3px 6px;color:var(--txt)" onchange="renderHeatmap()">
+        <option value="">학생 선택</option>
+      </select>
+    </div>
+    <div id="heatmap-wrap" style="overflow-x:auto"></div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:.5rem;font-size:10px;color:var(--txt3)">
+      <span>적음</span>
+      <div style="display:flex;gap:2px">
+        <div style="width:10px;height:10px;border-radius:2px;background:var(--sur3)"></div>
+        <div style="width:10px;height:10px;border-radius:2px;background:rgba(201,169,97,.3)"></div>
+        <div style="width:10px;height:10px;border-radius:2px;background:rgba(201,169,97,.6)"></div>
+        <div style="width:10px;height:10px;border-radius:2px;background:var(--gold)"></div>
+      </div>
+      <span>많음</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 주간 리포트 탭 ══ -->
+<div class="tsec" id="ts-report">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <p class="sec-title" style="margin:0">📊 학생별 주간 리포트</p>
+      <button class="btn btn-ghost btn-sm" onclick="loadWeeklyReports()">불러오기</button>
+    </div>
+    <div id="weekly-report-loading" style="text-align:center;color:var(--txt3);padding:1.5rem;font-size:13px">버튼을 눌러 불러오세요</div>
+    <div id="weekly-report-list" style="display:none"></div>
   </div>
 </div>
 
@@ -180,6 +278,38 @@
 
 <!-- ══ 설정 탭 ══ -->
 <div class="tsec" id="ts-settings">
+  <!-- 시험 범위 지정 -->
+  <div class="card card-sm" style="margin-bottom:1rem">
+    <p class="sec-title" style="margin-bottom:.75rem">📅 이번 주 시험 범위</p>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:.75rem">지정하면 학생 단어장에서 해당 주차가 강조 표시됩니다.</div>
+    <label class="label">단어장 선택</label>
+    <select id="exam-set-select" style="width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;color:var(--txt);font-size:13px;margin-bottom:.75rem" onchange="updateExamWeekOptions()">
+      <option value="">-- 단어장 선택 --</option>
+    </select>
+    <label class="label">주차 선택</label>
+    <select id="exam-week-select" style="width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;color:var(--txt);font-size:13px;margin-bottom:.75rem">
+      <option value="">-- 주차 선택 --</option>
+    </select>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-gold btn-full" onclick="saveExamRange()">시험 범위 저장</button>
+      <button class="btn btn-full" onclick="clearExamRange()">초기화</button>
+    </div>
+    <div id="exam-range-msg" style="font-size:12px;min-height:16px;margin-top:.375rem;text-align:center"></div>
+    <div id="exam-range-current" style="display:none;font-size:12px;color:var(--gold);margin-top:.5rem;text-align:center;font-weight:500"></div>
+  </div>
+
+  <!-- 공지 관리 -->
+  <div class="card card-sm" style="margin-bottom:1rem">
+    <p class="sec-title" style="margin-bottom:.75rem">📢 학생 공지</p>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:.75rem">저장하면 모든 학생 홈 화면에 표시됩니다. 비우고 저장하면 공지가 사라져요.</div>
+    <textarea id="notice-input" placeholder="예) 이번 주 목요일 단어 시험 범위: Day 5~8" style="width:100%;min-height:70px;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.625rem .875rem;color:var(--txt);font-size:13px;line-height:1.6;resize:vertical;outline:none;box-sizing:border-box"></textarea>
+    <div style="display:flex;gap:8px;margin-top:.5rem;align-items:center">
+      <button class="btn btn-gold btn-full" onclick="saveNotice()">공지 저장</button>
+      <button class="btn btn-full" onclick="clearNotice()">공지 삭제</button>
+    </div>
+    <div id="notice-msg" style="font-size:12px;min-height:16px;margin-top:.375rem;text-align:center"></div>
+  </div>
+
   <div class="card">
     <p class="sec-title" style="margin-bottom:.75rem">퀴즈 채점 설정</p>
     <div class="stu-detail-card" style="margin-bottom:1.25rem">
@@ -261,9 +391,105 @@ async function init() {
     loadMnemonicEditor();
     renderSettings();
     loadGradeMode();
+    // 공지 로드
+    try {
+      var notice = await DB.getNotice();
+      if (notice && notice.text) {
+        document.getElementById('notice-input').value = notice.text;
+      }
+    } catch(e) {}
+
+    // 시험 범위 로드 + 단어장 셀렉트 초기화
+    try {
+      var setSelect = document.getElementById('exam-set-select');
+      if (setSelect && window.WORD_CATALOG) {
+        window.WORD_CATALOG.forEach(function(s) {
+          var opt = document.createElement('option');
+          opt.value = s.id; opt.textContent = s.name;
+          setSelect.appendChild(opt);
+        });
+      }
+      var examRange = await DB.getExamRange();
+      if (examRange && examRange.setId) {
+        document.getElementById('exam-set-select').value = examRange.setId;
+        updateExamWeekOptions(examRange.week);
+        var currentEl = document.getElementById('exam-range-current');
+        currentEl.textContent = '현재: ' + examRange.setName + ' ' + examRange.week + '주차';
+        currentEl.style.display = 'block';
+      }
+    } catch(e) {}
   } catch(e) {
     console.warn('init error', e);
   }
+}
+
+function updateExamWeekOptions(selectedWeek) {
+  var setId = document.getElementById('exam-set-select').value;
+  var weekSelect = document.getElementById('exam-week-select');
+  weekSelect.innerHTML = '<option value="">-- 주차 선택 --</option>';
+  if (!setId || !window.WORD_CATALOG) return;
+  var setInfo = window.WORD_CATALOG.find(function(s){ return s.id === setId; });
+  if (!setInfo) return;
+  // 단어 수 기준 주차 계산 (100개 단위)
+  var totalWords = setInfo.totalWords || 0;
+  var totalWeeks = totalWords ? Math.ceil(totalWords / 100) : 20;
+  for (var i = 1; i <= totalWeeks; i++) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = i + '주차 (' + ((i-1)*100+1) + '~' + (i*100) + '번)';
+    weekSelect.appendChild(opt);
+  }
+  if (selectedWeek) weekSelect.value = selectedWeek;
+}
+
+async function saveExamRange() {
+  var setId = document.getElementById('exam-set-select').value;
+  var week = document.getElementById('exam-week-select').value;
+  var msg = document.getElementById('exam-range-msg');
+  if (!setId || !week) { msg.style.color='var(--red)'; msg.textContent='단어장과 주차를 선택하세요'; return; }
+  var setInfo = window.WORD_CATALOG && window.WORD_CATALOG.find(function(s){ return s.id === setId; });
+  var setName = setInfo ? setInfo.name : setId;
+  try {
+    await DB.saveExamRange(setId, setName, parseInt(week));
+    msg.style.color = 'var(--grn,#4caf50)';
+    msg.textContent = '✓ 저장됐습니다';
+    var currentEl = document.getElementById('exam-range-current');
+    currentEl.textContent = '현재: ' + setName + ' ' + week + '주차';
+    currentEl.style.display = 'block';
+    setTimeout(function(){ msg.textContent=''; }, 2500);
+  } catch(e) { msg.style.color='var(--red)'; msg.textContent='오류: '+e.message; }
+}
+
+async function clearExamRange() {
+  try {
+    await DB.saveExamRange('', '', 0);
+    document.getElementById('exam-set-select').value = '';
+    document.getElementById('exam-week-select').innerHTML = '<option value="">-- 주차 선택 --</option>';
+    document.getElementById('exam-range-current').style.display = 'none';
+    var msg = document.getElementById('exam-range-msg');
+    msg.style.color = 'var(--grn,#4caf50)';
+    msg.textContent = '✓ 초기화됐습니다';
+    setTimeout(function(){ msg.textContent=''; }, 2000);
+  } catch(e) {}
+}
+
+async function saveNotice() {
+  var text = (document.getElementById('notice-input').value || '').trim();
+  var msg = document.getElementById('notice-msg');
+  try {
+    await DB.saveNotice(text);
+    msg.style.color = 'var(--grn,#4caf50)';
+    msg.textContent = text ? '✓ 공지가 저장됐습니다' : '✓ 공지가 삭제됐습니다';
+    setTimeout(function(){ msg.textContent = ''; }, 2500);
+  } catch(e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = '오류: ' + e.message;
+  }
+}
+
+async function clearNotice() {
+  document.getElementById('notice-input').value = '';
+  await saveNotice();
 }
 init();
 
@@ -280,9 +506,14 @@ function renderStudents() {
   if (!arr.length) { list.innerHTML = '<div class="empty">학생이 없습니다</div>'; return; }
   list.innerHTML = arr.map(function(s) {
     var initials = s.name.slice(0,2).toUpperCase();
+    var lastSeen = s.lastSeen ? new Date(s.lastSeen) : null;
+    var daysSince = lastSeen ? Math.floor((Date.now() - lastSeen) / 86400000) : 999;
+    var alertBadge = daysSince >= 3 ? '<span style="font-size:10px;color:var(--red,#e53935);font-weight:700;margin-left:4px">⚠️ ' + (daysSince >= 7 ? '7일+' : daysSince + '일') + ' 미접속</span>' : '';
+    var metaText = lastSeen ? '최근: ' + lastSeen.toLocaleDateString('ko') : '등록: ' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '-');
+    var memoText = s.memo ? '<div style="font-size:10px;color:var(--txt3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">📝 ' + s.memo + '</div>' : '';
     var card = '<div class="stu-card" data-id="' + s.id + '">' +
-      '<div><div class="stu-name">' + s.name + '</div>' +
-      '<div class="stu-meta">등록: ' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '-') + '</div></div>' +
+      '<div><div class="stu-name">' + s.name + alertBadge + '</div>' +
+      '<div class="stu-meta">' + metaText + '</div>' + memoText + '</div>' +
       '<span style="margin-left:auto;font-size:18px;color:var(--txt3)">&#8250;</span>' +
       '</div>';
     return card;
@@ -322,6 +553,20 @@ async function showStuDetail(stuId) {
       '<div class="metric"><div class="metric-lbl">시험 횟수</div><div class="metric-val mv-gold">' + results.length + '</div></div>' +
       '<div class="metric"><div class="metric-lbl">평균 점수</div><div class="metric-val mv-grn">' + avg + '%</div></div>' +
       '<div class="metric"><div class="metric-lbl">취약 단어</div><div class="metric-val mv-red">' + weak.length + '</div></div>';
+
+    // 성장 그래프 (최근 10회 점수)
+    if (results.length >= 2) {
+      var recent = results.slice(-10);
+      document.getElementById('detail-graph').style.display = 'block';
+      // display:none → block 직후 offsetWidth=0 방지 - 2 frame 대기
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          drawScoreChart(recent);
+        });
+      });
+    } else {
+      document.getElementById('detail-graph').style.display = 'none';
+    }
     if (weak.length) {
       document.getElementById('detail-weak').innerHTML =
         '<p class="sec-title" style="margin-bottom:.625rem">취약 단어 TOP10</p>' +
@@ -335,8 +580,14 @@ async function showStuDetail(stuId) {
   } catch(e) {
     document.getElementById('detail-metrics').innerHTML = '<div class="empty" style="padding:.5rem 0">Firebase 연결 필요</div>';
   }
-}
 
+  // 메모 불러오기
+  try {
+    var memo = await DB.getMemo(stuId);
+    var memoEl = document.getElementById('detail-memo');
+    if (memoEl) memoEl.value = memo || '';
+  } catch(e) {}
+}
 async function deleteStudent() {
   if (!confirm(students[selectedStuId]?.name + ' 학생을 삭제할까요?')) return;
   try {
@@ -471,7 +722,7 @@ async function loadStats() {
     const scoreData = await Promise.all(allStudents.map(async function(s) {
       const r = await DB.getResults(s.id);
       const last = r.length ? r[r.length-1] : null;
-      return { name: s.name, last };
+      return { name: s.name, id: s.id, results: r, last };
     }));
     scoreEl.innerHTML = scoreData.map(function(d) {
       return '<div class="list-item">' +
@@ -479,13 +730,136 @@ async function loadStats() {
         '<span class="badge ' + (d.last ? (d.last.score>=70?'b-grn':'b-red') : '') + '">' +
         (d.last ? d.last.score+'%' : '-') + '</span></div>';
     }).join('');
+
+    // 시간대 분석
+    var hourMap = new Array(24).fill(0);
+    var totalSessions = 0;
+    scoreData.forEach(function(d) {
+      (d.results || []).forEach(function(r) {
+        if (r.date) { var h = new Date(r.date).getHours(); hourMap[h]++; totalSessions++; }
+      });
+    });
+    var maxH = Math.max.apply(null, hourMap) || 1;
+    var slots = [
+      { label: '새벽 (0~6시)', range: [0,6] },
+      { label: '오전 (7~11시)', range: [7,11] },
+      { label: '오후 (12~17시)', range: [12,17] },
+      { label: '저녁 (18~21시)', range: [18,21] },
+      { label: '밤 (22~23시)', range: [22,23] }
+    ];
+    var timeHtml = slots.map(function(s) {
+      var count = 0;
+      for (var h = s.range[0]; h <= s.range[1]; h++) count += hourMap[h];
+      var pct = Math.round(count / Math.max(1, totalSessions) * 100);
+      var barW = Math.round(count / maxH * 100);
+      return '<div style="margin-bottom:.5rem">' +
+        '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">' +
+        '<span>' + s.label + '</span><span style="color:var(--txt3)">' + pct + '%</span></div>' +
+        '<div style="height:6px;background:var(--sur3);border-radius:3px;overflow:hidden">' +
+        '<div style="width:' + barW + '%;height:100%;background:var(--gold);border-radius:3px"></div></div></div>';
+    }).join('');
+    document.getElementById('time-analysis-list').innerHTML = timeHtml || '<div class="empty">데이터 없음</div>';
+
+    // 히트맵 셀렉트 초기화
+    var sel = document.getElementById('heatmap-stu-select');
+    sel.innerHTML = '<option value="">학생 선택</option>';
+    allStudents.forEach(function(s) {
+      var opt = document.createElement('option');
+      opt.value = s.id; opt.textContent = s.name; sel.appendChild(opt);
+    });
+    window._heatmapResultsCache = {};
+    scoreData.forEach(function(d){ window._heatmapResultsCache[d.id] = d.results; });
+    if (allStudents.length) { sel.value = allStudents[0].id; renderHeatmap(); }
   } catch(e) {}
+}
+async function loadWeeklyReports() {
+  var loading = document.getElementById('weekly-report-loading');
+  var list = document.getElementById('weekly-report-list');
+  loading.style.display = 'block';
+  loading.textContent = '불러오는 중...';
+  list.style.display = 'none';
+
+  var stuList = Object.values(students);
+  if (!stuList.length) { loading.textContent = '등록된 학생이 없습니다.'; return; }
+
+  var now = Date.now();
+  var DAY7 = 7 * 86400000;
+  var html = '';
+
+  for (var i = 0; i < stuList.length; i++) {
+    var stu = stuList[i];
+    try {
+      var results = await DB.getResults(stu.id);
+      var lastWeek = (results || []).filter(function(r) {
+        return r.date && (now - new Date(r.date).getTime()) <= DAY7;
+      });
+      var totalQ = lastWeek.length;
+      var avgSc = totalQ ? Math.round(lastWeek.reduce(function(s,r){ return s+(r.score||0); },0)/totalQ) : 0;
+      var days = totalQ ? new Set(lastWeek.map(function(r){ return r.date&&r.date.slice(0,10); })).size : 0;
+      var scColor = avgSc >= 80 ? 'var(--grn,#4caf50)' : avgSc >= 60 ? 'var(--gold)' : 'var(--red,#e53935)';
+
+      html += '<div style="padding:.75rem 0;border-bottom:1px solid var(--bdr)">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:.375rem">' +
+        '<span style="font-size:14px;font-weight:600">' + stu.name + '</span>' +
+        (totalQ ? '<span class="badge b-gold">' + totalQ + '회</span>' : '<span class="badge" style="background:var(--sur3);color:var(--txt3)">미학습</span>') +
+        '</div>';
+      if (totalQ) {
+        html += '<div style="display:flex;gap:12px;font-size:12px;color:var(--txt2)">' +
+          '<span>평균 <strong style="color:' + scColor + '">' + avgSc + '%</strong></span>' +
+          '<span>출석 <strong style="color:var(--gold)">' + days + '일</strong></span>' +
+          '</div>';
+      }
+      html += '</div>';
+    } catch(e) {}
+  }
+
+  loading.style.display = 'none';
+  list.innerHTML = html || '<div class="empty">데이터 없음</div>';
+  list.style.display = 'block';
+}
+
+async function renderHeatmap() {
+  var stuId = document.getElementById('heatmap-stu-select').value;
+  var wrap = document.getElementById('heatmap-wrap');
+  if (!stuId) { wrap.innerHTML = '<div class="empty" style="font-size:12px">학생을 선택하세요</div>'; return; }
+
+  var results = window._heatmapResultsCache && window._heatmapResultsCache[stuId];
+  if (!results) {
+    try { results = await DB.getResults(stuId); } catch(e) { results = []; }
+  }
+
+  // 최근 84일 (12주) 날짜 맵 생성
+  var dateMap = {};
+  (results || []).forEach(function(r) {
+    if (r.date) { var d = r.date.slice(0,10); dateMap[d] = (dateMap[d]||0) + 1; }
+  });
+
+  var today = new Date(); today.setHours(0,0,0,0);
+  var weeks = 12;
+  var days = weeks * 7;
+  var cells = [];
+  for (var i = days - 1; i >= 0; i--) {
+    var d = new Date(today - i * 86400000);
+    var key = d.toISOString().slice(0,10);
+    cells.push({ key, count: dateMap[key] || 0, dow: d.getDay() });
+  }
+
+  // 주(column) × 요일(row) 그리드
+  var cols = Math.ceil(cells.length / 7);
+  var grid = '<div style="display:grid;grid-template-columns:repeat(' + cols + ',12px);grid-template-rows:repeat(7,12px);gap:2px">';
+  cells.forEach(function(c) {
+    var alpha = c.count === 0 ? 0 : c.count === 1 ? 0.3 : c.count <= 3 ? 0.6 : 1;
+    var bg = c.count === 0 ? 'var(--sur3)' : 'rgba(201,169,97,' + alpha + ')';
+    grid += '<div title="' + c.key + ': ' + c.count + '회" style="width:12px;height:12px;border-radius:2px;background:' + bg + '"></div>';
+  });
+  grid += '</div>';
+  wrap.innerHTML = grid;
 }
 
 // -- Settings --
 function renderSettings() {
   document.getElementById('set-appname').value = settings.appName || 'English Trainer';
-  document.getElementById('set-pw').value = settings.teacherPw || '1234';
+  // set-pw-old/new/cfm 구조이므로 직접 채우지 않음
   const statusEl = document.getElementById('catalog-status');
   const listenEl = document.getElementById('listening-status');
   if (statusEl && window.WORD_CATALOG) {
@@ -501,15 +875,39 @@ function renderSettings() {
 }
 
 async function saveSettings() {
-  const update = { appName: document.getElementById('set-appname').value.trim(), teacherPw: document.getElementById('set-pw').value.trim() };
-  if (!update.teacherPw) { alert('비밀번호를 입력하세요'); return; }
+  const appName = document.getElementById('set-appname').value.trim();
+  const pwOld = document.getElementById('set-pw-old').value;
+  const pwNew = document.getElementById('set-pw-new').value;
+  const pwCfm = document.getElementById('set-pw-cfm').value;
+  const errEl = document.getElementById('set-err');
+
+  // 앱 이름만 변경 (비번 입력 없을 때)
+  if (!pwOld && !pwNew && !pwCfm) {
+    try {
+      await DB.saveSettings({ appName, teacherPw: settings.teacherPw });
+      settings.appName = appName;
+      errEl.style.color = 'var(--grn,#4caf50)';
+      errEl.textContent = '✓ 저장되었습니다';
+      setTimeout(function(){ errEl.textContent=''; errEl.style.color='var(--red)'; }, 2000);
+    } catch(e) { errEl.style.color='var(--red)'; errEl.textContent = '저장 오류: '+e.message; }
+    return;
+  }
+
+  // 비번 변경
+  if (pwOld !== settings.teacherPw) { errEl.textContent = '현재 비밀번호가 틀렸습니다'; return; }
+  if (!pwNew) { errEl.textContent = '새 비밀번호를 입력하세요'; return; }
+  if (pwNew !== pwCfm) { errEl.textContent = '새 비밀번호가 일치하지 않습니다'; return; }
   try {
-    await DB.saveSettings(update);
-    settings = update;
-    const err = document.getElementById('settings-msg');
-    err.textContent = 'v 저장되었습니다';
-    setTimeout(function(){ err.textContent=''; }, 2000);
-  } catch(e) { alert('저장 오류: '+e.message); }
+    await DB.saveSettings({ appName, teacherPw: pwNew });
+    settings = { appName, teacherPw: pwNew };
+    localStorage.setItem('teacher_pw', pwNew);
+    errEl.style.color = 'var(--grn,#4caf50)';
+    errEl.textContent = '✓ 저장되었습니다';
+    document.getElementById('set-pw-old').value = '';
+    document.getElementById('set-pw-new').value = '';
+    document.getElementById('set-pw-cfm').value = '';
+    setTimeout(function(){ errEl.textContent=''; errEl.style.color='var(--red)'; }, 2000);
+  } catch(e) { errEl.style.color='var(--red)'; errEl.textContent = '저장 오류: '+e.message; }
 }
 
 // -- Tabs --
@@ -518,6 +916,9 @@ function switchT(tab) {
   document.querySelectorAll('.tabs .tab').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('ts-'+tab).classList.add('active');
   document.getElementById('tt-'+tab).classList.add('active');
+  if (tab === 'stats') loadStats();
+  if (tab === 'progress') loadProgress();
+  if (tab === 'report') loadWeeklyReports();
 }
 
 // -- Mnemonic Editor --
@@ -544,10 +945,36 @@ function renderMnemonicList() {
   }).join('');
 }
 
+function searchMnemonic() {
+  var val = (document.getElementById('mn-search')||{value:''}).value.trim().toLowerCase();
+  renderMnemonicList();
+  if (!val) { document.getElementById('mn-result').style.display = 'none'; return; }
+
+  // 단어 직접 검색 → 편집 패널 표시
+  var mn = allMnemonics[val];
+  var resultEl = document.getElementById('mn-result');
+  if (resultEl) {
+    document.getElementById('mn-word-label').textContent = val;
+    document.getElementById('mn-current').textContent = mn || '(등록된 연상법 없음)';
+    document.getElementById('mn-new').value = mn || '';
+    resultEl.style.display = 'block';
+    resultEl.dataset.word = val;
+  }
+}
+
 function editMnemonic(word) {
-  document.getElementById('mn-word').value = word;
-  document.getElementById('mn-text').value = allMnemonics[word] || '';
-  document.getElementById('mn-word').focus();
+  // 검색창에 단어 입력 후 searchMnemonic 호출
+  var searchEl = document.getElementById('mn-search');
+  if (searchEl) { searchEl.value = word; }
+  var resultEl = document.getElementById('mn-result');
+  if (resultEl) {
+    document.getElementById('mn-word-label').textContent = word;
+    document.getElementById('mn-current').textContent = allMnemonics[word] || '(등록된 연상법 없음)';
+    document.getElementById('mn-new').value = allMnemonics[word] || '';
+    resultEl.style.display = 'block';
+    resultEl.dataset.word = word;
+    document.getElementById('mn-new').focus();
+  }
 }
 
 // -- AI 채점 설정 --
@@ -600,20 +1027,376 @@ async function checkAnswerWithAI(input, correct, en) {
   }
 }
 
+
+// ── 반 진도 현황 ─────────────────────────────────
+async function loadProgress() {
+  document.getElementById('progress-loading').style.display = 'block';
+  document.getElementById('progress-body').style.display = 'none';
+
+  try {
+    // 모든 학생 데이터 로드
+    var stuList = Object.values(students);
+    if (!stuList.length) {
+      document.getElementById('progress-loading').textContent = '등록된 학생이 없습니다.';
+      return;
+    }
+
+    // 각 학생의 결과 수집
+    var allResults = {};
+    var weakMap = {}; // 단어 → 틀린 횟수 집계
+
+    for (var i = 0; i < stuList.length; i++) {
+      var stu = stuList[i];
+      try {
+        var res = await DB.getResults(stu.id);
+        allResults[stu.id] = res || [];
+        var weak = await DB.getWeakWords(stu.id);
+        (weak || []).forEach(function(w) {
+          if (!weakMap[w.word]) weakMap[w.word] = { word: w.word, ko: w.ko, count: 0, wrong: 0 };
+          weakMap[w.word].count++;
+          weakMap[w.word].wrong += (w.wrong || 0);
+        });
+      } catch(e) {}
+    }
+
+    // 주차별 완료 현황 (최근 결과 기준)
+    var weekStats = {}; // week → { done: [], scores: [] }
+    stuList.forEach(function(stu) {
+      var results = allResults[stu.id] || [];
+      // 주차별로 그룹화
+      results.forEach(function(r) {
+        if (!r.setId) return;
+        var wk = r.setId.match(/week(\d+)/);
+        if (!wk) return;
+        var w = wk[1];
+        if (!weekStats[w]) weekStats[w] = { done: [], scores: [] };
+        if (!weekStats[w].done.includes(stu.name)) {
+          weekStats[w].done.push(stu.name);
+          weekStats[w].scores.push(r.score || 0);
+        }
+      });
+    });
+
+    // 주차 현황 렌더
+    var total = stuList.length;
+    var weekHtml = '';
+    var weeks = Object.keys(weekStats).sort(function(a,b){ return +a - +b; });
+
+    if (weeks.length === 0) {
+      weekHtml = '<div style="color:var(--txt3);font-size:13px">아직 주별 학습 데이터가 없습니다.</div>';
+    } else {
+      weeks.forEach(function(wk) {
+        var stat = weekStats[wk];
+        var done = stat.done.length;
+        var pct = Math.round(done / total * 100);
+        var avgScore = stat.scores.length ? Math.round(stat.scores.reduce(function(a,b){return a+b;},0) / stat.scores.length) : 0;
+        var barColor = pct >= 80 ? 'var(--grn,#4caf50)' : pct >= 50 ? 'var(--gold)' : 'var(--red,#e53935)';
+
+        weekHtml += '<div style="margin-bottom:.875rem">' +
+          '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:.25rem">' +
+            '<span style="font-weight:600">' + wk + '주차</span>' +
+            '<span style="color:var(--txt3)">' + done + '/' + total + '명 · 평균 ' + avgScore + '점</span>' +
+          '</div>' +
+          '<div style="background:var(--sur2);border-radius:99px;height:8px;overflow:hidden">' +
+            '<div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:99px;transition:width .4s"></div>' +
+          '</div>' +
+        '</div>';
+      });
+    }
+
+    document.getElementById('week-progress-grid').innerHTML = weekHtml;
+
+    // 취약단어 TOP 10
+    var topWeak = Object.values(weakMap)
+      .sort(function(a,b){ return b.count - a.count || b.wrong - a.wrong; })
+      .slice(0, 10);
+
+    var weakHtml = topWeak.length ? topWeak.map(function(w, i) {
+      return '<div style="display:flex;align-items:center;gap:8px;padding:.5rem 0;border-bottom:1px solid var(--bdr)">' +
+        '<span style="font-size:11px;color:var(--txt3);min-width:18px">' + (i+1) + '</span>' +
+        '<span style="font-weight:600;min-width:100px">' + w.word + '</span>' +
+        '<span style="color:var(--txt3);font-size:12px;flex:1">' + (w.ko||'') + '</span>' +
+        '<span style="font-size:11px;color:var(--red,#e53935)">' + w.count + '명 취약</span>' +
+      '</div>';
+    }).join('') : '<div style="color:var(--txt3);font-size:13px">취약단어 데이터가 없습니다.</div>';
+
+    document.getElementById('class-weak-list').innerHTML = weakHtml;
+
+    document.getElementById('progress-loading').style.display = 'none';
+    document.getElementById('progress-body').style.display = 'block';
+
+  } catch(e) {
+    document.getElementById('progress-loading').textContent = '불러오기 실패: ' + e.message;
+  }
+}
+
+// ── 전체 엑셀 일괄 내보내기 ──────────────────────
+async function exportAllExcel() {
+  var stuList = Object.values(students);
+  if (!stuList.length) { alert('등록된 학생이 없습니다.'); return; }
+
+  var rows = ['학생이름	단어	뜻	구분	틀린횟수	맞은횟수'];
+
+  for (var i = 0; i < stuList.length; i++) {
+    var stu = stuList[i];
+    try {
+      var weak = await DB.getWeakWords(stu.id);
+      (weak || []).forEach(function(w) {
+        rows.push(stu.name + '	' + w.word + '	' + (w.ko||'') + '	취약	' + (w.wrong||0) + '	' + (w.right||0));
+      });
+    } catch(e) {}
+  }
+
+  if (rows.length <= 1) { alert('내보낼 데이터가 없습니다.'); return; }
+
+  navigator.clipboard.writeText(rows.join('\n')).then(function() {
+    alert('✓ ' + (rows.length-1) + '행 복사됐습니다! 엑셀에 붙여넣기 하세요.');
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = rows.join('\n');
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('✓ ' + (rows.length-1) + '행 복사됐습니다!');
+  });
+}
+
+
+
+// ── 학생 메모 ─────────────────────────────────
+async function saveMemo() {
+  if (!selectedStuId) return;
+  var memo = document.getElementById('detail-memo').value;
+  try {
+    await DB.saveMemo(selectedStuId, memo);
+    var saved = document.getElementById('memo-saved');
+    if (saved) {
+      saved.style.display = 'inline';
+      setTimeout(function(){ saved.style.display = 'none'; }, 2000);
+    }
+  } catch(e) { alert('저장 실패: ' + e.message); }
+}
+
+// ── 시험지 자동 생성 ────────────────────────────
+async function generateTestSheet() {
+  // 주차 선택 다이얼로그
+  var wk = prompt('몇 주차 시험지를 만들까요? (숫자 입력)');
+  if (!wk || isNaN(wk)) return;
+  wk = parseInt(wk);
+
+  // 전체 학생 취약단어 집계
+  var weakMap = {};
+  var stuList = Object.values(students);
+  for (var i = 0; i < stuList.length; i++) {
+    try {
+      var weak = await DB.getWeakWords(stuList[i].id);
+      (weak || []).forEach(function(w) {
+        if (!weakMap[w.word]) weakMap[w.word] = { word: w.word, ko: w.ko, count: 0 };
+        weakMap[w.word].count++;
+      });
+    } catch(e) {}
+  }
+
+  // 시험지 HTML 생성
+  var weakTop = Object.values(weakMap).sort(function(a,b){ return b.count - a.count; }).slice(0, 15);
+  var date = new Date().toLocaleDateString('ko');
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<style>body{font-family:Arial,sans-serif;max-width:800px;margin:0 auto;padding:20px}' +
+    'h1{text-align:center;font-size:18px;margin-bottom:4px}' +
+    '.info{text-align:center;font-size:12px;color:#666;margin-bottom:20px}' +
+    'table{width:100%;border-collapse:collapse}' +
+    'th{background:#f5f5f5;padding:8px;border:1px solid #ddd;font-size:13px}' +
+    'td{padding:8px;border:1px solid #ddd;font-size:13px;height:32px}' +
+    '.ans-col{width:200px}' +
+    '@media print{.no-print{display:none}}' +
+    '</style></head><body>' +
+    '<h1>' + wk + '주차 영어 단어 시험</h1>' +
+    '<div class="info">날짜: ' + date + ' &nbsp;|&nbsp; 이름: _______________&nbsp;|&nbsp; 점수: _______</div>' +
+    '<table>' +
+    '<tr><th style="width:30px">No.</th><th>단어</th><th class="ans-col">뜻 (한글)</th><th style="width:60px">점수</th></tr>';
+
+  // 취약단어 우선 + 일반 단어 채우기
+  var rows = weakTop.map(function(w, i) {
+    return '<tr><td style="text-align:center">' + (i+1) + '</td><td>' + w.word + '</td><td></td><td></td></tr>';
+  });
+
+  // 부족하면 빈 행 추가 (총 20개)
+  for (var j = rows.length; j < 20; j++) {
+    rows.push('<tr><td style="text-align:center">' + (j+1) + '</td><td></td><td></td><td></td></tr>');
+  }
+
+  html += rows.join('') + '</table>' +
+    '<div class="no-print" style="text-align:center;margin-top:20px">' +
+    '<button onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer">🖨️ 인쇄</button>' +
+    '</div></body></html>';
+
+  var w2 = window.open('', '_blank');
+  w2.document.write(html);
+  w2.document.close();
+}
+
+
+// ── 성장 그래프 (Canvas) ────────────────────────
+function drawScoreChart(results) {
+  var canvas = document.getElementById('score-chart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.offsetWidth || 300;
+  var H = 80;
+  canvas.width = W;
+  canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+
+  var scores = results.map(function(r) { return r.score || 0; });
+  var n = scores.length;
+  if (n < 2) return;
+
+  var padL = 28, padR = 8, padT = 8, padB = 20;
+  var gW = W - padL - padR;
+  var gH = H - padT - padB;
+
+  // 그리드 라인 (25, 50, 75, 100)
+  ctx.strokeStyle = 'rgba(128,128,128,0.15)';
+  ctx.lineWidth = 1;
+  [25, 50, 75, 100].forEach(function(v) {
+    var y = padT + gH - (v / 100) * gH;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(W - padR, y);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(128,128,128,0.5)';
+    ctx.font = '9px sans-serif';
+    ctx.fillText(v, 0, y + 3);
+  });
+
+  // 점수 선
+  ctx.strokeStyle = '#F59E0B';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  scores.forEach(function(s, i) {
+    var x = padL + (i / (n - 1)) * gW;
+    var y = padT + gH - (s / 100) * gH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // 점 + 값
+  scores.forEach(function(s, i) {
+    var x = padL + (i / (n - 1)) * gW;
+    var y = padT + gH - (s / 100) * gH;
+    ctx.fillStyle = s >= 70 ? '#4caf50' : s >= 50 ? '#F59E0B' : '#ef4444';
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    // 날짜 라벨
+    if (i === 0 || i === n - 1) {
+      var label = results[i].date ? results[i].date.slice(5, 10) : '';
+      ctx.fillStyle = 'rgba(128,128,128,0.7)';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(label, x - 12, H - 4);
+    }
+  });
+}
+
+async function sendSticker(emoji, message) {
+  if (!selectedStuId) return;
+  var msg = document.getElementById('sticker-sent-msg');
+  try {
+    await DB.sendSticker(selectedStuId, emoji, message);
+    msg.style.color = 'var(--grn,#4caf50)';
+    msg.textContent = emoji + ' 칭찬 스티커를 보냈어요!';
+    setTimeout(function(){ msg.textContent = ''; }, 2500);
+  } catch(e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = '오류: ' + e.message;
+  }
+}
+
+async function sendStickerCustom() {
+  var msgInput = document.getElementById('sticker-msg').value.trim();
+  if (!msgInput) return;
+  await sendSticker('💌', msgInput);
+  document.getElementById('sticker-msg').value = '';
+}
+
+async function requestClassAI() {
+  var btn = document.getElementById('class-ai-btn');
+  var content = document.getElementById('class-ai-content');
+  var stuList = Object.values(students);
+  if (!stuList.length) { alert('학생 데이터가 없습니다.'); return; }
+
+  btn.textContent = '분석 중...';
+  btn.disabled = true;
+  content.style.display = 'block';
+  content.textContent = '🤖 AI가 반 전체 데이터를 분석하고 있어요...';
+
+  try {
+    // 취약단어 집계
+    var weakMap = {};
+    for (var i = 0; i < stuList.length; i++) {
+      try {
+        var weak = await DB.getWeakWords(stuList[i].id);
+        (weak || []).forEach(function(w) {
+          if (!weakMap[w.word]) weakMap[w.word] = { word: w.word, ko: w.ko||'', count: 0, wrong: 0 };
+          weakMap[w.word].count++;
+          weakMap[w.word].wrong += (w.wrong || 0);
+        });
+      } catch(e) {}
+    }
+
+    var topWeak = Object.values(weakMap)
+      .sort(function(a,b){ return b.count - a.count; })
+      .slice(0, 10)
+      .map(function(w){ return w.word + '(' + w.ko + ', ' + w.count + '명 취약)'; })
+      .join(', ');
+
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: '수능 영어 학원 반 전체 취약단어 데이터야.\n' +
+            '학생 수: ' + stuList.length + '명\n' +
+            '공통 취약단어 TOP10: ' + topWeak + '\n\n' +
+            '선생님에게 다음을 조언해줘 (한국어, 4문장 이내):\n' +
+            '1. 취약 단어들의 공통 패턴이나 어휘 수준\n' +
+            '2. 이번 주 수업에서 집중할 포인트\n' +
+            '3. 학습 방법 제안\n' +
+            '이모지 1개씩만.'
+        }]
+      })
+    });
+    var data = await res.json();
+    var text = (data.content && data.content[0] && data.content[0].text) || '분석 결과를 가져올 수 없습니다.';
+    content.textContent = text;
+    btn.textContent = '✓ 분석 완료';
+  } catch(e) {
+    content.textContent = 'AI 분석 중 오류: ' + e.message;
+    btn.textContent = '다시 시도';
+    btn.disabled = false;
+  }
+}
+
 async function saveMnemonic() {
-  var word = document.getElementById('mn-word').value.trim().toLowerCase();
-  var mn = document.getElementById('mn-text').value.trim();
+  var resultEl = document.getElementById('mn-result');
+  var word = (resultEl && resultEl.dataset.word) || (document.getElementById('mn-search')||{value:''}).value.trim().toLowerCase();
+  var mn = document.getElementById('mn-new').value.trim();
   var msg = document.getElementById('mn-msg');
-  if (!word || !mn) { msg.textContent = '단어와 연상법을 입력하세요'; return; }
+  if (!word || !mn) { if(msg) msg.textContent = '단어와 연상법을 입력하세요'; return; }
   try {
     await DB.saveMnemonic(word, mn);
     allMnemonics[word] = mn;
     renderMnemonicList();
-    document.getElementById('mn-word').value = '';
-    document.getElementById('mn-text').value = '';
-    msg.textContent = 'v 저장되었습니다!';
-    setTimeout(function(){ msg.textContent=''; }, 2000);
-  } catch(e) { msg.textContent = '오류: '+e.message; }
+    document.getElementById('mn-current').textContent = mn;
+    if(msg) { msg.textContent = '✓ 저장되었습니다!'; setTimeout(function(){ msg.textContent=''; }, 2000); }
+  } catch(e) { if(msg) msg.textContent = '오류: '+e.message; }
 }
 </script>
 </body>
