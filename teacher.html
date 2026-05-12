@@ -391,6 +391,8 @@ async function init() {
     loadMnemonicEditor();
     renderSettings();
     loadGradeMode();
+    // settings 탭 관련 초기화 (WORD_CATALOG 로드 완료 보장)
+    setTimeout(initExamSetSelect, 100);
     // 공지 로드
     try {
       var notice = await DB.getNotice();
@@ -400,24 +402,33 @@ async function init() {
     } catch(e) {}
 
     // 시험 범위 로드 + 단어장 셀렉트 초기화
+    // 시험 범위 단어장 셀렉트 초기화 (WORD_CATALOG 보장 후 실행)
     try {
       var setSelect = document.getElementById('exam-set-select');
-      if (setSelect && window.WORD_CATALOG) {
-        window.WORD_CATALOG.forEach(function(s) {
+      if (setSelect) {
+        // 기존 옵션 제거 후 다시 추가
+        while (setSelect.options.length > 1) setSelect.remove(1);
+        var catalog = window.WORD_CATALOG || [];
+        catalog.forEach(function(s) {
           var opt = document.createElement('option');
           opt.value = s.id; opt.textContent = s.name;
           setSelect.appendChild(opt);
         });
+        if (catalog.length === 0) {
+          console.warn('WORD_CATALOG 비어있음');
+        }
       }
       var examRange = await DB.getExamRange();
       if (examRange && examRange.setId) {
-        document.getElementById('exam-set-select').value = examRange.setId;
+        if (setSelect) setSelect.value = examRange.setId;
         updateExamWeekOptions(examRange.week);
         var currentEl = document.getElementById('exam-range-current');
-        currentEl.textContent = '현재: ' + examRange.setName + ' ' + examRange.week + '주차';
-        currentEl.style.display = 'block';
+        if (currentEl) {
+          currentEl.textContent = '현재: ' + examRange.setName + ' ' + examRange.week + '주차';
+          currentEl.style.display = 'block';
+        }
       }
-    } catch(e) {}
+    } catch(e) { console.warn('exam-range init error', e); }
   } catch(e) {
     console.warn('init error', e);
   }
@@ -492,6 +503,18 @@ async function clearNotice() {
   await saveNotice();
 }
 init();
+
+// 단어장 셀렉트는 WORD_CATALOG가 로드된 즉시 초기화 (init 성공 여부와 무관)
+(function() {
+  var setSelect = document.getElementById('exam-set-select');
+  if (setSelect && window.WORD_CATALOG && setSelect.options.length <= 1) {
+    window.WORD_CATALOG.forEach(function(s) {
+      var opt = document.createElement('option');
+      opt.value = s.id; opt.textContent = s.name;
+      setSelect.appendChild(opt);
+    });
+  }
+})();
 
 function logout() {
   localStorage.removeItem('teacher_pw');
@@ -924,13 +947,21 @@ function switchT(tab) {
 
 function initExamSetSelect() {
   var setSelect = document.getElementById('exam-set-select');
-  if (!setSelect || !window.WORD_CATALOG) return;
-  // 이미 옵션 있으면 스킵
-  if (setSelect.options.length > 1) return;
-  window.WORD_CATALOG.forEach(function(s) {
-    var opt = document.createElement('option');
-    opt.value = s.id; opt.textContent = s.name;
-    setSelect.appendChild(opt);
+  if (!setSelect) return;
+  // WORD_CATALOG 대기 (최대 2초)
+  var catalog = window.WORD_CATALOG;
+  if (!catalog || !catalog.length) {
+    setTimeout(initExamSetSelect, 300);
+    return;
+  }
+  // 기존 옵션 유지하면서 없는 것만 추가
+  var existing = Array.from(setSelect.options).map(function(o){ return o.value; });
+  catalog.forEach(function(s) {
+    if (!existing.includes(s.id)) {
+      var opt = document.createElement('option');
+      opt.value = s.id; opt.textContent = s.name;
+      setSelect.appendChild(opt);
+    }
   });
 }
 
