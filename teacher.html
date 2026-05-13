@@ -203,19 +203,31 @@
 
 <!-- ══ 통계 탭 ══ -->
 <div class="tsec" id="ts-stats">
+  <!-- 전체 현황 요약 -->
   <div class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.875rem">전체 현황</p>
+    <p class="sec-title" style="margin-bottom:.875rem">📊 반 전체 현황</p>
     <div class="metrics" id="global-metrics"></div>
   </div>
+
+  <!-- 학생 선택 → 심층 분석 -->
   <div class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.875rem">학생별 최근 점수</p>
-    <div id="score-list"><div class="empty">데이터 없음</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <p class="sec-title" style="margin:0">🔍 학생 심층 분석</p>
+      <select id="stats-stu-select" style="font-size:12px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;padding:4px 8px;color:var(--txt)" onchange="loadStudentDetail()">
+        <option value="">학생 선택</option>
+      </select>
+    </div>
+    <div id="student-detail-wrap">
+      <div style="text-align:center;color:var(--txt3);font-size:12px;padding:1rem">학생을 선택하세요</div>
+    </div>
   </div>
+
   <!-- 학습 시간대 분석 -->
   <div class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.875rem">⏰ 학습 시간대 분석</p>
+    <p class="sec-title" style="margin-bottom:.875rem">⏰ 반 학습 시간대</p>
     <div id="time-analysis-list"><div class="empty" style="font-size:12px">통계 탭을 열면 불러와요</div></div>
   </div>
+
   <!-- 출석 히트맵 -->
   <div class="card card-sm">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem">
@@ -240,13 +252,28 @@
 
 <!-- ══ 주간 리포트 탭 ══ -->
 <div class="tsec" id="ts-report">
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <p class="sec-title" style="margin:0">📊 학생별 주간 리포트</p>
-      <button class="btn btn-ghost btn-sm" onclick="loadWeeklyReports()">불러오기</button>
+  <div class="card card-sm" style="margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
+      <p class="sec-title" style="margin:0">📋 학생별 주간 리포트</p>
+      <div style="display:flex;gap:6px">
+        <select id="report-period" style="font-size:11px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;padding:3px 6px;color:var(--txt)">
+          <option value="7">최근 7일</option>
+          <option value="14">최근 14일</option>
+          <option value="30">최근 30일</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="loadWeeklyReports()">불러오기</button>
+      </div>
     </div>
     <div id="weekly-report-loading" style="text-align:center;color:var(--txt3);padding:1.5rem;font-size:13px">버튼을 눌러 불러오세요</div>
     <div id="weekly-report-list" style="display:none"></div>
+  </div>
+  <!-- 반 취약단어 TOP -->
+  <div class="card card-sm">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
+      <p class="sec-title" style="margin:0">🔥 반 전체 취약단어 TOP10</p>
+      <button class="btn btn-ghost btn-sm" onclick="loadClassWeakWords()">불러오기</button>
+    </div>
+    <div id="class-weak-report" style="color:var(--txt3);font-size:12px">버튼을 눌러 불러오세요</div>
   </div>
 </div>
 
@@ -337,30 +364,6 @@
     <button class="btn btn-gold btn-full" onclick="saveSettings()">저장</button>
   </div>
 
-  <div class="card card-sm">
-    <p class="sec-title" style="margin-bottom:.875rem">단어장 현황</p>
-    <div id="catalog-status"></div>
-  </div>
-
-  <div class="card card-sm">
-    <p class="sec-title" style="margin-bottom:.875rem">리스닝 회차 현황</p>
-    <div id="listening-status"></div>
-  </div>
-
-  <div class="card card-sm">
-    <p class="sec-title" style="margin-bottom:.875rem">Firebase 설정</p>
-    <p style="font-size:12px;color:var(--txt2);line-height:1.7">
-      <code style="background:var(--sur2);padding:2px 6px;border-radius:4px;font-size:11px">shared/db.js</code> 파일의
-      <code style="background:var(--sur2);padding:2px 6px;border-radius:4px;font-size:11px">FIREBASE_CONFIG</code>에
-      Firebase Console에서 발급받은 설정값을 입력하세요.
-    </p>
-    <div class="divider"></div>
-    <p style="font-size:12px;color:var(--txt2);line-height:1.7">
-      새 단어장 추가:<br>
-      1. <code style="background:var(--sur2);padding:2px 6px;border-radius:4px;font-size:11px">data/words/</code>에 JS 파일 추가<br>
-      2. <code style="background:var(--sur2);padding:2px 6px;border-radius:4px;font-size:11px">data/_index.js</code>의 WORD_CATALOG에 항목 추가
-    </p>
-  </div>
 </div>
 
 </div><!-- .app -->
@@ -734,41 +737,65 @@ function copyWordListOnly() {
 // -- Stats --
 async function loadStats() {
   try {
-    const allStudents = Object.values(students);
+    var allStudents = Object.values(students);
+
+    // 전체 현황 지표
+    var allResults = await Promise.all(allStudents.map(async function(s) {
+      var r = await DB.getResults(s.id);
+      return { name: s.name, id: s.id, results: r || [] };
+    }));
+    window._statsCache = allResults;
+
+    var totalSessions = allResults.reduce(function(a,d){ return a + d.results.length; }, 0);
+    var allScores = allResults.reduce(function(a,d){ return a.concat(d.results.map(function(r){ return r.score||0; })); }, []);
+    var classAvg = allScores.length ? Math.round(allScores.reduce(function(a,b){ return a+b; },0)/allScores.length) : 0;
+    var activeStudents = allResults.filter(function(d){
+      if (!d.results.length) return false;
+      var last = new Date(d.results[d.results.length-1].date||0);
+      return (Date.now() - last) < 7*86400000;
+    }).length;
+
     document.getElementById('global-metrics').innerHTML =
       '<div class="metric"><div class="metric-lbl">총 학생</div><div class="metric-val mv-gold">' + allStudents.length + '</div></div>' +
-      '<div class="metric"><div class="metric-lbl">단어 세트</div><div class="metric-val mv-grn">' + (window.WORD_CATALOG ? window.WORD_CATALOG.length : 0) + '</div></div>' +
-      '<div class="metric"><div class="metric-lbl">리스닝</div><div class="metric-val mv-amb">' + (window.LISTENING_CATALOG ? window.LISTENING_CATALOG.length : 0) + '</div></div>';
+      '<div class="metric"><div class="metric-lbl">이번 주 활동</div><div class="metric-val mv-grn">' + activeStudents + '명</div></div>' +
+      '<div class="metric"><div class="metric-lbl">반 평균</div><div class="metric-val ' + (classAvg>=70?'mv-grn':'mv-red') + '">' + classAvg + '%</div></div>' +
+      '<div class="metric"><div class="metric-lbl">총 퀴즈</div><div class="metric-val mv-amb">' + totalSessions + '</div></div>';
 
-    const scoreEl = document.getElementById('score-list');
-    if (!allStudents.length) { scoreEl.innerHTML = '<div class="empty">학생 없음</div>'; return; }
-    const scoreData = await Promise.all(allStudents.map(async function(s) {
-      const r = await DB.getResults(s.id);
-      const last = r.length ? r[r.length-1] : null;
-      return { name: s.name, id: s.id, results: r, last };
-    }));
-    scoreEl.innerHTML = scoreData.map(function(d) {
-      return '<div class="list-item">' +
-        '<span>' + d.name + '</span>' +
-        '<span class="badge ' + (d.last ? (d.last.score>=70?'b-grn':'b-red') : '') + '">' +
-        (d.last ? d.last.score+'%' : '-') + '</span></div>';
-    }).join('');
+    // 학생 선택 셀렉트 초기화
+    var stuSel = document.getElementById('stats-stu-select');
+    if (stuSel) {
+      stuSel.innerHTML = '<option value="">학생 선택</option>';
+      allStudents.forEach(function(s) {
+        var opt = document.createElement('option'); opt.value = s.id; opt.textContent = s.name; stuSel.appendChild(opt);
+      });
+    }
+
+    // 히트맵 셀렉트 초기화
+    var sel = document.getElementById('heatmap-stu-select');
+    if (sel) {
+      sel.innerHTML = '<option value="">학생 선택</option>';
+      allStudents.forEach(function(s) {
+        var opt = document.createElement('option'); opt.value = s.id; opt.textContent = s.name; sel.appendChild(opt);
+      });
+      window._heatmapResultsCache = {};
+      allResults.forEach(function(d){ window._heatmapResultsCache[d.id] = d.results; });
+      if (allStudents.length) { sel.value = allStudents[0].id; renderHeatmap(); }
+    }
 
     // 시간대 분석
     var hourMap = new Array(24).fill(0);
-    var totalSessions = 0;
-    scoreData.forEach(function(d) {
+    allResults.forEach(function(d) {
       (d.results || []).forEach(function(r) {
-        if (r.date) { var h = new Date(r.date).getHours(); hourMap[h]++; totalSessions++; }
+        if (r.date) { var h = new Date(r.date).getHours(); hourMap[h]++; }
       });
     });
     var maxH = Math.max.apply(null, hourMap) || 1;
     var slots = [
-      { label: '새벽 (0~6시)', range: [0,6] },
-      { label: '오전 (7~11시)', range: [7,11] },
-      { label: '오후 (12~17시)', range: [12,17] },
-      { label: '저녁 (18~21시)', range: [18,21] },
-      { label: '밤 (22~23시)', range: [22,23] }
+      { label: '새벽 (0~6시)', range: [0,6], color: '#60A5FA' },
+      { label: '오전 (7~11시)', range: [7,11], color: '#4ADE80' },
+      { label: '오후 (12~17시)', range: [12,17], color: '#C9A961' },
+      { label: '저녁 (18~21시)', range: [18,21], color: '#F87171' },
+      { label: '밤 (22~23시)', range: [22,23], color: '#A78BFA' }
     ];
     var timeHtml = slots.map(function(s) {
       var count = 0;
@@ -777,24 +804,191 @@ async function loadStats() {
       var barW = Math.round(count / maxH * 100);
       return '<div style="margin-bottom:.5rem">' +
         '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">' +
-        '<span>' + s.label + '</span><span style="color:var(--txt3)">' + pct + '%</span></div>' +
+        '<span>' + s.label + '</span><span style="color:var(--txt3)">' + count + '회 (' + pct + '%)</span></div>' +
         '<div style="height:6px;background:var(--sur3);border-radius:3px;overflow:hidden">' +
-        '<div style="width:' + barW + '%;height:100%;background:var(--gold);border-radius:3px"></div></div></div>';
+        '<div style="width:' + barW + '%;height:100%;background:' + s.color + ';border-radius:3px;transition:width .4s"></div></div></div>';
     }).join('');
     document.getElementById('time-analysis-list').innerHTML = timeHtml || '<div class="empty">데이터 없음</div>';
 
-    // 히트맵 셀렉트 초기화
-    var sel = document.getElementById('heatmap-stu-select');
-    sel.innerHTML = '<option value="">학생 선택</option>';
-    allStudents.forEach(function(s) {
-      var opt = document.createElement('option');
-      opt.value = s.id; opt.textContent = s.name; sel.appendChild(opt);
-    });
-    window._heatmapResultsCache = {};
-    scoreData.forEach(function(d){ window._heatmapResultsCache[d.id] = d.results; });
-    if (allStudents.length) { sel.value = allStudents[0].id; renderHeatmap(); }
-  } catch(e) {}
+  } catch(e) { console.warn('loadStats error', e); }
 }
+
+async function loadStudentDetail() {
+  var stuId = document.getElementById('stats-stu-select').value;
+  var wrap = document.getElementById('student-detail-wrap');
+  if (!stuId) { wrap.innerHTML = '<div style="text-align:center;color:var(--txt3);font-size:12px;padding:1rem">학생을 선택하세요</div>'; return; }
+
+  var stu = students[stuId];
+  wrap.innerHTML = '<div style="text-align:center;color:var(--txt3);font-size:12px;padding:1rem">분석 중...</div>';
+
+  try {
+    var results = await DB.getResults(stuId);
+    var weak = await DB.getAllWeakWords(stuId);
+    var now = Date.now();
+    var DAY = 86400000;
+
+    if (!results.length) {
+      wrap.innerHTML = '<div class="empty">아직 학습 기록이 없습니다</div>';
+      return;
+    }
+
+    // 핵심 지표 계산
+    var scores = results.map(function(r){ return r.score||0; });
+    var avg = Math.round(scores.reduce(function(a,b){ return a+b; },0)/scores.length);
+    var best = Math.max.apply(null, scores);
+    var worst = Math.min.apply(null, scores);
+    var recent5 = scores.slice(-5);
+    var recentAvg = Math.round(recent5.reduce(function(a,b){ return a+b; },0)/recent5.length);
+    var trend = recentAvg - avg; // 양수면 최근에 좋아지는 중
+
+    // 활동 패턴
+    var dates = results.map(function(r){ return r.date ? r.date.slice(0,10) : ''; }).filter(Boolean);
+    var uniqueDays = new Set(dates).size;
+    var lastDate = dates[dates.length-1];
+    var daysSinceLast = lastDate ? Math.floor((now - new Date(lastDate)) / DAY) : 999;
+
+    // 일주일 평균 학습일
+    if (dates.length >= 2) {
+      var firstDate = new Date(dates[0]);
+      var totalSpan = Math.max(1, Math.floor((now - firstDate) / DAY));
+      var consistencyPct = Math.round(uniqueDays / Math.min(totalSpan, 30) * 100);
+    } else {
+      var consistencyPct = 0;
+    }
+
+    // 취약단어 분석
+    var weakActive = (weak||[]).filter(function(w){ return w.streak < 5; });
+    var weakGrad = (weak||[]).filter(function(w){ return w.streak >= 5; });
+    var topWeak = weakActive.sort(function(a,b){ return b.wrong - a.wrong; }).slice(0,5);
+
+    // 학습 모드별 성적
+    var modeStats = {};
+    results.forEach(function(r) {
+      var m = r.mode || 'quiz';
+      if (!modeStats[m]) modeStats[m] = { count:0, total:0 };
+      modeStats[m].count++;
+      modeStats[m].total += (r.score||0);
+    });
+
+    // 성장 그래프 (최근 15회)
+    var recent15 = results.slice(-15);
+
+    // HTML 생성
+    var trendColor = trend > 5 ? 'var(--grn,#4caf50)' : trend < -5 ? 'var(--red,#e53935)' : 'var(--gold)';
+    var trendText = trend > 5 ? '↑ 상승 중' : trend < -5 ? '↓ 하락 중' : '→ 유지 중';
+    var lastColor = daysSinceLast === 0 ? 'var(--grn,#4caf50)' : daysSinceLast <= 3 ? 'var(--gold)' : 'var(--red,#e53935)';
+
+    var html = '<div style="margin-bottom:1rem">' +
+      '<div style="font-size:15px;font-weight:700;margin-bottom:.625rem">' + stu.name + ' 학생</div>' +
+
+      // 핵심 지표 4개
+      '<div class="metrics" style="margin-bottom:.875rem">' +
+        '<div class="metric"><div class="metric-lbl">전체 평균</div><div class="metric-val ' + (avg>=70?'mv-grn':'mv-red') + '">' + avg + '%</div></div>' +
+        '<div class="metric"><div class="metric-lbl">최근 트렌드</div><div class="metric-val" style="color:' + trendColor + ';font-size:13px">' + trendText + '</div></div>' +
+        '<div class="metric"><div class="metric-lbl">출석일</div><div class="metric-val mv-gold">' + uniqueDays + '일</div></div>' +
+        '<div class="metric"><div class="metric-lbl">마지막 학습</div><div class="metric-val" style="color:' + lastColor + ';font-size:13px">' + (daysSinceLast===0?'오늘':daysSinceLast+'일 전') + '</div></div>' +
+      '</div>' +
+
+      // 상세 지표
+      '<div style="background:var(--sur2);border-radius:var(--rs);padding:.75rem;margin-bottom:.75rem;font-size:12px">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
+          '<div>최고점: <strong style="color:var(--grn,#4caf50)">' + best + '%</strong></div>' +
+          '<div>최저점: <strong style="color:var(--red,#e53935)">' + worst + '%</strong></div>' +
+          '<div>총 퀴즈: <strong>' + results.length + '회</strong></div>' +
+          '<div>학습 일관성: <strong>' + consistencyPct + '%</strong></div>' +
+          '<div>취약단어: <strong style="color:var(--red,#e53935)">' + weakActive.length + '개</strong></div>' +
+          '<div>졸업 단어: <strong style="color:var(--grn,#4caf50)">' + weakGrad.length + '개</strong></div>' +
+        '</div>' +
+      '</div>';
+
+    // 성장 그래프
+    if (recent15.length >= 2) {
+      html += '<div style="margin-bottom:.75rem">' +
+        '<div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">최근 점수 추이</div>' +
+        '<canvas id="student-score-chart" style="width:100%;height:70px"></canvas>' +
+      '</div>';
+    }
+
+    // 모드별 성적
+    if (Object.keys(modeStats).length) {
+      var modeLabels = { quiz:'타이핑 퀴즈', choice:'4지선다', speed:'속도인식', flip:'카드연습', blank:'빈칸채우기', weak:'취약단어' };
+      html += '<div style="margin-bottom:.75rem">' +
+        '<div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">모드별 평균 점수</div>' +
+        Object.entries(modeStats).map(function(e) {
+          var m = e[0], s = e[1];
+          var mAvg = Math.round(s.total/s.count);
+          var bw = mAvg;
+          return '<div style="margin-bottom:3px;display:flex;align-items:center;gap:6px">' +
+            '<span style="font-size:11px;min-width:70px;color:var(--txt2)">' + (modeLabels[m]||m) + '</span>' +
+            '<div style="flex:1;height:5px;background:var(--sur3);border-radius:3px;overflow:hidden">' +
+            '<div style="width:' + bw + '%;height:100%;background:var(--gold);border-radius:3px"></div></div>' +
+            '<span style="font-size:11px;font-weight:600;min-width:30px;text-align:right">' + mAvg + '%</span></div>';
+        }).join('') +
+      '</div>';
+    }
+
+    // TOP5 취약단어
+    if (topWeak.length) {
+      html += '<div>' +
+        '<div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">취약단어 TOP5</div>' +
+        topWeak.map(function(w) {
+          var streakDots = '';
+          for (var i=0;i<5;i++) streakDots += '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + (i<(w.streak||0)?'var(--gold)':'var(--sur3)') + ';margin-right:2px"></span>';
+          return '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bdr);font-size:12px">' +
+            '<div><span style="font-style:italic;font-weight:600">' + w.word + '</span>' +
+            '<span style="color:var(--txt3);margin-left:6px;font-size:11px">' + (w.ko||'') + '</span></div>' +
+            '<div style="display:flex;align-items:center;gap:8px">' +
+            streakDots +
+            '<span style="color:var(--red,#e53935);font-size:11px">' + w.wrong + '회 틀림</span></div></div>';
+        }).join('') +
+      '</div>';
+    }
+
+    html += '</div>';
+    wrap.innerHTML = html;
+
+    // 그래프 그리기
+    if (recent15.length >= 2) {
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){
+        var canvas = document.getElementById('student-score-chart');
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+        var W = canvas.offsetWidth || 280; var H = 70;
+        canvas.width = W; canvas.height = H;
+        var padL=4, padR=4, padT=8, padB=18;
+        var gW = W-padL-padR, gH = H-padT-padB;
+        var sc15 = recent15.map(function(r){ return r.score||0; });
+        var n = sc15.length;
+        // 그리드
+        ctx.strokeStyle='rgba(128,128,128,0.1)'; ctx.lineWidth=1;
+        [50,70,90].forEach(function(v){
+          var y = padT+gH-(v/100*gH);
+          ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+          ctx.fillStyle='rgba(128,128,128,0.5)'; ctx.font='8px sans-serif'; ctx.fillText(v,0,y+3);
+        });
+        // 선
+        ctx.strokeStyle='#C9A961'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.beginPath();
+        sc15.forEach(function(s,i){
+          var x = padL+(i/(n-1)*gW);
+          var y = padT+gH-(s/100*gH);
+          i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+        // 점
+        sc15.forEach(function(s,i){
+          var x = padL+(i/(n-1)*gW);
+          var y = padT+gH-(s/100*gH);
+          ctx.fillStyle='#C9A961'; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+        });
+        // 날짜 라벨 (처음/마지막)
+        ctx.fillStyle='rgba(128,128,128,0.6)'; ctx.font='8px sans-serif';
+        if (recent15[0].date) ctx.fillText(recent15[0].date.slice(5),padL,H-2);
+        if (recent15[n-1].date) ctx.fillText(recent15[n-1].date.slice(5),W-padR-24,H-2);
+      }); });
+    }
+  } catch(e) { wrap.innerHTML = '<div class="empty">불러오기 실패</div>'; }
+}
+
 async function loadWeeklyReports() {
   var loading = document.getElementById('weekly-report-loading');
   var list = document.getElementById('weekly-report-list');
@@ -805,32 +999,61 @@ async function loadWeeklyReports() {
   var stuList = Object.values(students);
   if (!stuList.length) { loading.textContent = '등록된 학생이 없습니다.'; return; }
 
+  var days = parseInt((document.getElementById('report-period')||{value:'7'}).value) || 7;
   var now = Date.now();
-  var DAY7 = 7 * 86400000;
+  var period = days * 86400000;
   var html = '';
 
   for (var i = 0; i < stuList.length; i++) {
     var stu = stuList[i];
     try {
       var results = await DB.getResults(stu.id);
-      var lastWeek = (results || []).filter(function(r) {
-        return r.date && (now - new Date(r.date).getTime()) <= DAY7;
+      var weak = await DB.getWeakWords(stu.id);
+      var periodResults = (results || []).filter(function(r) {
+        return r.date && (now - new Date(r.date).getTime()) <= period;
       });
-      var totalQ = lastWeek.length;
-      var avgSc = totalQ ? Math.round(lastWeek.reduce(function(s,r){ return s+(r.score||0); },0)/totalQ) : 0;
-      var days = totalQ ? new Set(lastWeek.map(function(r){ return r.date&&r.date.slice(0,10); })).size : 0;
+      var allResults2 = results || [];
+      var totalQ = periodResults.length;
+      var avgSc = totalQ ? Math.round(periodResults.reduce(function(s,r){ return s+(r.score||0); },0)/totalQ) : 0;
+      var uniqDays = totalQ ? new Set(periodResults.map(function(r){ return r.date&&r.date.slice(0,10); })).size : 0;
+      var bestSc = totalQ ? Math.max.apply(null, periodResults.map(function(r){ return r.score||0; })) : 0;
+
+      // 전체 대비 최근 트렌드
+      var allAvg = allResults2.length ? Math.round(allResults2.reduce(function(s,r){ return s+(r.score||0); },0)/allResults2.length) : 0;
+      var trend = avgSc - allAvg;
+      var trendText = trend > 5 ? '↑ ' + trend + '%p 상승' : trend < -5 ? '↓ ' + Math.abs(trend) + '%p 하락' : '→ 유지';
+      var trendColor = trend > 5 ? 'var(--grn,#4caf50)' : trend < -5 ? 'var(--red,#e53935)' : 'var(--gold)';
       var scColor = avgSc >= 80 ? 'var(--grn,#4caf50)' : avgSc >= 60 ? 'var(--gold)' : 'var(--red,#e53935)';
 
-      html += '<div style="padding:.75rem 0;border-bottom:1px solid var(--bdr)">' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:.375rem">' +
-        '<span style="font-size:14px;font-weight:600">' + stu.name + '</span>' +
-        (totalQ ? '<span class="badge b-gold">' + totalQ + '회</span>' : '<span class="badge" style="background:var(--sur3);color:var(--txt3)">미학습</span>') +
+      // 마지막 학습 경과
+      var lastDate = allResults2.length ? allResults2[allResults2.length-1].date : null;
+      var daysAgo = lastDate ? Math.floor((now - new Date(lastDate)) / 86400000) : 999;
+      var lastColor = daysAgo === 0 ? 'var(--grn,#4caf50)' : daysAgo <= 3 ? 'var(--gold)' : 'var(--red,#e53935)';
+
+      html += '<div style="padding:.875rem 0;border-bottom:1px solid var(--bdr)">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">' +
+          '<span style="font-size:14px;font-weight:600">' + stu.name + '</span>' +
+          '<div style="display:flex;gap:4px">' +
+            (totalQ ? '<span class="badge b-gold">' + totalQ + '회</span>' : '<span class="badge" style="background:var(--sur3);color:var(--txt3)">미학습</span>') +
+            '<span style="font-size:11px;color:' + lastColor + ';align-self:center;margin-left:4px">' + (daysAgo===0?'오늘':daysAgo+'일전') + '</span>' +
+          '</div>' +
         '</div>';
+
       if (totalQ) {
-        html += '<div style="display:flex;gap:12px;font-size:12px;color:var(--txt2)">' +
-          '<span>평균 <strong style="color:' + scColor + '">' + avgSc + '%</strong></span>' +
-          '<span>출석 <strong style="color:var(--gold)">' + days + '일</strong></span>' +
-          '</div>';
+        html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:.375rem">' +
+          '<div style="background:var(--sur2);border-radius:6px;padding:6px;text-align:center">' +
+            '<div style="font-size:14px;font-weight:700;color:' + scColor + '">' + avgSc + '%</div>' +
+            '<div style="font-size:10px;color:var(--txt3)">기간 평균</div></div>' +
+          '<div style="background:var(--sur2);border-radius:6px;padding:6px;text-align:center">' +
+            '<div style="font-size:14px;font-weight:700;color:var(--gold)">' + uniqDays + '일</div>' +
+            '<div style="font-size:10px;color:var(--txt3)">출석</div></div>' +
+          '<div style="background:var(--sur2);border-radius:6px;padding:6px;text-align:center">' +
+            '<div style="font-size:13px;font-weight:700;color:' + trendColor + '">' + trendText + '</div>' +
+            '<div style="font-size:10px;color:var(--txt3)">트렌드</div></div>' +
+        '</div>';
+        if (weak && weak.length) {
+          html += '<div style="font-size:11px;color:var(--txt3)">취약단어 ' + weak.length + '개 | 최고 ' + bestSc + '%</div>';
+        }
       }
       html += '</div>';
     } catch(e) {}
@@ -839,6 +1062,41 @@ async function loadWeeklyReports() {
   loading.style.display = 'none';
   list.innerHTML = html || '<div class="empty">데이터 없음</div>';
   list.style.display = 'block';
+}
+
+async function loadClassWeakWords() {
+  var el = document.getElementById('class-weak-report');
+  if (!el) return;
+  el.textContent = '불러오는 중...';
+  var stuList = Object.values(students);
+  var weakMap = {};
+  for (var i = 0; i < stuList.length; i++) {
+    try {
+      var ww = await DB.getWeakWords(stuList[i].id);
+      (ww||[]).forEach(function(w) {
+        var k = w.word;
+        if (!weakMap[k]) weakMap[k] = { word:w.word, ko:w.ko||'', count:0, totalWrong:0, students:[] };
+        weakMap[k].count++;
+        weakMap[k].totalWrong += (w.wrong||0);
+        weakMap[k].students.push(stuList[i].name);
+      });
+    } catch(e) {}
+  }
+  var top = Object.values(weakMap).sort(function(a,b){ return b.count - a.count; }).slice(0,10);
+  if (!top.length) { el.textContent = '데이터 없음'; return; }
+  el.innerHTML = top.map(function(w, i) {
+    var bar = Math.round(w.count / stuList.length * 100);
+    return '<div style="padding:.5rem 0;border-bottom:1px solid var(--bdr)">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">' +
+        '<span style="font-size:11px;color:var(--txt3);min-width:16px">' + (i+1) + '</span>' +
+        '<span style="font-weight:600;font-style:italic">' + w.word + '</span>' +
+        '<span style="font-size:11px;color:var(--txt3);flex:1">' + w.ko + '</span>' +
+        '<span class="badge b-red">' + w.count + '/' + stuList.length + '명</span>' +
+      '</div>' +
+      '<div style="height:4px;background:var(--sur3);border-radius:2px;overflow:hidden;margin-left:24px">' +
+        '<div style="width:' + bar + '%;height:100%;background:var(--red,#e53935);border-radius:2px"></div></div>' +
+    '</div>';
+  }).join('');
 }
 
 async function renderHeatmap() {
@@ -1368,60 +1626,65 @@ async function sendStickerCustom() {
 
 async function requestClassAI() {
   var btn = document.getElementById('class-ai-btn');
-  var content = document.getElementById('class-ai-content');
+  var contentEl = document.getElementById('class-ai-content');
   var stuList = Object.values(students);
   if (!stuList.length) { alert('학생 데이터가 없습니다.'); return; }
 
   btn.textContent = '분석 중...';
   btn.disabled = true;
-  content.style.display = 'block';
-  content.textContent = '🤖 AI가 반 전체 데이터를 분석하고 있어요...';
+  contentEl.style.display = 'block';
+  contentEl.textContent = '🤖 AI가 반 전체 데이터를 분석하고 있어요...';
 
   try {
-    // 취약단어 집계
+    var now = Date.now();
+    var DAY = 86400000;
     var weakMap = {};
+    var activeCount = 0;
+    var totalScores = [];
+    var recentScores = [];
+
     for (var i = 0; i < stuList.length; i++) {
       try {
-        var weak = await DB.getWeakWords(stuList[i].id);
-        (weak || []).forEach(function(w) {
-          if (!weakMap[w.word]) weakMap[w.word] = { word: w.word, ko: w.ko||'', count: 0, wrong: 0 };
+        var weak2 = await DB.getWeakWords(stuList[i].id);
+        var res2 = await DB.getResults(stuList[i].id);
+        (weak2 || []).forEach(function(w) {
+          if (!weakMap[w.word]) weakMap[w.word] = { word:w.word, ko:w.ko||'', count:0, wrong:0 };
           weakMap[w.word].count++;
-          weakMap[w.word].wrong += (w.wrong || 0);
+          weakMap[w.word].wrong += (w.wrong||0);
         });
+        (res2||[]).forEach(function(r){ totalScores.push(r.score||0); });
+        var recent = (res2||[]).filter(function(r){ return r.date && (now-new Date(r.date))<=7*DAY; });
+        if (recent.length) { activeCount++; recent.forEach(function(r){ recentScores.push(r.score||0); }); }
       } catch(e) {}
     }
 
     var topWeak = Object.values(weakMap)
       .sort(function(a,b){ return b.count - a.count; })
-      .slice(0, 10)
-      .map(function(w){ return w.word + '(' + w.ko + ', ' + w.count + '명 취약)'; })
+      .slice(0, 15)
+      .map(function(w){ return w.word+'('+w.ko+','+w.count+'명)'; })
       .join(', ');
 
-    var res = await fetch('https://api.anthropic.com/v1/messages', {
+    var classAvg2 = totalScores.length ? Math.round(totalScores.reduce(function(a,b){return a+b;},0)/totalScores.length) : 0;
+    var recentAvg2 = recentScores.length ? Math.round(recentScores.reduce(function(a,b){return a+b;},0)/recentScores.length) : 0;
+
+    var prompt = '수능 영어 전문 과외 선생님을 돕는 AI야.\n\n반 데이터:\n학생 수: ' + stuList.length + '명 (이번주 활동: ' + activeCount + '명)\n전체 평균: ' + classAvg2 + '% / 이번주 평균: ' + recentAvg2 + '%\n공통 취약단어 TOP15: ' + topWeak + '\n\n선생님에게 실용적인 조언을 해줘 (한국어, 총 5문장 이내):\n1. 반 실력 수준 진단\n2. 취약단어 패턴 분석\n3. 이번주 수업 우선순위\n4. 구체적 학습법 제안';
+
+    var fetchRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        messages: [{
-          role: 'user',
-          content: '수능 영어 학원 반 전체 취약단어 데이터야.\n' +
-            '학생 수: ' + stuList.length + '명\n' +
-            '공통 취약단어 TOP10: ' + topWeak + '\n\n' +
-            '선생님에게 다음을 조언해줘 (한국어, 4문장 이내):\n' +
-            '1. 취약 단어들의 공통 패턴이나 어휘 수준\n' +
-            '2. 이번 주 수업에서 집중할 포인트\n' +
-            '3. 학습 방법 제안\n' +
-            '이모지 1개씩만.'
-        }]
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }]
       })
     });
-    var data = await res.json();
-    var text = (data.content && data.content[0] && data.content[0].text) || '분석 결과를 가져올 수 없습니다.';
-    content.textContent = text;
+    var data2 = await fetchRes.json();
+    var text2 = (data2.content && data2.content[0] && data2.content[0].text) || '분석 결과를 가져올 수 없습니다.';
+    contentEl.style.whiteSpace = 'pre-line';
+    contentEl.textContent = text2;
     btn.textContent = '✓ 분석 완료';
   } catch(e) {
-    content.textContent = 'AI 분석 중 오류: ' + e.message;
+    contentEl.textContent = 'AI 분석 중 오류: ' + e.message;
     btn.textContent = '다시 시도';
     btn.disabled = false;
   }
