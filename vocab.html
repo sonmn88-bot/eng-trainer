@@ -1069,6 +1069,36 @@ function initSetView() {
   window._selectedWeek = null;
 }
 
+async function loadWordCount(setInfo, studiedCount) {
+  var el = document.getElementById(`cnt-${setInfo.id}`);
+  try {
+    var data = await loadWordFile(setInfo);
+    var total = data.length;
+    var studied = studiedCount || 0;
+    el.textContent = `${total.toLocaleString()} 단어`;
+
+    if (studied > 0) {
+      var pct = Math.min(100, Math.round(studied / total * 100));
+      var fill = document.getElementById(`prog-fill-${setInfo.id}`);
+      var pctEl = document.getElementById(`prog-pct-${setInfo.id}`);
+      if (fill) fill.style.width = pct + '%';
+      if (pctEl) {
+        if (pct >= 100) {
+          // 완주 뱃지
+          pctEl.innerHTML = '<span style="color:var(--gold);font-weight:700;font-size:11px">🏆 완주!</span>';
+          // 카드에 골드 테두리 추가
+          var card = document.querySelector('[onclick="selectSet(\'' + setInfo.id + '\')"]');
+          if (card) card.style.borderColor = 'var(--gold-bdr)';
+        } else {
+          pctEl.textContent = studied.toLocaleString() + '/' + total.toLocaleString() + ' (' + pct + '%)';
+        }
+      }
+    }
+  } catch(e) {
+    el.textContent = '로딩 오류';
+  }
+}
+
 async function initLibrary() {
   mnemonics = {};
   try { mnemonics = await DB.getMnemonics(); } catch(e) {}
@@ -1113,36 +1143,6 @@ async function initLibrary() {
   // 각 세트 단어 수 + 완료율 비동기 로드
   for (var s of WORD_CATALOG) {
     loadWordCount(s, studiedBySet[s.id] ? studiedBySet[s.id].size : 0);
-  }
-}
-
-async function loadWordCount(setInfo, studiedCount) {
-  var el = document.getElementById(`cnt-${setInfo.id}`);
-  try {
-    var data = await loadWordFile(setInfo);
-    var total = data.length;
-    var studied = studiedCount || 0;
-    el.textContent = `${total.toLocaleString()} 단어`;
-
-    if (studied > 0) {
-      var pct = Math.min(100, Math.round(studied / total * 100));
-      var fill = document.getElementById(`prog-fill-${setInfo.id}`);
-      var pctEl = document.getElementById(`prog-pct-${setInfo.id}`);
-      if (fill) fill.style.width = pct + '%';
-      if (pctEl) {
-        if (pct >= 100) {
-          // 완주 뱃지
-          pctEl.innerHTML = '<span style="color:var(--gold);font-weight:700;font-size:11px">🏆 완주!</span>';
-          // 카드에 골드 테두리 추가
-          var card = document.querySelector('[onclick="selectSet(\'' + setInfo.id + '\')"]');
-          if (card) card.style.borderColor = 'var(--gold-bdr)';
-        } else {
-          pctEl.textContent = studied.toLocaleString() + '/' + total.toLocaleString() + ' (' + pct + '%)';
-        }
-      }
-    }
-  } catch(e) {
-    el.textContent = '로딩 오류';
   }
 }
 
