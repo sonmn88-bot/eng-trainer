@@ -66,13 +66,21 @@
 .flip-set-btn { background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.625rem .5rem;text-align:center;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s; }
 .flip-set-btn:hover,.flip-set-btn.active { background:var(--gold-bg);border-color:var(--gold-bdr);color:var(--gold); }
 .flip-cards-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1rem; }
-.flip-card-wrap { perspective:600px;cursor:pointer;min-height:90px; }
+.flip-card-wrap { perspective:600px;cursor:pointer;min-height:90px;position:relative; }
 .flip-card-inner { position:relative;width:100%;min-height:90px;transform-style:preserve-3d;transition:transform .4s cubic-bezier(.4,0,.2,1); }
 .flip-card-wrap.flipped .flip-card-inner { transform:rotateY(180deg); }
+.flip-card-wrap.checked .flip-card-front { border-color:var(--grn,#4caf50);background:rgba(74,222,128,.08); }
+.flip-card-wrap.checked .flip-card-back { border-color:var(--grn,#4caf50);background:rgba(74,222,128,.15); }
+.flip-check-btn { position:absolute;top:6px;right:6px;z-index:10;width:22px;height:22px;border-radius:50%;background:var(--sur2);border:1.5px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;transition:all .15s;color:var(--txt3); }
+.flip-check-btn.checked { background:var(--grn,#4caf50);border-color:var(--grn,#4caf50);color:#fff; }
 .flip-card-front,.flip-card-back { position:absolute;width:100%;min-height:90px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;padding:.75rem;text-align:center;box-sizing:border-box; }
 .flip-card-front { background:var(--sur);border:1px solid var(--bdr);font-family:var(--font-display);font-style:italic;font-size:15px;font-weight:600;color:var(--txt); }
 .flip-card-back { background:var(--gold-bg);border:1px solid var(--gold-bdr);transform:rotateY(180deg);font-size:13px;color:var(--txt);line-height:1.5; }
 .flip-progress { font-size:11px;color:var(--txt3);text-align:center;margin-bottom:.75rem; }
+/* 4지선다 버튼 - hover 노란테두리 방지 */
+.choice-opt:hover { border-color: var(--bdr2) !important; color: var(--txt) !important; background: var(--sur2) !important; }
+.choice-opt:focus { outline: none; border-color: var(--bdr2) !important; }
+.choice-opt:focus-visible { outline: none; }
 
 .pos-btn { font-size:11px; padding:.25rem .625rem; }
 .pos-btn.active { background:var(--gold-bg); border-color:var(--gold-bdr); color:var(--gold); font-weight:700; }
@@ -335,8 +343,9 @@
   <div class="flip-progress" id="flip-progress"></div>
   <div class="flip-cards-grid" id="flip-cards-grid"></div>
   <div style="display:flex;gap:8px;margin-top:.5rem">
-    <button class="btn btn-full" onclick="flipResetAll()">🔄 다시 다 뒤집기</button>
-    <button class="btn btn-gold btn-full" onclick="goQuizFromFlip()">✏️ 이 세트 시험보기</button>
+    <button class="btn btn-full" onclick="flipResetAll()">🔄 미완료만 뒤집기</button>
+    <button class="btn btn-full" onclick="clearFlipChecks()">☐ 체크 초기화</button>
+    <button class="btn btn-gold btn-full" onclick="goQuizFromFlip()">✏️ 시험보기</button>
   </div>
 </div>
 
@@ -536,6 +545,7 @@
 
 <script src="data/words/mnemonics.js"></script>
 <script src="data/words/word-grades.js"></script>
+<script src="data/words/badge_data.js"></script>
 <script>
 // ── 카드 플립 연습 모드 ─────────────────────────
 const FLIP_SET_SIZE = 20;  // 세트당 20개
@@ -581,41 +591,96 @@ function loadFlipSet(idx) {
   const start = idx * FLIP_SET_SIZE;
   flipWords = flipSourceWords.slice(start, start + FLIP_SET_SIZE);
 
-  // 세트 버튼 active 업데이트
   document.querySelectorAll('.flip-set-btn').forEach((btn, i) => {
     btn.classList.toggle('active', i === idx);
   });
-
-  // 진행 표시
-  const prog = document.getElementById('flip-progress');
-  prog.textContent = 'Set ' + (idx + 1) + ' · ' + flipWords.length + '개 · 카드를 탭해서 뜻을 확인하세요';
 
   renderFlipCards();
 }
 
 function renderFlipCards() {
   const grid = document.getElementById('flip-cards-grid');
-  grid.innerHTML = flipWords.map((w, i) => {
+  if (!grid) return;
+  if (!window._flipChecked) window._flipChecked = {};
+  grid.innerHTML = flipWords.map(function(w, i) {
     const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
     const backContent = mn
       ? '<div>' + w[1] + '</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">' + mn + '</div>'
       : w[1];
-    return '<div class="flip-card-wrap" id="fc-flip-' + i + '" onclick="toggleFlipCard(' + i + ')">' +
-      '<div class="flip-card-inner">' +
+    const isChecked = window._flipChecked[flipSetIdx + '_' + i];
+    const wrapClass = 'flip-card-wrap' + (isChecked ? ' flipped checked' : '');
+    return '<div class="' + wrapClass + '" id="fc-flip-' + i + '">' +
+      '<div class="flip-check-btn' + (isChecked ? ' checked' : '') + '" id="fc-check-' + i + '" onclick="event.stopPropagation();checkFlipCard(' + i + ')" title="알았어요!">' + (isChecked ? '✓' : '') + '</div>' +
+      '<div class="flip-card-inner" onclick="if(!this.parentElement.classList.contains('checked'))toggleFlipCard(' + i + ')">' +
         '<div class="flip-card-front">' + w[0] + '</div>' +
         '<div class="flip-card-back">' + backContent + '</div>' +
-      '</div>' +
-    '</div>';
+      '</div></div>';
   }).join('');
+  updateFlipProgress();
+}
+
+function checkFlipCard(i) {
+  var key = flipSetIdx + '_' + i;
+  if (!window._flipChecked) window._flipChecked = {};
+  var el = document.getElementById('fc-flip-' + i);
+  var btn = document.getElementById('fc-check-' + i);
+  if (!el || !btn) return;
+  if (window._flipChecked[key]) {
+    delete window._flipChecked[key];
+    el.classList.remove('checked');
+    btn.classList.remove('checked');
+    btn.textContent = '';
+  } else {
+    window._flipChecked[key] = true;
+    el.classList.add('checked', 'flipped');
+    btn.classList.add('checked');
+    btn.textContent = '✓';
+  }
+  updateFlipProgress();
+}
+
+function updateFlipProgress() {
+  var total = flipWords.length;
+  var checked = 0;
+  for (var i = 0; i < total; i++) {
+    if (window._flipChecked && window._flipChecked[flipSetIdx + '_' + i]) checked++;
+  }
+  var prog = document.getElementById('flip-progress');
+  if (prog) prog.textContent = 'Set ' + (flipSetIdx + 1) + ' · ' + total + '개 · ✓ ' + checked + '/' + total + ' 완료';
+  // 전체 체크 완료 시
+  if (checked === total && total > 0) onFlipSetComplete();
 }
 
 function toggleFlipCard(i) {
   const el = document.getElementById('fc-flip-' + i);
+  if (el && el.classList.contains('checked')) return;
   if (el) el.classList.toggle('flipped');
 }
 
 function flipResetAll() {
-  document.querySelectorAll('.flip-card-wrap').forEach(el => el.classList.remove('flipped'));
+  for (var i = 0; i < flipWords.length; i++) {
+    var key = flipSetIdx + '_' + i;
+    var el = document.getElementById('fc-flip-' + i);
+    if (!el) continue;
+    if (window._flipChecked && window._flipChecked[key]) {
+      el.classList.add('flipped', 'checked');
+    } else {
+      el.classList.remove('flipped');
+    }
+  }
+}
+function clearFlipChecks() {
+  // 현재 세트 체크 모두 초기화
+  for (var i = 0; i < flipWords.length; i++) {
+    var key = flipSetIdx + '_' + i;
+    if (window._flipChecked) delete window._flipChecked[key];
+  }
+  renderFlipCards();
+}
+
+function onFlipSetComplete() {
+  checkCardBadge();
+  showToast("✅ 세트 완료!");
 }
 
 function goQuizFromFlip() {
@@ -1092,7 +1157,7 @@ function applyPosFilter(pos, baseWords) {
   if (pos === 'all') {
     filtered = src;
   } else {
-    filtered = src.filter(function(w) { return guessPOS(w[1]) === pos; });
+    filtered = src.filter(function(w) { return guessPOS(w[1], w[0]) === pos; });
     if (!filtered.length) { filtered = src; } // 해당 품사 없으면 전체
   }
   window._selectedWords = filtered;
@@ -1125,11 +1190,30 @@ function setPosFilter(pos) {
   applyPosFilter(pos, window._baseWords);
 }
 
-function guessPOS(ko) {
-  if (!ko) return 'noun';
-  if (/하다$|시키다$|되다$|리다$|하다,|하다 /.test(ko)) return 'verb';
-  if (/적인|스러운|한,|한$|없는|있는|로운|ㄴ$/.test(ko)) return 'adj';
-  if (/히$|게$|적으로$|으로,/.test(ko)) return 'adv';
+function guessPOS(ko, en) {
+  var e = (en||'').toLowerCase().trim();
+  var k = (ko||'').trim();
+
+  // -ly 접미사 → 대부분 부사 (형용사 예외 목록)
+  if (/ly$/.test(e) && e.length > 4) {
+    var ADJ_LY = new Set(['friendly','lovely','deadly','elderly','lively','likely','costly','lonely','ugly','early','only','daily','weekly','monthly','yearly','holy','worldly','orderly','timely','kindly','manly','scholarly','leisurely','heavenly','earthly','stately','miserly','cowardly','sickly','goodly']);
+    if (!ADJ_LY.has(e)) return 'adv';
+  }
+
+  // 동사
+  if (/하다$|시키다$|되다$|지다$|리다$|하다,|하다 |하다;|하다\.|시키다,|되다,/.test(k)) return 'verb';
+
+  // 형용사
+  if (/적인|스러운|한,|한$|없는|있는|로운|스럽다|한 |스런/.test(k)) return 'adj';
+
+  // 부사 (강화)
+  if (/히$|게$|적으로$|으로,|으로$|에,|에$|서,|서$|써$/.test(k)) return 'adv';
+  if (/그러므로|따라서|그러나|하지만|그런데|게다가|또한|결국|마침내|여전히|오히려|점점|점차|서서히/.test(k)) return 'adv';
+  if (/즉시|즉각|단지|그냥|특히|주로|일반적으로|항상|종종|자주|때로|거의|상당히|매우|꽤/.test(k)) return 'adv';
+  if (/충분히|완전히|끊임없이|지속적으로|일관되게|결과적으로|불가피하게|본능적으로|의도적으로/.test(k)) return 'adv';
+  if (/자발적으로|조금씩|통계적으로|객관적으로|무의식적으로|외견상으로|자동적으로|부수적으로/.test(k)) return 'adv';
+  if (/해외|국내|멀리|가까이|널리|공개적으로|광범위하게/.test(k)) return 'adv';
+
   return 'noun';
 }
 
@@ -1206,7 +1290,7 @@ async function renderFlash() {
   const img = new Image();
   img.className = 'fc-img';
   img.onload = () => { imgWrap.innerHTML = ''; imgWrap.appendChild(img); };
-  img.onerror = () => { imgWrap.innerHTML = ''; };
+  img.onerror = () => { imgWrap.innerHTML = '<div style="width:70px;height:70px;border-radius:10px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--txt3);margin-bottom:.5rem">' + w[0][0].toUpperCase() + '</div>'; };
   img.src = Utils.pollUrl(w[0], w[1]);
 
   // 뒷면 높이를 내용에 맞게 동적 조정
@@ -1361,6 +1445,185 @@ function toggleFocusMode() {
   }
 }
 
+// ══ XP / 배지 시스템 ══════════════════════════════
+// XP 지급 + 레벨업 체크
+async function giveXP(amount) {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    var result = await DB.addXP(STU_ID, amount);
+    if (result.leveled) {
+      // 레벨업 팡파레는 index.html에 없으므로 토스트로 처리
+      showToast('🎉 레벨 업! Lv.' + result.level + ' ' + getLevelName(result.level));
+      // 전설의시작 배지 체크
+      if (result.level >= 8) checkAndAward('legend_start');
+    }
+    return result;
+  } catch(e) {}
+}
+
+function getLevelName(lv) {
+  var def = (window.LEVEL_DEFS||[]).find(function(l){return l.lv===lv;});
+  return def ? def.name : '';
+}
+
+// 배지 체크 + 수여
+async function checkAndAward(badgeId) {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    var awarded = await DB.awardBadge(STU_ID, badgeId);
+    if (awarded) {
+      var def = (window.BADGE_DEFS||[]).find(function(d){return d.id===badgeId;});
+      if (def) showToast((def.icon||'🏆') + ' 배지 획득! ' + def.name);
+    }
+  } catch(e) {}
+}
+
+// 배지 진행도 업데이트
+async function updateProgress(badgeId, value) {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    var updates = {}; updates[badgeId] = value;
+    await DB.updateBadgeProgress(STU_ID, updates);
+  } catch(e) {}
+}
+
+// 퀴즈 완료 후 배지 일괄 체크
+async function checkBadgesAfterQuiz(results, score, totalQuizCount) {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    var prog = await DB.getBadgeProgress(STU_ID);
+    var badges = await DB.getBadges(STU_ID);
+    var updates = {};
+
+    // 퀴즈 횟수
+    var qCount = (prog.quiz_count||0) + 1;
+    updates.quiz_count = qCount;
+    if (qCount >= 1   && !badges.first_step)   checkAndAward('first_step');
+    if (qCount >= 100 && !badges.studious)      checkAndAward('studious');
+    if (qCount >= 200 && !badges.veteran)       checkAndAward('veteran');
+    if (qCount >= 500 && !badges.quiz_machine)  checkAndAward('quiz_machine');
+
+    // 퍼펙트
+    if (score === 100) {
+      var perfCount = (prog.perfect_count||0) + 1;
+      updates.perfect_count = perfCount;
+      if (!badges.perfect)        checkAndAward('perfect');
+      if (perfCount >= 10 && !badges.iron_wall)      checkAndAward('iron_wall');
+      if (perfCount >= 30 && !badges.perfectionist)  checkAndAward('perfectionist');
+    }
+
+    // 평균 점수 (최근 결과 기반 - 간단히 누적 평균으로)
+    var avgSum = (prog.avg_sum||0) + score;
+    var avgCnt = (prog.avg_cnt||0) + 1;
+    updates.avg_sum = avgSum; updates.avg_cnt = avgCnt;
+    var curAvg = Math.round(avgSum / avgCnt);
+    if (avgCnt >= 10 && curAvg >= 80 && !badges.scorer)        checkAndAward('scorer');
+    if (avgCnt >= 20 && curAvg >= 85 && !badges.honor)         checkAndAward('honor');
+    if (avgCnt >= 30 && curAvg >= 90 && !badges.valedictorian) checkAndAward('valedictorian');
+
+    // 누적 학습 단어
+    var wCount = (prog.word_count||0) + results.length;
+    updates.word_count = wCount;
+    if (wCount >= 3000 && !badges.word_hunter)  checkAndAward('word_hunter');
+    if (wCount >= 8000 && !badges.vocab_king)   checkAndAward('vocab_king');
+
+    // 콤보
+    var maxComboAll = Math.max(prog.max_combo||0, quiz.maxCombo||0);
+    updates.max_combo = maxComboAll;
+    if (maxComboAll >= 10 && !badges.combo10)  checkAndAward('combo10');
+    if (maxComboAll >= 20 && !badges.combo20)  checkAndAward('combo20');
+    if (maxComboAll >= 30 && !badges.combo30)  checkAndAward('combo30');
+
+    // 시간대 체크 (올빼미/새벽용사)
+    var h = new Date().getHours();
+    if (h >= 23 || h < 5) {
+      var owlCount = (prog.owl_count||0) + 1;
+      updates.owl_count = owlCount;
+      if (owlCount >= 5 && !badges.night_owl) checkAndAward('night_owl');
+    }
+    if (h >= 5 && h < 7) {
+      var birdCount = (prog.bird_count||0) + 1;
+      updates.bird_count = birdCount;
+      if (birdCount >= 3 && !badges.early_bird) checkAndAward('early_bird');
+    }
+
+    // 주말 체크
+    var day = new Date().getDay();
+    if (day === 0 || day === 6) {
+      var wkCount = (prog.weekend_count||0) + 1;
+      updates.weekend_count = wkCount;
+      if (wkCount >= 8 && !badges.weekend) checkAndAward('weekend');
+    }
+
+    await DB.updateBadgeProgress(STU_ID, updates);
+  } catch(e) {}
+}
+
+// 빈칸채우기 완료 후 배지 체크
+async function checkBlankBadge(score) {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    var prog = await DB.getBadgeProgress(STU_ID);
+    var badges = await DB.getBadges(STU_ID);
+    var updates = {};
+    if (score >= 80) { var bg = (prog.blank_good_count||0)+1; updates.blank_good_count=bg; if(bg>=5&&!badges.blank_good) checkAndAward('blank_good'); }
+    if (score >= 90) { var bm = (prog.blank_master_count||0)+1; updates.blank_master_count=bm; if(bm>=10&&!badges.blank_master) checkAndAward('blank_master'); }
+    await DB.updateBadgeProgress(STU_ID, updates);
+  } catch(e) {}
+}
+
+// 카드 체크 완료 배지
+async function checkCardBadge() {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    var prog = await DB.getBadgeProgress(STU_ID);
+    var badges = await DB.getBadges(STU_ID);
+    var cnt = (prog.card_check_count||0)+1;
+    await DB.updateBadgeProgress(STU_ID, {card_check_count:cnt});
+    if (cnt>=5 && !badges.card_master) checkAndAward('card_master');
+  } catch(e) {}
+}
+
+// 속도인식 완료 배지
+async function checkSpeedBadge(correct, total) {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    var prog = await DB.getBadgeProgress(STU_ID);
+    var badges = await DB.getBadges(STU_ID);
+    var updates = {};
+    if (correct >= 30) { if (!badges.speed_basic) checkAndAward('speed_basic'); }
+    if (correct >= total) {
+      var sc = (prog.speed_perfect||0)+1;
+      updates.speed_perfect = sc;
+      if (sc>=3 && !badges.speed_master) checkAndAward('speed_master');
+    }
+    if (Object.keys(updates).length) await DB.updateBadgeProgress(STU_ID, updates);
+  } catch(e) {}
+}
+
+// 취약단어 졸업 배지 체크
+async function checkWeakBadges() {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    var weakList = await DB.getAllWeakWords(STU_ID);
+    var badges = await DB.getBadges(STU_ID);
+    var graduated = weakList.filter(function(w){return (w.streak||0)>=5;}).length;
+    var updates = {grad_count: graduated};
+    if (graduated >= 1   && !badges.grad_first) checkAndAward('grad_first');
+    if (graduated >= 20  && !badges.grad20)     checkAndAward('grad20');
+    if (graduated >= 60  && !badges.grad60)     checkAndAward('grad60');
+    if (graduated >= 150 && !badges.grad150)    checkAndAward('grad150');
+    // 오뚝이: 5회 이상 틀린 단어 10개 졸업
+    var comebackCount = weakList.filter(function(w){return (w.streak||0)>=5&&(w.wrong||0)>=5;}).length;
+    updates.comeback_count = comebackCount;
+    if (comebackCount >= 10 && !badges.comeback) checkAndAward('comeback');
+    var phoenixCount = weakList.filter(function(w){return (w.streak||0)>=5&&(w.wrong||0)>=10;}).length;
+    updates.phoenix_count = phoenixCount;
+    if (phoenixCount >= 5 && !badges.phoenix) checkAndAward('phoenix');
+    await DB.updateBadgeProgress(STU_ID, updates);
+  } catch(e) {}
+}
+
 function startTimer() {
   quiz.timer = setInterval(function() {
     quiz.elapsed++;
@@ -1438,6 +1701,9 @@ async function submitAns() {
 
   quiz.results.push({ word: w[0], ko: w[1], input: inp, correct: isCorrect });
   try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); } catch(e) {}
+  // XP 지급
+  var xpAmt = isCorrect ? (currentMode==='weak'?window.XP_RULES.weak_correct:window.XP_RULES.quiz_correct) : window.XP_RULES.quiz_wrong;
+  giveXP(xpAmt);
 
   // 취약모드: streak 즉시 업데이트
   if (currentMode === 'weak' || currentMode === 'bookmark') {
@@ -1462,6 +1728,11 @@ async function finishQuiz() {
   clearInterval(quiz.timer);
   const total = quiz.words.length;
   const score = Math.round((quiz.correct / total) * 100);
+
+  // XP/배지 체크
+  if (score === 100) giveXP((window.XP_RULES&&window.XP_RULES.quiz_perfect)||150);
+  checkBadgesAfterQuiz(quiz.results, score, total);
+  if (currentMode === 'weak') checkWeakBadges();
 
   // 결과 화면 렌더
   showResult(score, total, true);
@@ -1873,8 +2144,15 @@ function renderChoice() {
   choice.currentAnswerIdx = options.findIndex(function(o){ return o[0] === w[0]; });
 
   document.getElementById('choice-options').innerHTML = options.map(function(opt, i) {
-    return '<button class="btn" style="padding:.75rem;font-size:13px;text-align:left;line-height:1.4" onclick="answerChoice('+i+')">' + opt[1] + '</button>';
+    // onmouseover 막기 위해 style에 직접 hover 무효화 추가
+    return '<button class="choice-opt btn" data-idx="'+i+'" style="padding:.75rem;font-size:13px;text-align:left;line-height:1.4">' + opt[1] + '</button>';
   }).join('');
+  // 이벤트는 addEventListener로 (인라인 onclick의 hover 잔류 방지)
+  document.querySelectorAll('#choice-options .choice-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() { answerChoice(parseInt(this.dataset.idx)); }, { once: true });
+    // 모바일 터치 후 hover 상태 제거
+    btn.addEventListener('touchend', function() { this.blur(); });
+  });
 }
 
 function answerChoice(i) {
@@ -2004,6 +2282,9 @@ function speedNext() {
 
   speed.idx++;
   if (speed.idx >= speed.words.length) {
+    // 배지 체크 + XP
+    checkSpeedBadge(speed.know, speed.words.length);
+    giveXP((window.XP_RULES&&window.XP_RULES.speed_complete)||30);
     quiz.correct = speed.know; quiz.wrong = speed.dontKnow; quiz.results = speed.results; quiz.elapsed = 0;
     var sc2 = Math.round(speed.know / speed.words.length * 100);
     showResult(sc2, speed.words.length);
