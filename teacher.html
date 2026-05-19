@@ -115,20 +115,34 @@
         <span id="memo-saved" style="font-size:11px;color:var(--grn,#4caf50);margin-left:8px;display:none">✓ 저장됨</span>
       </div>
 
-      <!-- 칭찬 스티커 -->
+      <!-- 개인 메시지 -->
       <div style="margin-top:1rem">
-        <p class="sec-title" style="margin-bottom:.5rem">🌟 칭찬 스티커 보내기</p>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.625rem" id="sticker-options">
-          <button class="btn btn-sm" onclick="sendSticker('🌟','정말 잘했어요!')" style="font-size:18px;padding:6px 10px">🌟</button>
-          <button class="btn btn-sm" onclick="sendSticker('🔥','완전 불타오르고 있어요!')" style="font-size:18px;padding:6px 10px">🔥</button>
-          <button class="btn btn-sm" onclick="sendSticker('💪','포기하지 마세요!')" style="font-size:18px;padding:6px 10px">💪</button>
-          <button class="btn btn-sm" onclick="sendSticker('🏆','최고예요!')" style="font-size:18px;padding:6px 10px">🏆</button>
-          <button class="btn btn-sm" onclick="sendSticker('👑','왕중왕!')" style="font-size:18px;padding:6px 10px">👑</button>
-          <button class="btn btn-sm" onclick="sendSticker('💯','완벽해요!')" style="font-size:18px;padding:6px 10px">💯</button>
+        <p class="sec-title" style="margin-bottom:.5rem">✉️ 개인 메시지</p>
+        <!-- 마지막 보낸 메시지 표시 -->
+        <div id="last-msg-wrap" style="display:none;background:var(--sur2);border-radius:var(--rs);padding:.625rem .875rem;margin-bottom:.625rem;border-left:3px solid var(--gold-bdr)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+            <span style="font-size:10px;color:var(--txt3)">마지막 메시지</span>
+            <span id="last-msg-read" style="font-size:10px"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span id="last-msg-emoji" style="font-size:18px"></span>
+            <span id="last-msg-text" style="font-size:12px;color:var(--txt);flex:1"></span>
+          </div>
+          <div id="last-msg-time" style="font-size:10px;color:var(--txt3);margin-top:2px"></div>
         </div>
+        <!-- 빠른 스티커 -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.625rem">
+          <button class="btn btn-sm" onclick="sendSticker('🌟','정말 잘했어요!')" style="font-size:18px;padding:6px 10px" title="정말 잘했어요!">🌟</button>
+          <button class="btn btn-sm" onclick="sendSticker('🔥','완전 불타오르고 있어요!')" style="font-size:18px;padding:6px 10px" title="불타오르는 중!">🔥</button>
+          <button class="btn btn-sm" onclick="sendSticker('💪','포기하지 마세요!')" style="font-size:18px;padding:6px 10px" title="포기하지 마세요!">💪</button>
+          <button class="btn btn-sm" onclick="sendSticker('🏆','최고예요!')" style="font-size:18px;padding:6px 10px" title="최고예요!">🏆</button>
+          <button class="btn btn-sm" onclick="sendSticker('👑','왕중왕!')" style="font-size:18px;padding:6px 10px" title="왕중왕!">👑</button>
+          <button class="btn btn-sm" onclick="sendSticker('💯','완벽해요!')" style="font-size:18px;padding:6px 10px" title="완벽해요!">💯</button>
+        </div>
+        <!-- 직접 메시지 -->
         <div style="display:flex;gap:6px">
-          <input id="sticker-msg" type="text" placeholder="직접 메시지 입력 (선택)" style="flex:1;font-size:12px">
-          <button class="btn btn-gold btn-sm" onclick="sendStickerCustom()">보내기</button>
+          <input id="sticker-msg" type="text" placeholder="직접 메시지 입력..." style="flex:1;font-size:12px" onkeydown="if(event.key==='Enter')sendStickerCustom()">
+          <button class="btn btn-gold btn-sm" onclick="sendStickerCustom()">전송</button>
         </div>
         <div id="sticker-sent-msg" style="font-size:11px;min-height:16px;margin-top:.375rem;text-align:center"></div>
       </div>
@@ -444,13 +458,19 @@ function updateExamWeekOptions(selectedWeek) {
   if (!setId || !window.WORD_CATALOG) return;
   var setInfo = window.WORD_CATALOG.find(function(s){ return s.id === setId; });
   if (!setInfo) return;
-  // 단어 수 기준 주차 계산 (100개 단위)
-  var totalWords = setInfo.totalWords || 0;
+
+  // 실제 단어 수 기반 주차 계산
+  // window[varName]이 이미 로드됐으면 실제 길이 사용, 아니면 20주차 기본값
+  var actualWords = window[setInfo.varName];
+  var totalWords = (actualWords && actualWords.length) ? actualWords.length : (setInfo.totalWords || 0);
   var totalWeeks = totalWords ? Math.ceil(totalWords / 100) : 20;
+
   for (var i = 1; i <= totalWeeks; i++) {
+    var start = (i-1)*100+1;
+    var end = Math.min(i*100, totalWords || i*100);
     var opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = i + '주차 (' + ((i-1)*100+1) + '~' + (i*100) + '번)';
+    opt.textContent = i + '주차 (' + start + '~' + end + '번)';
     weekSelect.appendChild(opt);
   }
   if (selectedWeek) weekSelect.value = selectedWeek;
@@ -531,16 +551,17 @@ function renderStudents() {
   document.getElementById('stu-count').textContent = arr.length;
   if (!arr.length) { list.innerHTML = '<div class="empty">학생이 없습니다</div>'; return; }
   list.innerHTML = arr.map(function(s) {
-    var initials = s.name.slice(0,2).toUpperCase();
     var lastSeen = s.lastSeen ? new Date(s.lastSeen) : null;
     var daysSince = lastSeen ? Math.floor((Date.now() - lastSeen) / 86400000) : 999;
     var alertBadge = daysSince >= 3 ? '<span style="font-size:10px;color:var(--red,#e53935);font-weight:700;margin-left:4px">⚠️ ' + (daysSince >= 7 ? '7일+' : daysSince + '일') + ' 미접속</span>' : '';
     var metaText = lastSeen ? '최근: ' + lastSeen.toLocaleDateString('ko') : '등록: ' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '-');
     var memoText = s.memo ? '<div style="font-size:10px;color:var(--txt3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">📝 ' + s.memo + '</div>' : '';
+    // 메시지 뱃지 (초기엔 비어있고 loadStuMessageBadges로 채워짐)
+    var msgBadge = '<span id="msg-badge-' + s.id + '" style="font-size:10px;margin-left:4px"></span>';
     var card = '<div class="stu-card" data-id="' + s.id + '">' +
-      '<div><div class="stu-name">' + s.name + alertBadge + '</div>' +
+      '<div style="flex:1"><div class="stu-name">' + s.name + alertBadge + msgBadge + '</div>' +
       '<div class="stu-meta">' + metaText + '</div>' + memoText + '</div>' +
-      '<span style="margin-left:auto;font-size:18px;color:var(--txt3)">&#8250;</span>' +
+      '<span style="margin-left:8px;font-size:18px;color:var(--txt3)">›</span>' +
       '</div>';
     return card;
   }).join('');
@@ -548,6 +569,35 @@ function renderStudents() {
     el.addEventListener('click', function() { showStuDetail(this.dataset.id); });
   });
 
+  // 메시지 읽음 상태 비동기 로드
+  loadStuMessageBadges(arr);
+}
+
+async function loadStuMessageBadges(arr) {
+  for (var i = 0; i < arr.length; i++) {
+    try {
+      var msg = await DB.getSticker(arr[i].id);
+      var badgeEl = document.getElementById('msg-badge-' + arr[i].id);
+      if (!badgeEl) continue;
+      if (msg && msg.message) {
+        if (!msg.read) {
+          badgeEl.innerHTML = '<span style="color:var(--red,#e53935);font-weight:700">✉ 안읽음</span>';
+        } else {
+          badgeEl.innerHTML = '<span style="color:var(--txt3)">✉ 읽음</span>';
+        }
+      }
+    } catch(e) {}
+  }
+}
+
+function updateStuCardBadge(stuId, isRead) {
+  var badgeEl = document.getElementById('msg-badge-' + stuId);
+  if (!badgeEl) return;
+  if (isRead) {
+    badgeEl.innerHTML = '<span style="color:var(--txt3)">✉ 읽음</span>';
+  } else {
+    badgeEl.innerHTML = '<span style="color:var(--red,#e53935);font-weight:700">✉ 안읽음</span>';
+  }
 }
 async function addStudent() {
   const inp = document.getElementById('new-stu-name');
@@ -612,6 +662,38 @@ async function showStuDetail(stuId) {
     var memo = await DB.getMemo(stuId);
     var memoEl = document.getElementById('detail-memo');
     if (memoEl) memoEl.value = memo || '';
+  } catch(e) {}
+
+  // 마지막 메시지 불러오기
+  try {
+    var lastMsg = await DB.getSticker(stuId);
+    var wrap = document.getElementById('last-msg-wrap');
+    if (lastMsg && lastMsg.message && wrap) {
+      document.getElementById('last-msg-emoji').textContent = lastMsg.emoji || '💌';
+      document.getElementById('last-msg-text').textContent = lastMsg.message;
+      // 읽음 여부
+      var readEl = document.getElementById('last-msg-read');
+      if (lastMsg.read) {
+        readEl.textContent = '✓ 읽음';
+        readEl.style.color = 'var(--grn,#4caf50)';
+        wrap.style.borderLeftColor = 'var(--grn,#4caf50)';
+      } else {
+        readEl.textContent = '● 안읽음';
+        readEl.style.color = 'var(--red,#e53935)';
+        wrap.style.borderLeftColor = 'var(--red,#e53935)';
+      }
+      // 보낸 시간
+      var timeEl = document.getElementById('last-msg-time');
+      if (lastMsg.sentAt) {
+        var d = new Date(lastMsg.sentAt);
+        var diff = Math.floor((Date.now() - lastMsg.sentAt) / 60000);
+        var timeStr = diff < 1 ? '방금' : diff < 60 ? diff + '분 전' : diff < 1440 ? Math.floor(diff/60) + '시간 전' : Math.floor(diff/1440) + '일 전';
+        timeEl.textContent = d.toLocaleDateString('ko') + ' ' + d.toLocaleTimeString('ko', {hour:'2-digit',minute:'2-digit'}) + ' · ' + timeStr;
+      }
+      wrap.style.display = 'block';
+    } else if (wrap) {
+      wrap.style.display = 'none';
+    }
   } catch(e) {}
 }
 async function deleteStudent() {
@@ -1206,20 +1288,17 @@ function switchT(tab) {
 function initExamSetSelect() {
   var setSelect = document.getElementById('exam-set-select');
   if (!setSelect) return;
-  // WORD_CATALOG 대기 (최대 2초)
   var catalog = window.WORD_CATALOG;
   if (!catalog || !catalog.length) {
-    setTimeout(initExamSetSelect, 300);
+    setTimeout(initExamSetSelect, 200);
     return;
   }
-  // 기존 옵션 유지하면서 없는 것만 추가
-  var existing = Array.from(setSelect.options).map(function(o){ return o.value; });
+  // 매번 다시 채움 (중복 방지)
+  while (setSelect.options.length > 1) setSelect.remove(1);
   catalog.forEach(function(s) {
-    if (!existing.includes(s.id)) {
-      var opt = document.createElement('option');
-      opt.value = s.id; opt.textContent = s.name;
-      setSelect.appendChild(opt);
-    }
+    var opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.name;
+    setSelect.appendChild(opt);
   });
 }
 
@@ -1605,15 +1684,30 @@ function drawScoreChart(results) {
 
 async function sendSticker(emoji, message) {
   if (!selectedStuId) return;
-  var msg = document.getElementById('sticker-sent-msg');
+  var msgEl = document.getElementById('sticker-sent-msg');
   try {
     await DB.sendSticker(selectedStuId, emoji, message);
-    msg.style.color = 'var(--grn,#4caf50)';
-    msg.textContent = emoji + ' 칭찬 스티커를 보냈어요!';
-    setTimeout(function(){ msg.textContent = ''; }, 2500);
+    msgEl.style.color = 'var(--grn,#4caf50)';
+    msgEl.textContent = emoji + ' 전송됐어요!';
+    setTimeout(function(){ msgEl.textContent = ''; }, 2500);
+
+    // 마지막 메시지 UI 즉시 업데이트
+    var wrap = document.getElementById('last-msg-wrap');
+    if (wrap) {
+      document.getElementById('last-msg-emoji').textContent = emoji;
+      document.getElementById('last-msg-text').textContent = message;
+      document.getElementById('last-msg-read').textContent = '● 안읽음';
+      document.getElementById('last-msg-read').style.color = 'var(--red,#e53935)';
+      wrap.style.borderLeftColor = 'var(--red,#e53935)';
+      document.getElementById('last-msg-time').textContent = '방금';
+      wrap.style.display = 'block';
+    }
+
+    // 학생 목록에서 해당 학생 카드에 미읽음 뱃지 표시
+    updateStuCardBadge(selectedStuId, false);
   } catch(e) {
-    msg.style.color = 'var(--red)';
-    msg.textContent = '오류: ' + e.message;
+    msgEl.style.color = 'var(--red)';
+    msgEl.textContent = '오류: ' + e.message;
   }
 }
 
