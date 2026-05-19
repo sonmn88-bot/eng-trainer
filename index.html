@@ -552,11 +552,13 @@ async function init() {
     if (qEl) qEl.textContent = QUOTES[qi];
   } catch(e) {}
 
-  // D-day 계산 (2026 수능: 11월 12일)
+  // D-day 계산 (2026 수능: 11월 12일) - 날짜만 비교
   try {
-    var suneung = new Date('2026-11-12T00:00:00');
-    var today2 = new Date(); today2.setHours(0,0,0,0);
-    var diff = Math.ceil((suneung - today2) / 86400000);
+    var now3 = new Date();
+    var todayStr = now3.getFullYear() + '-' + String(now3.getMonth()+1).padStart(2,'0') + '-' + String(now3.getDate()).padStart(2,'0');
+    var todayMs = new Date(todayStr).getTime();
+    var suneungMs = new Date('2026-11-12').getTime();
+    var diff = Math.round((suneungMs - todayMs) / 86400000);
     var ddayEl = document.getElementById('dday-count');
     var ddayDetail = document.getElementById('dday-detail');
     if (ddayEl) {
