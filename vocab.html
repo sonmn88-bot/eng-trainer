@@ -549,16 +549,17 @@
   </div>
 </div>
 
+<script src="data/_index.js"></script>
 <script src="data/words/mnemonics.js"></script>
 <script src="data/words/word-grades.js"></script>
 <script src="data/words/badge_data.js"></script>
 <script>
 // ── 카드 플립 연습 모드 ─────────────────────────
-const FLIP_SET_SIZE = 20;  // 세트당 20개
-const FLIP_SETS = 5;       // 5세트
-let flipWords = [];         // 현재 세트 단어
-let flipSetIdx = 0;         // 현재 세트 번호 (0~4)
-let flipSourceWords = [];   // 전체 100개
+var FLIP_SET_SIZE = 20;  // 세트당 20개
+var FLIP_SETS = 5;       // 5세트
+var flipWords = [];         // 현재 세트 단어
+var flipSetIdx = 0;         // 현재 세트 번호 (0~4)
+var flipSourceWords = [];   // 전체 100개
 
 function goFlipMode() {
   // 전체랜덤 → 전체 단어 100개
@@ -571,7 +572,7 @@ function goFlipMode() {
 
 function goFlipModeFromWeek(wk) {
   // 주차에서 진입 → 해당 주차 100개
-  const info = window._weekWords && window._weekWords[wk];
+  var info = window._weekWords && window._weekWords[wk];
   flipSourceWords = info ? info.words : allWords.slice(0, 100);
   flipSetIdx = 0;
   showView('flip');
@@ -580,11 +581,11 @@ function goFlipModeFromWeek(wk) {
 }
 
 function renderFlipSetButtons() {
-  const grid = document.getElementById('flip-set-grid');
-  let html = '';
-  for (let i = 0; i < FLIP_SETS; i++) {
-    const start = i * FLIP_SET_SIZE + 1;
-    const end = Math.min((i + 1) * FLIP_SET_SIZE, flipSourceWords.length);
+  var grid = document.getElementById('flip-set-grid');
+  var html = '';
+  for (var i = 0; i < FLIP_SETS; i++) {
+    var start = i * FLIP_SET_SIZE + 1;
+    var end = Math.min((i + 1) * FLIP_SET_SIZE, flipSourceWords.length);
     if (start > flipSourceWords.length) break;
     html += '<div class="flip-set-btn' + (i === flipSetIdx ? ' active' : '') + '" onclick="loadFlipSet(' + i + ')">' +
       'Set ' + (i + 1) + '<br><span style="font-size:10px;font-weight:400;color:var(--txt3)">' + start + '-' + end + '</span></div>';
@@ -594,7 +595,7 @@ function renderFlipSetButtons() {
 
 function loadFlipSet(idx) {
   flipSetIdx = idx;
-  const start = idx * FLIP_SET_SIZE;
+  var start = idx * FLIP_SET_SIZE;
   flipWords = flipSourceWords.slice(start, start + FLIP_SET_SIZE);
 
   document.querySelectorAll('.flip-set-btn').forEach((btn, i) => {
@@ -605,16 +606,16 @@ function loadFlipSet(idx) {
 }
 
 function renderFlipCards() {
-  const grid = document.getElementById('flip-cards-grid');
+  var grid = document.getElementById('flip-cards-grid');
   if (!grid) return;
   if (!window._flipChecked) window._flipChecked = {};
   grid.innerHTML = flipWords.map(function(w, i) {
-    const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
-    const backContent = mn
+    var mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
+    var backContent = mn
       ? '<div>' + w[1] + '</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">' + mn + '</div>'
       : w[1];
-    const isChecked = window._flipChecked[flipSetIdx + '_' + i];
-    const wrapClass = 'flip-card-wrap' + (isChecked ? ' flipped checked' : '');
+    var isChecked = window._flipChecked[flipSetIdx + '_' + i];
+    var wrapClass = 'flip-card-wrap' + (isChecked ? ' flipped checked' : '');
     return '<div class="' + wrapClass + '" id="fc-flip-' + i + '">' +
       '<div class="flip-check-btn' + (isChecked ? ' checked' : '') + '" id="fc-check-' + i + '" onclick="event.stopPropagation();checkFlipCard(' + i + ')" title="알았어요!">' + (isChecked ? '✓' : '') + '</div>' +
       '<div class="flip-card-inner" onclick="toggleFlipCard(' + i + ')">' +
@@ -658,7 +659,7 @@ function updateFlipProgress() {
 }
 
 function toggleFlipCard(i) {
-  const el = document.getElementById('fc-flip-' + i);
+  var el = document.getElementById('fc-flip-' + i);
   if (el && el.classList.contains('checked')) return;
   if (el) el.classList.toggle('flipped');
 }
@@ -698,13 +699,13 @@ function goQuizFromFlip() {
 
 
 // ── 빈칸 채우기 퀴즈 ────────────────────────────
-let blank = { words: [], idx: 0, correct: 0, wrong: 0, results: [] };
+var blank = { words: [], idx: 0, correct: 0, wrong: 0, results: [] };
 
 function goBlankQuiz() {
   // 예문 있는 단어만 필터링
-  const src = (window._selectedWords || allWords).slice();
-  const withEx = src.filter(function(w) {
-    const ex = window.EXAMPLES && window.EXAMPLES[w[0].toLowerCase()];
+  var src = (window._selectedWords || allWords).slice();
+  var withEx = src.filter(function(w) {
+    var ex = window.EXAMPLES && window.EXAMPLES[w[0].toLowerCase()];
     return ex && ex.en;
   });
 
@@ -726,22 +727,22 @@ function goBlankQuiz() {
 }
 
 function renderBlank() {
-  const w = blank.words[blank.idx];
-  const total = blank.words.length;
-  const ex = window.EXAMPLES[w[0].toLowerCase()];
+  var w = blank.words[blank.idx];
+  var total = blank.words.length;
+  var ex = window.EXAMPLES[w[0].toLowerCase()];
 
   document.getElementById('blank-prog').textContent = (blank.idx + 1) + ' / ' + total;
   document.getElementById('blank-score').textContent = '✓ ' + blank.correct + '  ✗ ' + blank.wrong;
   document.getElementById('blank-fill').style.width = (blank.idx / total * 100) + '%';
   document.getElementById('blank-hint').textContent = '뜻: ' + w[1];
 
-  const word = w[0];
-  const HOLE = '<span class="blank-hole" style="display:inline-block;min-width:80px;height:1.4em;border-bottom:2px solid var(--gold);background:var(--gold-bg);padding:0 4px;border-radius:3px;color:var(--gold-bg);user-select:none">____</span>';
+  var word = w[0];
+  var HOLE = '<span class="blank-hole" style="display:inline-block;min-width:80px;height:1.4em;border-bottom:2px solid var(--gold);background:var(--gold-bg);padding:0 4px;border-radius:3px;color:var(--gold-bg);user-select:none">____</span>';
 
   // 단어 원형 + 파생형 패턴으로 치환
-  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp('\\b(' + escaped + "(?:s|es|ed|ing|er|ly|tion|ness)?)\\b", 'gi');
-  let blanked = ex.en.replace(regex, HOLE);
+  var escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  var regex = new RegExp('\\b(' + escaped + "(?:s|es|ed|ing|er|ly|tion|ness)?)\\b", 'gi');
+  var blanked = ex.en.replace(regex, HOLE);
 
   // 치환이 안 됐으면 강제로 첫 등장 단어 치환
   if (!blanked.includes('blank-hole')) {
@@ -765,14 +766,14 @@ function renderBlank() {
 }
 
 async function submitBlank() {
-  const inp = document.getElementById('blank-ans').value.trim().toLowerCase();
+  var inp = document.getElementById('blank-ans').value.trim().toLowerCase();
   if (!inp) return;
 
-  const w = blank.words[blank.idx];
-  const correct = w[0].toLowerCase();
-  const isCorrect = inp === correct || inp === correct + 's' || inp === correct + 'd' || inp === correct + 'ed';
+  var w = blank.words[blank.idx];
+  var correct = w[0].toLowerCase();
+  var isCorrect = inp === correct || inp === correct + 's' || inp === correct + 'd' || inp === correct + 'ed';
 
-  const fb = document.getElementById('blank-fb');
+  var fb = document.getElementById('blank-fb');
   fb.style.display = 'block';
   document.getElementById('blank-sub').style.display = 'none';
   document.getElementById('blank-nxt').style.display = 'inline-flex';
@@ -860,7 +861,6 @@ function goReviewMode() {
 
 </script>
 <script src="data/words/examples.js"></script>
-<script src="data/_index.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
 
@@ -869,12 +869,12 @@ function goReviewMode() {
 
 <script>
 // ── URL Params ─────────────────────────────────
-const params = new URLSearchParams(location.search);
-const STU_ID   = params.get('stu')  || 'guest';
-const STU_NAME = params.get('name') || '학생';
+var params = new URLSearchParams(location.search);
+var STU_ID   = params.get('stu')  || 'guest';
+var STU_NAME = params.get('name') || '학생';
 
 // ── 수능 빈출 단어 상위 목록 ──────────────────
-const SUNEUNG_HIGH_FREQ = new Set([
+var SUNEUNG_HIGH_FREQ = new Set([
   'significant','suggest','indicate','consider','develop','provide','research',
   'environment','society','increase','reduce','influence','effect','process',
   'include','require','support','involve','create','achieve','apply','relate',
@@ -903,28 +903,28 @@ const SUNEUNG_HIGH_FREQ = new Set([
 ]);
 
 // ── App State ──────────────────────────────────
-let currentSet = null;   // WORD_CATALOG item
-let currentMode = null;  // 'random'|'week'|'weak'
-let selectedDay = null;  // 'Day 01' etc
-let allWords = [];        // 현재 세트 전체 단어
-let mnemonics = {};       // { word: mnemonic_text }
+var currentSet = null;   // WORD_CATALOG item
+var currentMode = null;  // 'random'|'week'|'weak'
+var selectedDay = null;  // 'Day 01' etc
+var allWords = [];        // 현재 세트 전체 단어
+var mnemonics = {};       // { word: mnemonic_text }
 
-const flash = { words: [], idx: 0 };
-const quiz  = { words: [], idx: 0, correct: 0, wrong: 0, timer: null, elapsed: 0, results: [], combo: 0, maxCombo: 0 };
+var flash = { words: [], idx: 0 };
+var quiz  = { words: [], idx: 0, correct: 0, wrong: 0, timer: null, elapsed: 0, results: [], combo: 0, maxCombo: 0 };
 
 // ── Views ──────────────────────────────────────
-const VIEWS = ['library','set','flash','quiz','result','wrong','flip','blank','choice','speed','calendar','folders','folder-detail'];
+var VIEWS = ['library','set','flash','quiz','result','wrong','flip','blank','choice','speed','calendar','folders','folder-detail'];
 function showView(name) {
   VIEWS.forEach(v => {
-    const el = document.getElementById(`view-${v}`);
+    var el = document.getElementById(`view-${v}`);
     if (el) el.style.display = (v === name) ? 'block' : 'none';
   });
 }
 
 // ── Navigation ─────────────────────────────────
 function goBack() {
-  const visible = VIEWS.find(v => {
-    const el = document.getElementById(`view-${v}`);
+  var visible = VIEWS.find(v => {
+    var el = document.getElementById(`view-${v}`);
     return el && el.style.display !== 'none';
   });
   if (visible === 'library' || !visible) {
@@ -1078,9 +1078,9 @@ async function initLibrary() {
   } catch(e) { window._examRange = null; }
 
   // 학습 기록에서 세트별 고유 단어 집계
-  let studiedBySet = {}; // { setId: Set([word, ...]) }
+  var studiedBySet = {}; // { setId: Set([word, ...]) }
   try {
-    const results = await DB.getResults(STU_ID);
+    var results = await DB.getResults(STU_ID);
     (results || []).forEach(function(r) {
       if (!r.setId) return;
       if (!studiedBySet[r.setId]) studiedBySet[r.setId] = new Set();
@@ -1088,10 +1088,10 @@ async function initLibrary() {
     });
   } catch(e) {}
 
-  const grid = document.getElementById('catalog-grid');
+  var grid = document.getElementById('catalog-grid');
   grid.innerHTML = WORD_CATALOG.map(s => {
-    const studied = studiedBySet[s.id] ? studiedBySet[s.id].size : 0;
-    const badgeHtml = studied > 0
+    var studied = studiedBySet[s.id] ? studiedBySet[s.id].size : 0;
+    var badgeHtml = studied > 0
       ? `<div class="catalog-progress-wrap" id="prog-wrap-${s.id}">
            <div class="catalog-prog-bar" style="background:${s.color}40;border-radius:99px;height:4px;margin-top:6px;overflow:hidden">
              <div id="prog-fill-${s.id}" style="height:100%;background:${s.color};border-radius:99px;width:0%;transition:width .6s"></div>
@@ -1110,23 +1110,23 @@ async function initLibrary() {
   }).join('');
 
   // 각 세트 단어 수 + 완료율 비동기 로드
-  for (const s of WORD_CATALOG) {
+  for (var s of WORD_CATALOG) {
     loadWordCount(s, studiedBySet[s.id] ? studiedBySet[s.id].size : 0);
   }
 }
 
 async function loadWordCount(setInfo, studiedCount) {
-  const el = document.getElementById(`cnt-${setInfo.id}`);
+  var el = document.getElementById(`cnt-${setInfo.id}`);
   try {
-    const data = await loadWordFile(setInfo);
-    const total = data.length;
-    const studied = studiedCount || 0;
+    var data = await loadWordFile(setInfo);
+    var total = data.length;
+    var studied = studiedCount || 0;
     el.textContent = `${total.toLocaleString()} 단어`;
 
     if (studied > 0) {
-      const pct = Math.min(100, Math.round(studied / total * 100));
-      const fill = document.getElementById(`prog-fill-${setInfo.id}`);
-      const pctEl = document.getElementById(`prog-pct-${setInfo.id}`);
+      var pct = Math.min(100, Math.round(studied / total * 100));
+      var fill = document.getElementById(`prog-fill-${setInfo.id}`);
+      var pctEl = document.getElementById(`prog-pct-${setInfo.id}`);
       if (fill) fill.style.width = pct + '%';
       if (pctEl) {
         if (pct >= 100) {
@@ -1149,7 +1149,7 @@ async function loadWordFile(setInfo) {
   // 이미 로드됐으면 window 변수에서 바로
   if (window[setInfo.varName]) return window[setInfo.varName];
   await new Promise((res, rej) => {
-    const sc = document.createElement('script');
+    var sc = document.createElement('script');
     sc.src = `data/words/${setInfo.file}`;
     sc.onload = res; sc.onerror = rej;
     document.head.appendChild(sc);
@@ -1192,10 +1192,10 @@ async function selectSet(setId) {
 }
 
 function buildWeekGrid() {
-  const WORDS_PER_WEEK = 100;
-  const weeks = {};
-  for (let i = 0; i < allWords.length; i++) {
-    const wk = Math.floor(i / WORDS_PER_WEEK) + 1;
+  var WORDS_PER_WEEK = 100;
+  var weeks = {};
+  for (var i = 0; i < allWords.length; i++) {
+    var wk = Math.floor(i / WORDS_PER_WEEK) + 1;
     if (!weeks[wk]) weeks[wk] = { words: [], count: 0 };
     weeks[wk].words.push(allWords[i]);
     weeks[wk].count++;
@@ -1203,14 +1203,14 @@ function buildWeekGrid() {
   window._weekWords = weeks;
   window._weeks = weeks;
 
-  const grid = document.getElementById('week-grid');
-  const examWk = window._examRange && window._examRange.setId === (currentSet && currentSet.id)
+  var grid = document.getElementById('week-grid');
+  var examWk = window._examRange && window._examRange.setId === (currentSet && currentSet.id)
     ? window._examRange.week : null;
 
   grid.innerHTML = Object.entries(weeks).map(([wk, info]) => {
-    const isExam = examWk && parseInt(wk) === parseInt(examWk);
-    const examBadge = isExam ? '<div style="font-size:9px;color:var(--red,#e53935);font-weight:700;margin-top:1px">시험</div>' : '';
-    const examStyle = isExam ? 'border-color:var(--red,#e53935);background:rgba(239,68,68,.06)' : '';
+    var isExam = examWk && parseInt(wk) === parseInt(examWk);
+    var examBadge = isExam ? '<div style="font-size:9px;color:var(--red,#e53935);font-weight:700;margin-top:1px">시험</div>' : '';
+    var examStyle = isExam ? 'border-color:var(--red,#e53935);background:rgba(239,68,68,.06)' : '';
     return `<div class="week-card" onclick="selectWeek(${wk})" id="wk-${wk}" style="${examStyle}">
       <div class="week-card-num">${wk}주차</div>
       <div class="week-card-cnt">${info.count}개</div>
@@ -1306,7 +1306,7 @@ function guessPOS(ko, en) {
 
 // ── Flash Card ─────────────────────────────────
 async function goFlash() {
-  const words = Utils.shuffle([...window._selectedWords]);
+  var words = Utils.shuffle([...window._selectedWords]);
   flash.words = words;
   flash.idx = 0;
   showView('flash');
@@ -1314,7 +1314,7 @@ async function goFlash() {
 }
 
 async function renderFlash() {
-  const w = flash.words[flash.idx];
+  var w = flash.words[flash.idx];
   if (!w) return;
 
   document.getElementById('fc-en').textContent  = w[0];
@@ -1350,19 +1350,19 @@ async function renderFlash() {
   document.getElementById('fc-ko').textContent  = w[1];
   document.getElementById('flash-prog').textContent = `${flash.idx + 1} / ${flash.words.length}`;
 
-  const inner = document.getElementById('fc-inner');
+  var inner = document.getElementById('fc-inner');
   inner.classList.remove('flipped');
 
   // 연상법
-  const mnBox = document.getElementById('fc-mnemonic');
-  const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
+  var mnBox = document.getElementById('fc-mnemonic');
+  var mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
   if (mn) { mnBox.textContent = mn; mnBox.style.display = 'block'; mnBox.style.opacity = '1'; }
   else mnBox.style.display = 'none';
 
   // 예문
-  const exBox = document.getElementById('fc-example');
-  const exKey = w[0].toLowerCase();
-  const ex = window.EXAMPLES && (window.EXAMPLES[exKey] || window.EXAMPLES[exKey.split(' ')[0]]);
+  var exBox = document.getElementById('fc-example');
+  var exKey = w[0].toLowerCase();
+  var ex = window.EXAMPLES && (window.EXAMPLES[exKey] || window.EXAMPLES[exKey.split(' ')[0]]);
   if (ex) {
     document.getElementById('fc-ex-en').textContent = ex.en;
     document.getElementById('fc-ex-ko').textContent = ex.ko;
@@ -1372,9 +1372,9 @@ async function renderFlash() {
   }
 
   // Pollinations 이미지 (단어+뜻 기반으로 개선)
-  const imgWrap = document.getElementById('fc-img-wrap');
+  var imgWrap = document.getElementById('fc-img-wrap');
   imgWrap.innerHTML = `<div class="img-loading">🖼️</div>`;
-  const img = new Image();
+  var img = new Image();
   img.className = 'fc-img';
   img.onload = () => { imgWrap.innerHTML = ''; imgWrap.appendChild(img); };
   img.onerror = () => { imgWrap.innerHTML = '<div style="width:70px;height:70px;border-radius:10px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--txt3);margin-bottom:.5rem">' + w[0][0].toUpperCase() + '</div>'; };
@@ -1382,9 +1382,9 @@ async function renderFlash() {
 
   // 뒷면 높이 고정 (누적 방지: 먼저 리셋 후 계산)
   requestAnimationFrame(() => {
-    const inner = document.getElementById('fc-inner');
-    const front = document.querySelector('.fc-front');
-    const back = document.querySelector('.fc-back');
+    var inner = document.getElementById('fc-inner');
+    var front = document.querySelector('.fc-front');
+    var back = document.querySelector('.fc-back');
     if (!inner || !front || !back) return;
     // 높이 리셋 먼저
     inner.style.minHeight = '';
@@ -1393,9 +1393,9 @@ async function renderFlash() {
     back.style.position = 'absolute';
     back.style.height = 'auto';
     requestAnimationFrame(() => {
-      const backH = back.scrollHeight;
-      const minH = 220;
-      const finalH = Math.max(minH, backH + 8);
+      var backH = back.scrollHeight;
+      var minH = 220;
+      var finalH = Math.max(minH, backH + 8);
       inner.style.minHeight = finalH + 'px';
       front.style.minHeight = finalH + 'px';
       back.style.minHeight = finalH + 'px';
@@ -1417,9 +1417,9 @@ function flashNext() {
 
 // ── Quiz ───────────────────────────────────────
 function showHint() {
-  const w = quiz.words[quiz.idx];
-  const hintEl = document.getElementById('quiz-hint');
-  const hintBtn = document.getElementById('hint-btn');
+  var w = quiz.words[quiz.idx];
+  var hintEl = document.getElementById('quiz-hint');
+  var hintBtn = document.getElementById('hint-btn');
 
   if (hintEl.style.display !== 'none') {
     hintEl.style.display = 'none';
@@ -1428,11 +1428,11 @@ function showHint() {
   }
 
   // 연상법 먼저, 없으면 첫 글자
-  const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
+  var mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
   if (mn && mn !== '') {
     hintEl.textContent = '💭 ' + mn;
   } else {
-    const firstChar = w[1].split(',')[0].trim()[0];
+    var firstChar = w[1].split(',')[0].trim()[0];
     hintEl.textContent = '🔤 첫 글자: "' + firstChar + '"';
   }
   hintEl.style.display = 'block';
@@ -1441,8 +1441,8 @@ function showHint() {
 
 function goQuiz() {
   clearInterval(quiz.timer);
-  const cnt = parseInt(document.getElementById('quiz-count').value) || 20;
-  const words = Utils.shuffle([...window._selectedWords]).slice(0, cnt);
+  var cnt = parseInt(document.getElementById('quiz-count').value) || 20;
+  var words = Utils.shuffle([...window._selectedWords]).slice(0, cnt);
   quiz.words = words;
   quiz.idx = 0; quiz.correct = 0; quiz.wrong = 0;
   quiz.elapsed = 0; quiz.results = []; quiz.combo = 0; quiz.maxCombo = 0; quiz.focusMode = false;
@@ -1472,7 +1472,7 @@ function goQuiz() {
 }
 
 function renderQuiz() {
-  const w = quiz.words[quiz.idx];
+  var w = quiz.words[quiz.idx];
   document.getElementById('quiz-word').textContent = w[0];
   updateBookmarkBtn(w[0]);
 
@@ -1739,16 +1739,16 @@ function startTimer() {
 }
 
 async function submitAns() {
-  const inp = document.getElementById('quiz-ans').value.trim();
+  var inp = document.getElementById('quiz-ans').value.trim();
   if (!inp) return;
-  const w = quiz.words[quiz.idx];
+  var w = quiz.words[quiz.idx];
   // AI 채점 모드 확인
-  const gradeMode = localStorage.getItem('grade_mode') || 'close';
-  let result = Utils.checkAnswer(inp, w[1]);
+  var gradeMode = localStorage.getItem('grade_mode') || 'close';
+  var result = Utils.checkAnswer(inp, w[1]);
   // AI 모드: wrong인데 ai 모드면 API 판정
   if (result === 'wrong' && gradeMode === 'ai') {
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      var res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1757,18 +1757,18 @@ async function submitAns() {
           messages: [{ role: 'user', content: '영어단어: ' + w[0] + '\n정답: ' + w[1] + '\n학생답안: ' + inp + '\n\n같은 의미면 ok, 아니면 no만 답해.' }]
         })
       });
-      const data = await res.json();
-      const reply = (data.content?.[0]?.text || '').toLowerCase();
+      var data = await res.json();
+      var reply = (data.content?.[0]?.text || '').toLowerCase();
       if (reply.includes('ok')) result = 'close';
     } catch(e) {}
   }
 
-  const fb = document.getElementById('quiz-fb');
+  var fb = document.getElementById('quiz-fb');
   fb.style.display = 'block';
   document.getElementById('btn-sub').style.display = 'none';
   document.getElementById('btn-nxt').style.display = 'inline-flex';
 
-  const isCorrect = result !== 'wrong';
+  var isCorrect = result !== 'wrong';
   if (isCorrect) {
     quiz.correct++;
     quiz.combo = (quiz.combo || 0) + 1;
@@ -1819,8 +1819,8 @@ function nextWord() {
 
 async function finishQuiz() {
   clearInterval(quiz.timer);
-  const total = quiz.words.length;
-  const score = Math.round((quiz.correct / total) * 100);
+  var total = quiz.words.length;
+  var score = Math.round((quiz.correct / total) * 100);
 
   // XP/배지 체크
   if (score === 100) giveXP((window.XP_RULES&&window.XP_RULES.quiz_perfect)||150);
@@ -1830,14 +1830,14 @@ async function finishQuiz() {
   // 결과 화면 렌더
   showResult(score, total, true);
 
-  const msgs = score >= 90 ? '🏆 완벽합니다!' : score >= 70 ? '👍 잘했어요!' : score >= 50 ? '💪 더 노력해봐요' : '📚 복습이 필요해요';
+  var msgs = score >= 90 ? '🏆 완벽합니다!' : score >= 70 ? '👍 잘했어요!' : score >= 50 ? '💪 더 노력해봐요' : '📚 복습이 필요해요';
   document.getElementById('res-metrics').innerHTML =
     '<div class="metric"><div class="metric-lbl">총 문제</div><div class="metric-val mv-gold">'+total+'</div></div>' +
     '<div class="metric"><div class="metric-lbl">정답</div><div class="metric-val mv-grn">'+quiz.correct+'</div></div>' +
     '<div class="metric"><div class="metric-lbl">점수</div><div class="metric-val '+(score>=70?'mv-grn':'mv-red')+'">'+score+'%</div></div>';
   document.getElementById('res-msg').textContent = msgs;
 
-  const wrongOnes = quiz.results.filter(function(r){ return !r.correct; });
+  var wrongOnes = quiz.results.filter(function(r){ return !r.correct; });
   if (wrongOnes.length) {
     document.getElementById('res-list').innerHTML =
       '<p class="sec-title" style="margin-bottom:.75rem">틀린 단어 ('+wrongOnes.length+'개)</p>' +
@@ -2104,12 +2104,12 @@ initLibrary();
 
 // 이미지 프리로딩 함수 - 단어장 선택 후 백그라운드에서 실행
 function preloadImages(words) {
-  const sample = words.slice(0, 50); // 처음 50개만
-  let i = 0;
+  var sample = words.slice(0, 50); // 처음 50개만
+  var i = 0;
   function loadNext() {
     if (i >= sample.length) return;
-    const w = sample[i++];
-    const img = new Image();
+    var w = sample[i++];
+    var img = new Image();
     img.src = Utils.pollUrl(w[0], w[1]);
     // 로드 성공/실패 상관없이 200ms 후 다음 로드
     setTimeout(loadNext, 200);
@@ -2210,7 +2210,7 @@ async function selectMode(mode) {
 // ══════════════════════════════════════════════════
 // 4지선다 퀴즈
 // ══════════════════════════════════════════════════
-let choice = { words: [], idx: 0, correct: 0, wrong: 0, combo: 0, maxCombo: 0, results: [] };
+var choice = { words: [], idx: 0, correct: 0, wrong: 0, combo: 0, maxCombo: 0, results: [] };
 
 function goChoiceQuiz() {
   choice.words = Utils.shuffle((window._selectedWords || allWords).slice()).slice(0, 40);
@@ -2220,21 +2220,21 @@ function goChoiceQuiz() {
 }
 
 function renderChoice() {
-  const w = choice.words[choice.idx];
-  const total = choice.words.length;
+  var w = choice.words[choice.idx];
+  var total = choice.words.length;
   document.getElementById('choice-prog').textContent = (choice.idx+1) + ' / ' + total;
   document.getElementById('choice-score').textContent = '✓' + choice.correct + ' ✗' + choice.wrong;
   document.getElementById('choice-fill').style.width = (choice.idx/total*100) + '%';
   document.getElementById('choice-word').textContent = w[0];
   document.getElementById('choice-fb').style.display = 'none';
 
-  const comboEl = document.getElementById('choice-combo');
+  var comboEl = document.getElementById('choice-combo');
   comboEl.textContent = choice.combo >= 3 ? '🔥 ' + choice.combo + ' 연속 정답!' : '';
 
   // pool 부족 방어 + 정답 인덱스 저장
-  const pool = Utils.shuffle(allWords.filter(function(x){ return x[0] !== w[0]; }));
+  var pool = Utils.shuffle(allWords.filter(function(x){ return x[0] !== w[0]; }));
   while (pool.length < 3) pool.push(['?', '알 수 없음']);
-  const options = Utils.shuffle([w, pool[0], pool[1], pool[2]]);
+  var options = Utils.shuffle([w, pool[0], pool[1], pool[2]]);
   choice.currentAnswerIdx = options.findIndex(function(o){ return o[0] === w[0]; });
 
   document.getElementById('choice-options').innerHTML = options.map(function(opt, i) {
@@ -2250,10 +2250,10 @@ function renderChoice() {
 }
 
 function answerChoice(i) {
-  const w = choice.words[choice.idx];
-  const correctIdx = choice.currentAnswerIdx;
-  const isCorrect = i === correctIdx;
-  const btns = document.querySelectorAll('#choice-options button');
+  var w = choice.words[choice.idx];
+  var correctIdx = choice.currentAnswerIdx;
+  var isCorrect = i === correctIdx;
+  var btns = document.querySelectorAll('#choice-options button');
 
   btns.forEach(function(btn, bi) {
     btn.disabled = true;
@@ -2285,7 +2285,7 @@ function answerChoice(i) {
 // ══════════════════════════════════════════════════
 // 속도 인식 모드
 // ══════════════════════════════════════════════════
-let speed = { words: [], idx: 0, know: 0, dontKnow: 0, results: [] };
+var speed = { words: [], idx: 0, know: 0, dontKnow: 0, results: [] };
 
 function goSpeedMode() {
   speed.words = Utils.shuffle((window._selectedWords || allWords).slice()).slice(0, 30);
@@ -2295,8 +2295,8 @@ function goSpeedMode() {
 }
 
 function renderSpeed() {
-  const w = speed.words[speed.idx];
-  const total = speed.words.length;
+  var w = speed.words[speed.idx];
+  var total = speed.words.length;
   document.getElementById('speed-prog').textContent = (speed.idx+1) + ' / ' + total;
   document.getElementById('speed-score').textContent = '✅' + speed.know + ' ❌' + speed.dontKnow;
   document.getElementById('speed-fill').style.width = (speed.idx/total*100) + '%';
@@ -2310,9 +2310,9 @@ function renderSpeed() {
 }
 
 function speedAnswer(know) {
-  const w = speed.words[speed.idx];
-  const mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
-  const meanText = w[1] + (mn ? '\n💡 ' + mn : '');
+  var w = speed.words[speed.idx];
+  var mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
+  var meanText = w[1] + (mn ? '\n💡 ' + mn : '');
 
   // 버튼 숨기기
   document.getElementById('speed-btns').style.display = 'none';
@@ -2338,7 +2338,7 @@ function speedAnswer(know) {
 }
 
 function speedRecheck(wasCorrect) {
-  const w = speed.words[speed.idx];
+  var w = speed.words[speed.idx];
   if (wasCorrect) {
     speed.know++;
     speed.results.push({ word: w[0], ko: w[1], correct: true });
@@ -2353,7 +2353,7 @@ function speedRecheck(wasCorrect) {
 }
 
 async function speedBmCurrent() {
-  const w = speed.words[speed.idx];
+  var w = speed.words[speed.idx];
   try {
     var added = await DB.toggleBookmark(STU_ID, w[0], w[1]);
     if (!window._bookmarks) window._bookmarks = {};
@@ -2392,7 +2392,7 @@ function speedNext() {
 // 결과화면 즉시 재도전
 // ══════════════════════════════════════════════════
 function retryWrong() {
-  const wrongWords = (quiz.results || []).filter(function(r) { return !r.correct; });
+  var wrongWords = (quiz.results || []).filter(function(r) { return !r.correct; });
   if (!wrongWords.length) { alert('틀린 단어가 없습니다!'); return; }
   window._selectedWords = wrongWords.map(function(r) { return [r.word, r.ko]; });
   currentMode = 'quiz';
@@ -2402,7 +2402,7 @@ function retryWrong() {
 // ══════════════════════════════════════════════════
 // 레벨 시스템
 // ══════════════════════════════════════════════════
-const LEVELS = [
+var LEVELS = [
   { name: '새싹', badge: '🌱', min: 0,    max: 50,   desc: '이제 막 시작했어요!' },
   { name: '새내기', badge: '📗', min: 50,   max: 150,  desc: '조금씩 익숙해지고 있어요' },
   { name: '성장중', badge: '🌿', min: 150,  max: 350,  desc: '실력이 쑥쑥 늘고 있어요!' },
@@ -2412,7 +2412,7 @@ const LEVELS = [
   { name: '전설',   badge: '💎', min: 2000, max: 9999, desc: '수능 어휘 완성!' },
 ];
 
-const STAMPS = [
+var STAMPS = [
   { id: 'first_quiz',   name: '첫 시험',     icon: '🎯', desc: '첫 번째 퀴즈 완료' },
   { id: 'perfect',      name: '만점!',        icon: '💯', desc: '100점 달성' },
   { id: 'streak3',      name: '3일 연속',     icon: '🔥', desc: '3일 연속 학습' },
@@ -2475,9 +2475,9 @@ async function loadLevelData() {
 // ══════════════════════════════════════════════════
 // 출석 달력
 // ══════════════════════════════════════════════════
-let calYear = new Date().getFullYear();
-let calMonthIdx = new Date().getMonth();
-let calActivity = {}; // 'YYYY-MM-DD' → ['quiz','flash','listening']
+var calYear = new Date().getFullYear();
+var calMonthIdx = new Date().getMonth();
+var calActivity = {}; // 'YYYY-MM-DD' → ['quiz','flash','listening']
 
 // ── 즐겨찾기 폴더 ─────────────────────────────
 var currentFolderId = null;
@@ -2682,21 +2682,21 @@ function calMonth(dir) {
 }
 
 function renderCal() {
-  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  var months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   document.getElementById('cal-title').textContent = calYear + '년 ' + months[calMonthIdx];
 
-  const firstDay = new Date(calYear, calMonthIdx, 1).getDay();
-  const lastDate = new Date(calYear, calMonthIdx+1, 0).getDate();
-  const today = new Date().toISOString().slice(0,10);
+  var firstDay = new Date(calYear, calMonthIdx, 1).getDay();
+  var lastDate = new Date(calYear, calMonthIdx+1, 0).getDate();
+  var today = new Date().toISOString().slice(0,10);
 
-  let html = '';
-  for (let i = 0; i < firstDay; i++) html += '<div></div>';
-  for (let d = 1; d <= lastDate; d++) {
-    const dateStr = calYear + '-' + String(calMonthIdx+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    const acts = calActivity[dateStr];
-    const isToday = dateStr === today;
+  var html = '';
+  for (var i = 0; i < firstDay; i++) html += '<div></div>';
+  for (var d = 1; d <= lastDate; d++) {
+    var dateStr = calYear + '-' + String(calMonthIdx+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var acts = calActivity[dateStr];
+    var isToday = dateStr === today;
 
-    let dot = '';
+    var dot = '';
     if (acts) {
       if (acts.has('quiz') || acts.has('blank') || acts.has('choice') || acts.has('speed')) dot += '🟡';
       if (acts.has('listening')) dot += '🔵';
@@ -2751,7 +2751,7 @@ function renderResultDetail(score, total) {
 // ══════════════════════════════════════════════════
 // 북마크 시스템
 // ══════════════════════════════════════════════════
-let bookmarks = {}; // { word: { word, ko, addedAt } }
+var bookmarks = {}; // { word: { word, ko, addedAt } }
 
 async function loadBookmarks() {
   try {
