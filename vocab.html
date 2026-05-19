@@ -553,7 +553,16 @@
 <script src="data/words/mnemonics.js"></script>
 <script src="data/words/word-grades.js"></script>
 <script src="data/words/badge_data.js"></script>
+<!-- merged into main script -->
+<script src="data/words/examples.js"></script>
+<script src="shared/utils.js"></script>
+<script src="shared/db.js"></script>
+
+<!-- 단어 데이터 파일들 (선택된 것만 로드) -->
+<script id="word-data-script"></script>
+
 <script>
+
 // ── 카드 플립 연습 모드 ─────────────────────────
 var FLIP_SET_SIZE = 20;  // 세트당 20개
 var FLIP_SETS = 5;       // 5세트
@@ -859,15 +868,8 @@ function goReviewMode() {
   goQuiz();
 }
 
-</script>
-<script src="data/words/examples.js"></script>
-<script src="shared/utils.js"></script>
-<script src="shared/db.js"></script>
 
-<!-- 단어 데이터 파일들 (선택된 것만 로드) -->
-<script id="word-data-script"></script>
 
-<script>
 // ── URL Params ─────────────────────────────────
 var params = new URLSearchParams(location.search);
 var STU_ID   = params.get('stu')  || 'guest';
@@ -2865,6 +2867,7 @@ function showToast(msg) {
 }
 
 // selectSet 완료 시 북마크 로드
+
 </script>
 </body>
 </html>
