@@ -235,4 +235,77 @@ const DB = {
     const key = btoa(word).replace(/=/g,'');
     await set(ref(db, `folders/${stuId}/${folderId}/words/${key}`), null);
   }
+,
+
+  // ── XP / 레벨 ──────────────────────────────────
+  async getProfile(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `profiles/${stuId}`));
+    return snap.exists() ? snap.val() : {
+      xp:0, level:1, totalDays:0,
+      animal:'🐱', borderType:'default',
+      selectedTitle:'', customPhotoUrl:''
+    };
+  },
+
+  async addXP(stuId, amount) {
+    const { db, ref, get, update } = await initDB();
+    const snap = await get(ref(db, `profiles/${stuId}`));
+    const prof = snap.exists() ? snap.val() : { xp:0, level:1 };
+    const newXP = (prof.xp || 0) + amount;
+    const LEVELS = [0,600,1800,4000,8000,14000,22000,32000,45000,65000];
+    let newLv = 1;
+    for (let i = LEVELS.length-1; i >= 0; i--) {
+      if (newXP >= LEVELS[i]) { newLv = i+1; break; }
+    }
+    const leveled = newLv > (prof.level || 1);
+    await update(ref(db, `profiles/${stuId}`), { xp: newXP, level: newLv });
+    return { xp: newXP, level: newLv, leveled, prevLevel: prof.level || 1 };
+  },
+
+  async saveProfile(stuId, data) {
+    const { db, ref, update } = await initDB();
+    await update(ref(db, `profiles/${stuId}`), data);
+  },
+
+  async getBadges(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `badges/${stuId}`));
+    return snap.exists() ? snap.val() : {};
+  },
+
+  async awardBadge(stuId, badgeId) {
+    const { db, ref, get, update } = await initDB();
+    const path = `badges/${stuId}/${badgeId}`;
+    const snap = await get(ref(db, path));
+    if (snap.exists()) return false;
+    await update(ref(db, path), { earnedAt: Date.now() });
+    return true;
+  },
+
+  async getBadgeProgress(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `badge_progress/${stuId}`));
+    return snap.exists() ? snap.val() : {};
+  },
+
+  async updateBadgeProgress(stuId, updates) {
+    const { db, ref, update } = await initDB();
+    await update(ref(db, `badge_progress/${stuId}`), updates);
+  },
+
+  async getProfileStats(stuId) {
+    const { db, ref, get } = await initDB();
+    const [profSnap, badgeSnap, progressSnap] = await Promise.all([
+      get(ref(db, `profiles/${stuId}`)),
+      get(ref(db, `badges/${stuId}`)),
+      get(ref(db, `badge_progress/${stuId}`)),
+    ]);
+    return {
+      profile:  profSnap.exists()    ? profSnap.val()    : {},
+      badges:   badgeSnap.exists()   ? badgeSnap.val()   : {},
+      progress: progressSnap.exists()? progressSnap.val(): {},
+    };
+  }
+
 };
