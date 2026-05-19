@@ -463,22 +463,41 @@ function updateExamWeekOptions(selectedWeek) {
   var setId = document.getElementById('exam-set-select').value;
   var weekSelect = document.getElementById('exam-week-select');
   weekSelect.innerHTML = '<option value="">-- 주차 선택 --</option>';
-  var _WC = (typeof WORD_CATALOG!=='undefined'?WORD_CATALOG:null)||window.WORD_CATALOG; if (!setId || !_WC) return;
+  var _WC = (typeof WORD_CATALOG!=='undefined'?WORD_CATALOG:null)||window.WORD_CATALOG;
+  if (!setId || !_WC) return;
   var setInfo = _WC.find(function(s){ return s.id === setId; });
   if (!setInfo) return;
 
-  // 실제 단어 수 기반 주차 계산
-  // window[varName]이 이미 로드됐으면 실제 길이 사용, 아니면 20주차 기본값
+  // 단어 파일이 이미 로드된 경우 실제 수 사용, 아니면 동적 로드
   var actualWords = window[setInfo.varName];
-  var totalWords = (actualWords && actualWords.length) ? actualWords.length : (setInfo.totalWords || 0);
-  var totalWeeks = totalWords ? Math.ceil(totalWords / 100) : 20;
+  if (actualWords && actualWords.length) {
+    _fillWeekOptions(weekSelect, actualWords.length, selectedWeek);
+  } else {
+    // 단어 파일 동적 로드
+    weekSelect.innerHTML = '<option value="">로드 중...</option>';
+    var sc = document.createElement('script');
+    sc.src = 'data/words/' + setInfo.file;
+    sc.onload = function() {
+      var words = window[setInfo.varName];
+      _fillWeekOptions(weekSelect, words ? words.length : 0, selectedWeek);
+    };
+    sc.onerror = function() {
+      weekSelect.innerHTML = '<option value="">로드 실패</option>';
+    };
+    document.head.appendChild(sc);
+  }
+}
 
+function _fillWeekOptions(weekSelect, totalWords, selectedWeek) {
+  weekSelect.innerHTML = '<option value="">-- 주차 선택 --</option>';
+  if (!totalWords) return;
+  var totalWeeks = Math.ceil(totalWords / 100);
   for (var i = 1; i <= totalWeeks; i++) {
     var start = (i-1)*100+1;
-    var end = Math.min(i*100, totalWords || i*100);
+    var end = Math.min(i*100, totalWords);
     var opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = i + '주차 (' + start + '~' + end + '번)';
+    opt.textContent = i + '주차 (' + start + '~' + end + '번, ' + (end-start+1) + '개)';
     weekSelect.appendChild(opt);
   }
   if (selectedWeek) weekSelect.value = selectedWeek;
