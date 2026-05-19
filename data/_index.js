@@ -1,6 +1,6 @@
 // ── 단어 세트 카탈로그 ──────────────────────────
 // 새 단어장 추가 시 여기에만 항목 추가하면 됨
-window.WORD_CATALOG = [
+var WORD_CATALOG = window.WORD_CATALOG = [
   {
     id:       'personal',
     name:     '전체본',
@@ -61,6 +61,18 @@ window.WORD_CATALOG = [
     tagColor: '#FBBF24',
     desc:     '수능 빈출 2000 완전정복',
   },
+  {
+    id:       'phrases',
+    name:     '핵심 구동사/숙어',
+    subname:  '수험생 필수 표현',
+    icon:     '🔗',
+    file:     'phrases.js',
+    varName:  'PHRASES',
+    color:    '#A78BFA',
+    tag:      'PHRASES',
+    tagColor: '#A78BFA',
+    desc:     '전치사구·구동사·관용표현 382개',
+  },
   // ── 여기에 새 단어장 추가 ──
   // {
   //   id: 'wm-xxx', name: '워드마스터 XXX', subname: 'Word Master',
@@ -71,7 +83,7 @@ window.WORD_CATALOG = [
 
 // ── 리스닝 세트 카탈로그 ─────────────────────────
 // 새 회차 추가 시 여기에만 항목 추가
-window.LISTENING_CATALOG = [
+var LISTENING_CATALOG = window.LISTENING_CATALOG = [
   {
     id:       '2026-suneung',
     name:     '2026학년도 수능',
