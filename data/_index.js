@@ -61,6 +61,18 @@ const WORD_CATALOG = [
     tagColor: '#FBBF24',
     desc:     '수능 빈출 2000 완전정복',
   },
+  {
+    id:       'phrases',
+    name:     '핵심 구동사/숙어',
+    subname:  '수험생 필수 표현',
+    icon:     '🔗',
+    file:     'phrases.js',
+    varName:  'PHRASES',
+    color:    '#A78BFA',
+    tag:      'PHRASES',
+    tagColor: '#A78BFA',
+    desc:     '전치사구·구동사·관용표현 382개',
+  },
   // ── 여기에 새 단어장 추가 ──
   // {
   //   id: 'wm-xxx', name: '워드마스터 XXX', subname: 'Word Master',
