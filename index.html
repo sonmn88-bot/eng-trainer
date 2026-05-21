@@ -211,6 +211,15 @@
       <p style="text-align:center;margin-top:1rem">
         <button class="btn btn-ghost btn-sm" onclick="goTeacher()">선생님 모드</button>
       </p>
+      <div style="margin-top:1.25rem;padding:.875rem;background:var(--sur2);border-radius:var(--rs);text-align:center">
+        <div style="font-size:12px;font-weight:600;color:var(--txt);margin-bottom:.375rem">📱 앱으로 설치하기</div>
+        <div style="font-size:11px;color:var(--txt3);line-height:1.6;margin-bottom:.625rem">홈 화면에 추가하면 앱처럼 사용할 수 있어요</div>
+        <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="showInstallGuide('ios')" style="font-size:11px">🍎 아이폰 설치법</button>
+          <button class="btn btn-ghost btn-sm" onclick="showInstallGuide('android')" style="font-size:11px">🤖 안드로이드 설치법</button>
+        </div>
+        <div id="install-guide" style="display:none;margin-top:.625rem;font-size:11px;color:var(--txt2);line-height:1.8;text-align:left;background:var(--sur);border-radius:var(--rs);padding:.625rem .75rem"></div>
+      </div>
     </div>
   </div>
 
@@ -540,6 +549,49 @@
       <button onclick="document.getElementById('help-popup').style.display='none'" style="background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer;padding:0">×</button>
     </div>
     <div id="help-content" style="padding:1rem 1.25rem 1.5rem"></div>
+  </div>
+</div>
+
+<!-- ── STATUS 창 ── -->
+<div id="status-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10010;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto">
+  <div style="background:var(--sur);border-radius:20px;width:100%;max-width:480px;margin:auto;overflow:hidden">
+    <!-- 헤더 -->
+    <div style="background:linear-gradient(135deg,rgba(201,169,97,.15),rgba(201,169,97,.05));padding:1.25rem 1.25rem .875rem;border-bottom:1px solid var(--bdr);position:relative">
+      <button onclick="document.getElementById('status-popup').style.display='none'" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="status-avatar" style="width:56px;height:56px;border-radius:50%;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--gold-bdr)">🐱</div>
+        <div>
+          <div id="status-name" style="font-size:17px;font-weight:800;color:var(--txt)"></div>
+          <div id="status-title" style="font-size:12px;color:var(--gold);margin-top:1px"></div>
+          <div id="status-level" style="font-size:11px;color:var(--txt3);margin-top:1px"></div>
+        </div>
+      </div>
+      <!-- XP 바 -->
+      <div style="margin-top:.875rem">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);margin-bottom:3px">
+          <span id="status-xp-label"></span>
+          <span id="status-xp-next"></span>
+        </div>
+        <div style="height:6px;background:var(--sur2);border-radius:3px;overflow:hidden">
+          <div id="status-xp-bar" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;width:0%;transition:width .8s"></div>
+        </div>
+      </div>
+      <!-- 핵심 스탯 -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:.875rem" id="status-stats"></div>
+    </div>
+
+    <!-- 탭 -->
+    <div style="display:flex;border-bottom:1px solid var(--bdr);overflow-x:auto">
+      <button class="status-tab active" data-tab="badges" onclick="switchStatusTab('badges')" style="flex:1;padding:10px 4px;background:none;border:none;font-size:11px;font-weight:600;color:var(--gold);cursor:pointer;border-bottom:2px solid var(--gold);white-space:nowrap;min-width:60px">🏆 배지</button>
+      <button class="status-tab" data-tab="titles" onclick="switchStatusTab('titles')" style="flex:1;padding:10px 4px;background:none;border:none;font-size:11px;font-weight:600;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:60px">🎖 칭호</button>
+      <button class="status-tab" data-tab="items" onclick="switchStatusTab('items')" style="flex:1;padding:10px 4px;background:none;border:none;font-size:11px;font-weight:600;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:60px">🎒 아이템</button>
+      <button class="status-tab" data-tab="analysis" onclick="switchStatusTab('analysis')" style="flex:1;padding:10px 4px;background:none;border:none;font-size:11px;font-weight:600;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:60px">📊 분석</button>
+    </div>
+
+    <!-- 탭 내용 -->
+    <div id="status-tab-content" style="padding:1rem;max-height:55vh;overflow-y:auto">
+      <div style="text-align:center;padding:2rem;color:var(--txt3)">불러오는 중...</div>
+    </div>
   </div>
 </div>
 <!-- D-100 특별 팝업 -->
@@ -1254,10 +1306,16 @@ function renderProfileCard(stuName) {
   }
   var avatarEl = document.getElementById('profile-avatar-img');
   if (avatarEl) avatarEl.textContent = prof.animal||'🐱';
-  // 아바타 배경 색상 적용
-  if (prof.avatarColor) {
-    var avatarRingEl = document.getElementById('profile-avatar-ring');
-    if (avatarRingEl) avatarRingEl.style.background = prof.avatarColor + '33';
+  // 아바타 배경 색상/이미지 적용
+  var avatarRingEl = document.getElementById('profile-avatar-ring');
+  if (avatarRingEl) {
+    if (prof.avatarBg) {
+      // 상점에서 구매한 배경 (색상 코드)
+      avatarRingEl.style.background = prof.avatarBg + '55';
+    } else if (prof.avatarColor) {
+      // 색상 선택기로 선택한 색상
+      avatarRingEl.style.background = prof.avatarColor + '33';
+    }
   }
   renderAvatarRing(document.getElementById('profile-avatar-ring'), lvDef.border);
   renderCardBorder(document.getElementById('profile-card-border'), lvDef.border);
@@ -1280,7 +1338,18 @@ function renderProfileCard(stuName) {
   var bcEl = document.getElementById('profile-badge-count');
   if (bcEl) bcEl.textContent='🏆 '+Object.keys(_badgesCache).length+'/40';
   renderProfileBadges();
-  document.getElementById('profile-card').style.display='block';
+  var _pc = document.getElementById('profile-card');
+  if (_pc) {
+    _pc.style.display='block';
+    if (!_pc.dataset.statusBound) {
+      _pc.dataset.statusBound='1';
+      _pc.style.cursor='pointer';
+      _pc.title='탭하면 STATUS 창이 열려요';
+      _pc.addEventListener('click', function(e){
+        if (!e.target.closest('button') && !e.target.closest('select')) openStatus();
+      });
+    }
+  }
 }
 
 function getBorderColor(t) {
@@ -2073,12 +2142,12 @@ function renderShopGrid(currentXP, owned) {
       statusBtn = '<button data-iid="' + item.id + '" onclick="buyShopItem(this.dataset.iid)" style="width:100%;padding:5px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;margin-top:2px">잠금 해제</button>';
     }
 
-    return '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:12px;padding:.75rem;position:relative;' + (isOwned?'box-shadow:0 0 8px rgba(201,169,97,.15)':'') + '">' +
+    return '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:12px;padding:.625rem .5rem;position:relative;' + (isOwned?'box-shadow:0 0 8px rgba(201,169,97,.15)':'') + '">' +
       '<div style="position:absolute;top:6px;right:6px;font-size:9px;font-weight:700;color:' + rc + ';letter-spacing:.04em">' + rl.toUpperCase() + '</div>' +
-      '<div style="font-size:28px;text-align:center;margin-bottom:4px;' + (!isUnlocked&&!isOwned?'filter:grayscale(1);opacity:.4':'') + '">' + item.icon + '</div>' +
+      '<div style="font-size:24px;text-align:center;margin-bottom:2px;' + (!isUnlocked&&!isOwned?'filter:grayscale(1);opacity:.4':'') + '">' + item.icon + '</div>' +
       '<div style="font-size:11px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:2px">' + item.name + '</div>' +
       '<div style="font-size:9px;color:var(--txt3);text-align:center;margin-bottom:4px;line-height:1.4">' + item.desc + '</div>' +
-      '<div style="font-size:10px;color:' + rc + ';text-align:center;margin-bottom:4px;font-weight:600">' + item.unlockXP.toLocaleString() + ' XP</div>' +
+      '<div style="font-size:9px;color:' + rc + ';text-align:center;margin-bottom:3px;font-weight:600">' + item.unlockXP.toLocaleString() + ' XP</div>' +
       statusBtn +
     '</div>';
   }).join('');
@@ -2128,10 +2197,11 @@ function applyShopItem(item) {
   } else if (item.type === 'shield') {
     sessionStorage.setItem('combo_shield', '1');
   } else if (item.type === 'bg') {
-    localStorage.setItem('avatar_bg_' + (state.stuId||''), item.value);
+    // DB에 저장
+    DB.saveProfile(state.stuId, { avatarBg: item.value }).catch(function(){});
     // 즉시 프로필 아바타 배경 적용
-    var ring = document.getElementById('profile-avatar-ring');
-    if (ring) ring.style.background = item.value;
+    var avatarRingEl2 = document.getElementById('profile-avatar-ring');
+    if (avatarRingEl2) avatarRingEl2.style.background = item.value + '44';
   } else if (item.type === 'fun') {
     localStorage.setItem('fun_' + item.value, '1');
     if (item.value === 'sound') localStorage.setItem('sfx_enabled', '1');
@@ -2265,6 +2335,355 @@ function showHelp(context) {
     '</div>';
   }).join('');
   document.getElementById('help-popup').style.display = 'flex';
+}
+
+
+function showInstallGuide(platform) {
+  var el = document.getElementById('install-guide');
+  if (!el) return;
+  if (el.style.display !== 'none' && el.dataset.platform === platform) {
+    el.style.display = 'none'; return;
+  }
+  el.dataset.platform = platform;
+  if (platform === 'ios') {
+    el.innerHTML =
+      '<b style="color:var(--gold)">🍎 아이폰/아이패드 설치 방법</b><br>' +
+      '1️⃣ 사파리(Safari) 브라우저로 접속<br>' +
+      '2️⃣ 하단 가운데 <b>공유 버튼(□↑)</b> 탭<br>' +
+      '3️⃣ 스크롤해서 <b>"홈 화면에 추가"</b> 선택<br>' +
+      '4️⃣ 오른쪽 위 <b>"추가"</b> 탭<br>' +
+      '✅ 홈 화면에 앱 아이콘이 생겨요!';
+  } else {
+    el.innerHTML =
+      '<b style="color:var(--gold)">🤖 안드로이드 설치 방법</b><br>' +
+      '1️⃣ 크롬(Chrome) 브라우저로 접속<br>' +
+      '2️⃣ 주소창 옆 <b>⋮ 메뉴</b> 탭<br>' +
+      '3️⃣ <b>"홈 화면에 추가"</b> 또는 <b>"앱 설치"</b> 선택<br>' +
+      '4️⃣ <b>"추가"</b> 또는 <b>"설치"</b> 탭<br>' +
+      '✅ 홈 화면에 앱 아이콘이 생겨요!';
+  }
+  el.style.display = 'block';
+}
+
+
+// ── STATUS 창 ───────────────────────────────────
+var _statusTab = 'badges';
+var _statusData = null;
+
+async function openStatus() {
+  var popup = document.getElementById('status-popup');
+  if (popup) popup.style.display = 'flex';
+  await loadStatusData();
+}
+
+async function loadStatusData() {
+  if (!state.stuId) return;
+  try {
+    var prof    = await DB.getProfile(state.stuId);
+    var results = window._cachedResults || await DB.getResults(state.stuId);
+    var weak    = window._cachedWeakWords || await DB.getWeakWords(state.stuId);
+    var allWeak = await DB.getAllWeakWords(state.stuId);
+    var badges  = await DB.getBadges(state.stuId);
+    _statusData = { prof, results, weak, allWeak, badges };
+    renderStatusHeader(prof, results, weak);
+    switchStatusTab(_statusTab);
+  } catch(e) { console.warn('status error', e); }
+}
+
+function renderStatusHeader(prof, results, weak) {
+  var lv   = (prof && prof.level) || 1;
+  var xp   = (prof && prof.xp) || 0;
+  var defs = window.LEVEL_DEFS || [];
+  var lvDef  = defs.find(function(l){return l.lv===lv;}) || {name:'새싹',xp:0};
+  var nextDef= defs.find(function(l){return l.lv===lv+1;});
+  var xpThis = lvDef.xp||0;
+  var xpNext = nextDef ? nextDef.xp : xpThis+1;
+  var pct = Math.min(100, Math.round((xp-xpThis)/(xpNext-xpThis)*100));
+
+  document.getElementById('status-avatar').textContent = prof && prof.animal || '🐱';
+  document.getElementById('status-name').textContent = state.stuName || '';
+  document.getElementById('status-title').textContent = (prof && prof.selectedTitle) || lvDef.icon+' '+lvDef.name;
+  document.getElementById('status-level').textContent = 'Lv.' + lv + ' · ' + lvDef.name;
+  document.getElementById('status-xp-label').textContent = 'XP ' + xp.toLocaleString();
+  document.getElementById('status-xp-next').textContent = nextDef ? '다음 레벨까지 ' + (xpNext-xp).toLocaleString() + ' XP' : '최고 레벨!';
+  setTimeout(function(){ var b=document.getElementById('status-xp-bar'); if(b) b.style.width=pct+'%'; }, 100);
+
+  var avg = results && results.length ? Math.round(results.reduce(function(s,r){return s+(r.score||0);},0)/results.length) : 0;
+  var graduated = (window._statusData && window._statusData.allWeak || []).filter(function(w){return (w.streak||0)>=5;}).length;
+  document.getElementById('status-stats').innerHTML = [
+    { label:'퀴즈', val:results ? results.length : 0, color:'var(--gold)' },
+    { label:'평균', val:avg+'%', color:avg>=70?'var(--grn,#4ade80)':'var(--red,#f87171)' },
+    { label:'졸업', val:graduated, color:'var(--grn,#4ade80)' },
+    { label:'취약', val:weak ? weak.length : 0, color:'var(--red,#f87171)' },
+  ].map(function(s) {
+    return '<div style="background:var(--sur2);border-radius:8px;padding:.5rem;text-align:center">' +
+      '<div style="font-size:16px;font-weight:800;color:' + s.color + '">' + s.val + '</div>' +
+      '<div style="font-size:9px;color:var(--txt3);margin-top:1px;text-transform:uppercase;letter-spacing:.06em">' + s.label + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function switchStatusTab(tab) {
+  _statusTab = tab;
+  // 탭 버튼 스타일
+  document.querySelectorAll('.status-tab').forEach(function(btn) {
+    var isActive = btn.dataset.tab === tab;
+    btn.style.color = isActive ? 'var(--gold)' : 'var(--txt3)';
+    btn.style.borderBottom = isActive ? '2px solid var(--gold)' : '2px solid transparent';
+  });
+  if (!_statusData) return;
+  var el = document.getElementById('status-tab-content');
+  if (!el) return;
+
+  if (tab === 'badges')   el.innerHTML = renderBadgesTab();
+  if (tab === 'titles')   el.innerHTML = renderTitlesTab();
+  if (tab === 'items')    el.innerHTML = renderItemsTab();
+  if (tab === 'analysis') el.innerHTML = renderAnalysisTab();
+}
+
+function renderBadgesTab() {
+  var badges = _statusData.badges || {};
+  var defs = window.BADGE_DEFS || [];
+  var cats = [
+    { key:'study',    label:'📚 학습량' },
+    { key:'accuracy', label:'🎯 정확도' },
+    { key:'attend',   label:'🔥 출석' },
+    { key:'weak',     label:'⚡ 취약단어' },
+    { key:'skill',    label:'🎮 스킬' },
+    { key:'special',  label:'⭐ 특별' },
+  ];
+  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'#C9A961', hidden:'#6B7280' };
+
+  return cats.map(function(cat) {
+    var catBadges = defs.filter(function(b){ return b.cat === cat.key; });
+    var earned = catBadges.filter(function(b){ return badges[b.id]; }).length;
+    return '<div style="margin-bottom:1.25rem">' +
+      '<div style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:.5rem;display:flex;justify-content:space-between">' +
+        cat.label +
+        '<span style="font-size:10px;color:var(--txt3)">' + earned + '/' + catBadges.length + '</span>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">' +
+        catBadges.map(function(b) {
+          var isEarned = !!badges[b.id];
+          var gc = gradeColors[b.grade] || '#6B7280';
+          var isHidden = b.grade === 'hidden' && !isEarned;
+          var hint = b.hint ? '힌트: ' + b.hint : '';
+          return '<div title="' + (isHidden ? '??? ' + hint : b.name + ': ' + b.desc) + '" ' +
+            'style="aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;' +
+            'background:' + (isEarned ? gc+'22' : 'var(--sur2)') + ';' +
+            'border:1px solid ' + (isEarned ? gc+'55' : 'var(--bdr)') + ';' +
+            (isEarned ? 'box-shadow:0 0 8px '+gc+'33;' : '') +
+            'cursor:pointer;transition:all .15s;padding:4px" ' +
+            'onclick="showBadgeDetail(\'' + b.id + '\')">' +
+            '<span style="font-size:' + (isHidden?'20':'22') + 'px;' + (!isEarned?'filter:grayscale(1);opacity:.3':'') + '">' + (isHidden?'❓':b.icon) + '</span>' +
+            '<span style="font-size:8px;color:' + (isEarned?gc:'var(--txt3)') + ';text-align:center;line-height:1.2;font-weight:' + (isEarned?'700':'400') + '">' + (isHidden?'???':b.name) + '</span>' +
+          '</div>';
+        }).join('') +
+      '</div></div>';
+  }).join('');
+}
+
+function showBadgeDetail(badgeId) {
+  var b = (window.BADGE_DEFS||[]).find(function(d){return d.id===badgeId;});
+  if (!b) return;
+  var badges = (_statusData && _statusData.badges) || {};
+  var isEarned = !!badges[b.id];
+  var isHidden = b.grade === 'hidden';
+  var titleReward = window.BADGE_TITLES && window.BADGE_TITLES[b.id];
+  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'#C9A961', hidden:'#6B7280' };
+  var gc = gradeColors[b.grade] || '#6B7280';
+
+  var msg = b.icon + ' ' + b.name + '\n\n';
+  msg += (isHidden && !isEarned) ? '🔒 히든 배지\n힌트: ' + (b.hint||'???') : b.desc;
+  if (titleReward && isEarned) msg += '\n\n🎖 획득 칭호: ' + titleReward.title;
+  if (titleReward && !isEarned) msg += '\n\n🎖 달성 시 칭호 획득!';
+  if (isEarned && badges[b.id] && badges[b.id].earnedAt) {
+    msg += '\n\n✅ 획득일: ' + new Date(badges[b.id].earnedAt).toLocaleDateString('ko');
+  }
+  alert(msg);
+}
+
+function renderTitlesTab() {
+  var badges = _statusData.badges || {};
+  var prof = _statusData.prof || {};
+  var owned = getOwnedItems();
+  var currentTitle = prof.selectedTitle || '';
+
+  // 배지로 획득한 칭호
+  var badgeTitles = [];
+  var BT = window.BADGE_TITLES || {};
+  Object.keys(BT).forEach(function(badgeId) {
+    var earned = !!badges[badgeId];
+    badgeTitles.push({ ...BT[badgeId], earned, source: 'badge', badgeId });
+  });
+
+  // 상점에서 잠금해제한 칭호
+  var shopTitles = (window.SHOP_ITEMS || []).filter(function(i){
+    return i.type === 'title' && owned[i.id];
+  });
+
+  var html = '<div style="margin-bottom:1rem">';
+  html += '<div style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:.625rem">🏅 배지 퀘스트 칭호 <span style="font-size:10px;color:var(--txt3)">(' + badgeTitles.filter(function(t){return t.earned;}).length + '/' + badgeTitles.length + ')</span></div>';
+
+  html += badgeTitles.map(function(t) {
+    var isActive = currentTitle === t.title;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:.625rem .75rem;border-radius:10px;margin-bottom:4px;' +
+      'background:' + (t.earned ? (isActive?'var(--gold-bg)':'var(--sur2)') : 'var(--sur2)') + ';' +
+      'border:1px solid ' + (isActive?'var(--gold-bdr)':'var(--bdr)') + ';' +
+      'opacity:' + (t.earned?'1':'.5') + '">' +
+      '<span style="font-size:20px">' + t.title.split(' ')[0] + '</span>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:600;color:' + (t.earned?'var(--txt)':'var(--txt3)') + '">' + t.title + '</div>' +
+        '<div style="font-size:10px;color:var(--txt3)">' + (t.earned ? t.desc : '🔒 배지 미획득') + '</div>' +
+      '</div>' +
+      (t.earned ? '<button onclick="setTitle(\'' + t.title.replace(/'/g,"\'") + '\')" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--bdr);background:' + (isActive?'var(--gold)':'var(--sur3)') + ';color:' + (isActive?'#111':'var(--txt)') + ';cursor:pointer;font-weight:600">' + (isActive?'착용중':'착용') + '</button>' : '') +
+    '</div>';
+  }).join('');
+
+  if (shopTitles.length) {
+    html += '<div style="font-size:12px;font-weight:700;color:var(--txt);margin:.875rem 0 .625rem">🛒 상점 칭호</div>';
+    html += shopTitles.map(function(item) {
+      var isActive = currentTitle === item.value;
+      return '<div style="display:flex;align-items:center;gap:10px;padding:.625rem .75rem;border-radius:10px;margin-bottom:4px;background:' + (isActive?'var(--gold-bg)':'var(--sur2)') + ';border:1px solid ' + (isActive?'var(--gold-bdr)':'var(--bdr)') + '">' +
+        '<span style="font-size:20px">' + item.icon + '</span>' +
+        '<div style="flex:1"><div style="font-size:13px;font-weight:600">' + item.value + '</div>' +
+        '<div style="font-size:10px;color:var(--txt3)">' + item.desc + '</div></div>' +
+        '<button onclick="setTitle(\'' + item.value.replace(/'/g,"\'") + '\')" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--bdr);background:' + (isActive?'var(--gold)':'var(--sur3)') + ';color:' + (isActive?'#111':'var(--txt)') + ';cursor:pointer;font-weight:600">' + (isActive?'착용중':'착용') + '</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  html += '</div>';
+  return html;
+}
+
+async function setTitle(title) {
+  try {
+    await DB.saveProfile(state.stuId, { selectedTitle: title });
+    if (_statusData && _statusData.prof) _statusData.prof.selectedTitle = title;
+    switchStatusTab('titles');
+    loadProfileCard(state.stuId, state.stuName);
+    showToast('🎖 칭호 변경: ' + title);
+  } catch(e) {}
+}
+
+function renderItemsTab() {
+  var owned = getOwnedItems();
+  var ownedItems = (window.SHOP_ITEMS||[]).filter(function(i){ return owned[i.id]; });
+  if (!ownedItems.length) {
+    return '<div style="text-align:center;padding:2rem;color:var(--txt3)">보유한 아이템이 없어요<br><small>상점에서 XP로 잠금 해제하세요!</small></div>';
+  }
+  var cats = { title:'🏷 칭호', theme:'💎 테마', bg:'🎨 배경', boost:'⚡ 부스트', font:'🔠 글씨', hint:'💡 힌트', shield:'🛡 실드', xpboost:'⚡ XP부스트', fun:'🎊 재미', skip:'⏩ 스킵', nohint:'🙈 힌트끄기' };
+  var grouped = {};
+  ownedItems.forEach(function(item) {
+    var g = item.category || item.type;
+    if (!grouped[g]) grouped[g] = [];
+    grouped[g].push(item);
+  });
+  return Object.entries(grouped).map(function(entry) {
+    var key = entry[0], items = entry[1];
+    return '<div style="margin-bottom:1rem">' +
+      '<div style="font-size:11px;font-weight:700;color:var(--txt3);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.06em">' + (cats[key]||key) + '</div>' +
+      items.map(function(item) {
+        var earnedAt = owned[item.id] && owned[item.id].unlockedAt ? new Date(owned[item.id].unlockedAt).toLocaleDateString('ko') : '';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:.625rem .75rem;border-radius:10px;margin-bottom:4px;background:var(--sur2);border:1px solid var(--bdr)">' +
+          '<span style="font-size:22px">' + item.icon + '</span>' +
+          '<div style="flex:1">' +
+            '<div style="font-size:13px;font-weight:600">' + item.name + '</div>' +
+            '<div style="font-size:10px;color:var(--txt3)">' + item.desc + (earnedAt?' · '+earnedAt:'') + '</div>' +
+          '</div>' +
+          '<button onclick="applyShopItem({type:\'' + item.type + '\',value:\'' + item.value + '\',id:\'' + item.id + '\',name:\'' + item.name + '\'})" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);cursor:pointer;font-weight:600">적용</button>' +
+        '</div>';
+      }).join('') +
+    '</div>';
+  }).join('');
+}
+
+function renderAnalysisTab() {
+  var results = _statusData.results || [];
+  var allWeak = _statusData.allWeak || [];
+  if (!results.length) {
+    return '<div style="text-align:center;padding:2rem;color:var(--txt3)">퀴즈 데이터가 없어요</div>';
+  }
+
+  // 학습 스타일 분석
+  var modeCount = {};
+  results.forEach(function(r){
+    var m = r.mode || 'quiz';
+    modeCount[m] = (modeCount[m]||0) + 1;
+  });
+  var totalR = results.length;
+  var favMode = Object.entries(modeCount).sort(function(a,b){return b[1]-a[1];})[0];
+  var modeNames = { quiz:'타이핑 퀴즈', blank:'빈칸 채우기', choice:'4지선다', weak:'취약단어 훈련', confuse:'혼동단어 특훈', flash:'플래시카드' };
+
+  // 시간대 분석
+  var hourCount = {};
+  results.forEach(function(r){
+    if (!r.date) return;
+    var h = new Date(r.date).getHours();
+    var slot = h < 6 ? '새벽(0-6시)' : h < 12 ? '오전(6-12시)' : h < 18 ? '오후(12-18시)' : '저녁(18-24시)';
+    hourCount[slot] = (hourCount[slot]||0) + 1;
+  });
+  var favTime = Object.entries(hourCount).sort(function(a,b){return b[1]-a[1];})[0];
+
+  // 점수 추이
+  var recent5 = results.slice(-5).map(function(r){return r.score||0;});
+  var avg5 = recent5.length ? Math.round(recent5.reduce(function(a,b){return a+b;})/recent5.length) : 0;
+  var first5 = results.slice(0,5).map(function(r){return r.score||0;});
+  var avgFirst = first5.length ? Math.round(first5.reduce(function(a,b){return a+b;})/first5.length) : 0;
+  var growth = avg5 - avgFirst;
+
+  // 취약단어 패턴 (많이 틀린 단어)
+  var topWeak = allWeak.sort(function(a,b){return (b.wrong||0)-(a.wrong||0);}).slice(0,5);
+
+  var html = '<div>';
+
+  // 학습 스타일 카드
+  html += '<div style="background:var(--sur2);border-radius:12px;padding:.875rem;margin-bottom:.75rem">' +
+    '<div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:.625rem">🎮 학습 스타일</div>' +
+    '<div style="font-size:13px;color:var(--txt);margin-bottom:3px">선호 모드: <b>' + (favMode ? (modeNames[favMode[0]]||favMode[0]) : '-') + '</b></div>' +
+    '<div style="font-size:13px;color:var(--txt);margin-bottom:3px">주요 학습 시간: <b>' + (favTime ? favTime[0] : '-') + '</b></div>' +
+    '<div style="font-size:11px;color:var(--txt3);margin-top:.375rem">' +
+      Object.entries(modeCount).map(function(e){
+        var pct = Math.round(e[1]/totalR*100);
+        return (modeNames[e[0]]||e[0]) + ' ' + pct + '%';
+      }).join(' · ') +
+    '</div>' +
+  '</div>';
+
+  // 성장 그래프
+  html += '<div style="background:var(--sur2);border-radius:12px;padding:.875rem;margin-bottom:.75rem">' +
+    '<div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:.625rem">📈 성장 분석</div>' +
+    '<div style="font-size:13px;color:var(--txt);margin-bottom:3px">전체 평균: <b>' + (results.length ? Math.round(results.reduce(function(s,r){return s+(r.score||0);},0)/results.length) : 0) + '%</b></div>' +
+    '<div style="font-size:13px;color:var(--txt);margin-bottom:3px">최근 5회 평균: <b style="color:' + (avg5>=70?'var(--grn,#4ade80)':'var(--red,#f87171)') + '">' + avg5 + '%</b></div>' +
+    '<div style="font-size:13px;color:var(--txt)">처음 대비 성장: <b style="color:' + (growth>=0?'var(--grn,#4ade80)':'var(--red,#f87171)') + '">' + (growth>=0?'+':'') + growth + '점</b></div>' +
+    // 미니 바 차트
+    '<div style="display:flex;align-items:flex-end;gap:3px;height:40px;margin-top:.625rem">' +
+      results.slice(-10).map(function(r){
+        var h = Math.max(4, Math.round((r.score||0)/100*36));
+        var col = (r.score||0)>=80?'var(--grn,#4ade80)':(r.score||0)>=60?'var(--gold)':'var(--red,#f87171)';
+        return '<div style="flex:1;height:'+h+'px;background:'+col+';border-radius:2px 2px 0 0;min-height:4px"></div>';
+      }).join('') +
+    '</div><div style="font-size:9px;color:var(--txt3);text-align:center;margin-top:2px">최근 10회</div>' +
+  '</div>';
+
+  // 취약단어 패턴
+  if (topWeak.length) {
+    html += '<div style="background:var(--sur2);border-radius:12px;padding:.875rem">' +
+      '<div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:.625rem">⚠️ 자주 틀리는 단어</div>' +
+      topWeak.map(function(w,i){
+        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+          '<span style="font-size:11px;color:var(--txt3);min-width:16px">' + (i+1) + '</span>' +
+          '<span style="font-family:var(--font-display);font-style:italic;font-weight:600;flex:1">' + w.word + '</span>' +
+          '<span style="font-size:10px;color:var(--txt3)">' + (w.ko||'') + '</span>' +
+          '<span style="font-size:10px;color:var(--red,#f87171);font-weight:700">' + (w.wrong||0) + '회</span>' +
+        '</div>';
+      }).join('') +
+    '</div>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
 function showConnError() {
