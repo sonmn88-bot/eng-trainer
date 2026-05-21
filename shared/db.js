@@ -103,13 +103,14 @@ const DB = {
     const { db, ref, get, update } = await initDB();
     const today = Utils.today();
     const snap = await get(ref(db, `students/${stuId}/streak`));
-    const s = snap.exists() ? snap.val() : { count: 0, lastDate: '' };
+    const s = snap.exists() ? snap.val() : { count: 0, lastDate: '', max: 0 };
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
-    if (s.lastDate === today) return s.count;
+    if (s.lastDate === today) return { count: s.count, max: s.max || s.count };
     s.count = (s.lastDate === yesterday) ? s.count + 1 : 1;
     s.lastDate = today;
+    if (s.count > (s.max || 0)) s.max = s.count;
     await update(ref(db, `students/${stuId}/streak`), s);
-    return s.count;
+    return { count: s.count, max: s.max };
   },
 
   async saveListeningProgress(stuId, setId, qNum, done) {
@@ -160,6 +161,42 @@ const DB = {
     const snap = await get(ref(db, 'memos/' + stuId));
     return snap.exists() ? snap.val() : '';
   },
+
+  async saveExamSchedule(data) {
+    const { db, ref, set } = await initDB();
+    await set(ref(db, 'settings/examSchedule'), data);
+  },
+
+  async getExamSchedule() {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, 'settings/examSchedule'));
+    return snap.exists() ? snap.val() : null;
+  },
+
+  async saveRecommendedSet(setId, setName, weekNum) {
+    const { db, ref, set } = await initDB();
+    await set(ref(db, 'settings/recommendedSet'), { setId, setName, weekNum, updatedAt: Date.now() });
+  },
+
+  async getRecommendedSet() {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, 'settings/recommendedSet'));
+    return snap.exists() ? snap.val() : null;
+  },
+
+  async addStudyTime(stuId, minutes) {
+    const { db, ref, get, update } = await initDB();
+    const snap = await get(ref(db, `students/${stuId}/studyTime`));
+    const prev = snap.exists() ? (snap.val() || 0) : 0;
+    await update(ref(db, `students/${stuId}`), { studyTime: prev + minutes, lastActive: Date.now() });
+  },
+
+  async getLastActive(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `students/${stuId}/lastActive`));
+    return snap.exists() ? snap.val() : null;
+  },
+
   async getMnemonics() {
     const { db, ref, get } = await initDB();
     const snap = await get(ref(db, 'mnemonics'));
@@ -259,7 +296,19 @@ const DB = {
       if (newXP >= LEVELS[i]) { newLv = i+1; break; }
     }
     const leveled = newLv > (prof.level || 1);
-    await update(ref(db, `profiles/${stuId}`), { xp: newXP, level: newLv });
+    const updateData = { xp: newXP, level: newLv };
+    // 레벨업 시 칭호 자동 부여 (기존 칭호가 기본값이거나 없을 때만)
+    if (leveled) {
+      const LEVEL_TITLES = ['','🌱 새싹','📖 입문자','✏️ 학습자','💡 탐구자','🔥 도전자','⚡ 집중자','🎯 실력자','💎 고수','🏹 수능전사','👑 단어마스터'];
+      const autoTitle = LEVEL_TITLES[newLv] || '';
+      const prevTitle = prof.selectedTitle || '';
+      // 이전 칭호가 레벨 기본 칭호였거나 비어있으면 자동 갱신
+      const prevLevelTitle = LEVEL_TITLES[prof.level||1] || '';
+      if (!prevTitle || prevTitle === prevLevelTitle) {
+        updateData.selectedTitle = autoTitle;
+      }
+    }
+    await update(ref(db, `profiles/${stuId}`), updateData);
     return { xp: newXP, level: newLv, leveled, prevLevel: prof.level || 1 };
   },
 
