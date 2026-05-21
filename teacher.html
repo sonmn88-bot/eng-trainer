@@ -137,6 +137,17 @@
         </div>
       </div>
 
+      <!-- 학생 비밀번호 설정 -->
+      <div style="margin-top:1rem">
+        <p class="sec-title" style="margin-bottom:.5rem">🔑 학생 비밀번호</p>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="detail-pw" placeholder="없으면 비워두세요"
+            style="flex:1;font-size:14px;letter-spacing:.08em;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.5rem .75rem;color:var(--txt)">
+          <button class="btn btn-gold btn-sm" onclick="saveStudentPassword()">저장</button>
+        </div>
+        <div id="detail-pw-msg" style="font-size:11px;min-height:14px;margin-top:4px;color:var(--grn,#4caf50)"></div>
+      </div>
+
       <!-- 선생님 메모 -->
       <div style="margin-top:1rem">
         <p class="sec-title" style="margin-bottom:.5rem">📝 선생님 메모</p>
@@ -930,6 +941,9 @@ async function showStuDetail(stuId) {
     var memo = await DB.getMemo(stuId);
     var memoEl = document.getElementById('detail-memo');
     if (memoEl) memoEl.value = memo || '';
+    // 현재 비밀번호 표시
+    var pwEl = document.getElementById('detail-pw');
+    if (pwEl) pwEl.value = s.password || '';
   } catch(e) {}
 
   // 마지막 메시지 불러오기
@@ -2823,6 +2837,22 @@ async function exportAllExcel() {
 
 
 // ── 학생 메모 ─────────────────────────────────
+
+async function saveStudentPassword() {
+  if (!selectedStuId) return;
+  var pwEl = document.getElementById('detail-pw');
+  var msgEl = document.getElementById('detail-pw-msg');
+  var pw = pwEl ? pwEl.value.trim() : '';
+  try {
+    await DB.saveStudentPassword(selectedStuId, pw);
+    if (students[selectedStuId]) students[selectedStuId].password = pw;
+    if (msgEl) {
+      msgEl.textContent = pw ? '✓ 비밀번호가 설정됐습니다' : '✓ 비밀번호가 제거됐습니다';
+      setTimeout(function(){ msgEl.textContent=''; }, 2500);
+    }
+  } catch(e) { if (msgEl) msgEl.textContent = '오류: ' + e.message; }
+}
+
 async function saveMemo() {
   if (!selectedStuId) return;
   var memo = document.getElementById('detail-memo').value;
