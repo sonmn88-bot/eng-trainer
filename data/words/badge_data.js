@@ -46,6 +46,18 @@ window.BADGE_DEFS = [
   { id:'all_rounder',   name:'올라운더',   desc:'모든 학습 모드 각 5회씩',        icon:'🎭', grade:'silver', cat:'special' },
   { id:'listening_kill',name:'리스닝킬러', desc:'리스닝 전 회차 완료',             icon:'🎧', grade:'silver', cat:'special' },
   { id:'legend_start',  name:'전설의시작', desc:'Lv.8 달성',                      icon:'💎', grade:'gold',   cat:'special' },
+
+  // 🌟 추가 퀘스트 배지
+  { id:'daily10',      name:'10일 출석',    desc:'총 출석 10일 달성',               icon:'📆', grade:'bronze', cat:'attend' },
+  { id:'daily30',      name:'한달 출석',    desc:'총 출석 30일 달성',               icon:'🗓️', grade:'silver', cat:'attend' },
+  { id:'first_weak',   name:'첫 취약단어',  desc:'취약단어 첫 등록',                icon:'📌', grade:'bronze', cat:'weak' },
+  { id:'confuse_win',  name:'혼동정복',     desc:'혼동단어 특훈 100% 달성',         icon:'🔀', grade:'silver', cat:'skill' },
+  { id:'choice_pro',   name:'4지선다달인',  desc:'4지선다 90% 이상 10회',           icon:'🎲', grade:'silver', cat:'skill' },
+  { id:'allset',       name:'단어장완주',   desc:'단어장 1개 완전 학습',            icon:'📗', grade:'gold',   cat:'study' },
+  { id:'bookmark50',   name:'북마크왕',     desc:'북마크 50개 이상',                icon:'⭐', grade:'bronze', cat:'study' },
+  { id:'night_study',  name:'야간자율학습', desc:'밤 10시 이후 퀴즈 10회',          icon:'🌃', grade:'silver', cat:'special' },
+  { id:'comeback2',    name:'역전의명수',   desc:'전 회차 대비 20점 이상 상승',     icon:'📊', grade:'gold',   cat:'accuracy' },
+  { id:'perfect5',     name:'5연속퍼펙트',  desc:'퀴즈 100% 5회 연속',             icon:'🌈', grade:'gold',   cat:'accuracy' },
 ];
 
 // 배지로 획득하는 칭호 (퀘스트 보상)
@@ -73,6 +85,36 @@ window.BADGE_TITLES = {
   'legend_start':   { title:'💎 레전드',     desc:'전설의 문턱에 선 자' },
   'total60':        { title:'💪 꾸준함',     desc:'60일을 함께한 자' },
   'comeback':       { title:'🦾 오뚝이',     desc:'쓰러져도 다시 일어선 자' },
+  // 누락된 배지 칭호 추가
+  'streak3':      { title:'🔥 3연속',      desc:'3일을 이어간 자' },
+  'grad_first':   { title:'🎓 첫졸업',     desc:'첫 번째 졸업을 이룬 자' },
+  'grad20':       { title:'📜 졸업생',      desc:'20개를 정복한 자' },
+  'grad60':       { title:'🏫 우등졸업',    desc:'60개를 극복한 자' },
+  'iron_wall':    { title:'🛡️ 철벽',       desc:'10번을 완벽히 막은 자' },
+  'combo10':      { title:'💥 콤보러',      desc:'10연속을 터뜨린 자' },
+  'combo20':      { title:'⚡ 연속왕',      desc:'20연속을 이어간 자' },
+  'scorer':       { title:'📈 고득점자',    desc:'꾸준히 높은 점수를 낸 자' },
+  'honor':        { title:'🌟 우등생',      desc:'반에서 빛나는 자' },
+  'speed_basic':  { title:'💨 속독러',      desc:'빠르게 단어를 읽는 자' },
+  'speed_master': { title:'🌩️ 번개손',      desc:'번개처럼 빠른 자' },
+  'blank_good':   { title:'✏️ 빈칸고수',    desc:'빈칸을 채우는 달인' },
+  'blank_master': { title:'🖊️ 빈칸마스터',  desc:'빈칸의 마스터' },
+  'card_master':  { title:'🃏 카드달인',    desc:'카드를 자유자재로 다루는 자' },
+  'weekend':      { title:'🗓️ 주말전사',    desc:'쉬는 날도 공부하는 자' },
+  'exam_eve':     { title:'🎯 시험전야',    desc:'마지막 밤을 불태운 자' },
+  'day_one':      { title:'🌟 첫날부터',    desc:'첫날부터 시작한 자' },
+
+  'daily10':     { title:'📆 출석러',      desc:'10일을 꾸준히 온 자' },
+  'daily30':     { title:'🗓️ 한달러',      desc:'한 달을 함께한 자' },
+  'first_weak':  { title:'📌 취약단어발굴',desc:'처음 취약단어를 발굴한 자' },
+  'confuse_win': { title:'🔀 혼동정복자',  desc:'헷갈림을 이긴 자' },
+  'choice_pro':  { title:'🎲 선택의신',    desc:'4지선다를 정복한 자' },
+  'allset':      { title:'📗 완주러',       desc:'단어장을 완주한 자' },
+  'bookmark50':  { title:'⭐ 북마크왕',    desc:'50개를 저장한 수집가' },
+  'night_study': { title:'🌃 야자왕',       desc:'밤에도 빛나는 자' },
+  'comeback2':   { title:'📊 역전의명수',  desc:'극적으로 역전한 자' },
+  'perfect5':    { title:'🌈 무결점',       desc:'5번을 연속 완벽히 푼 자' },
+
 };
 
 
