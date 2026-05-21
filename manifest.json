@@ -1,0 +1,22 @@
+{
+  "name": "English Trainer",
+  "short_name": "영어 트레이너",
+  "description": "수능 영어 단어 학습 앱",
+  "start_url": "/eng-trainer/index.html",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#C9A961",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='24' fill='%231a1a1a'/><text y='130' x='96' text-anchor='middle' font-size='120'>📖</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='64' fill='%231a1a1a'/><text y='360' x='256' text-anchor='middle' font-size='320'>📖</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
