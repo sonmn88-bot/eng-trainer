@@ -203,9 +203,32 @@ const Utils = {
 
   checkAnswer(input, correct) {
     const inp = this.normalize(input);
-    const answers = (correct || '').split(/[,\/]/).map(s => this.normalize(s));
+    if (!inp) return 'wrong';
+    const answers = (correct || '').split(/[,\/]/).map(s => this.normalize(s)).filter(Boolean);
+
+    // 완전 일치
     if (answers.some(a => a === inp)) return 'exact';
-    if (answers.some(a => a.includes(inp) || inp.includes(a.split(' ')[0]))) return 'close';
+
+    // 핵심어 추출 함수 (하다/되다/이다 등 어미 제거)
+    const coreOf = s => s.replace(/하다$|되다$|이다$|하는$|한$|할$|시키다$/, '').trim();
+    const inpCore = coreOf(inp);
+
+    if (answers.some(a => {
+      const aCore = coreOf(a);
+      // 핵심어 일치
+      if (aCore.length >= 2 && aCore === inpCore) return true;
+      // 정답에 입력 포함 (2글자 이상)
+      if (a.includes(inp) && inp.length >= 2) return true;
+      // 입력에 정답 포함
+      if (inp.includes(a) && a.length >= 2) return true;
+      // 정답 첫 단어 일치
+      const aFirst = a.split(' ')[0];
+      if (aFirst.length >= 2 && (inp === aFirst || inp.startsWith(aFirst))) return true;
+      // 핵심어 포함 관계 (3글자 이상)
+      if (aCore.length >= 3 && inpCore.length >= 2 && aCore.includes(inpCore)) return true;
+      return false;
+    })) return 'close';
+
     return 'wrong';
   },
 
@@ -237,4 +260,3 @@ const Utils = {
     return null;
   },
 };
-
