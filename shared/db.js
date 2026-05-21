@@ -197,6 +197,18 @@ const DB = {
     return snap.exists() ? snap.val() : null;
   },
 
+
+  async saveStudentPassword(stuId, password) {
+    const { db, ref, update } = await initDB();
+    await update(ref(db, `students/${stuId}`), { password: password || '' });
+  },
+
+  async getStudentPassword(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `students/${stuId}/password`));
+    return snap.exists() ? snap.val() : '';
+  },
+
   async getMnemonics() {
     const { db, ref, get } = await initDB();
     const snap = await get(ref(db, 'mnemonics'));
@@ -358,4 +370,3 @@ const DB = {
   }
 
 };
-
