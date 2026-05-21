@@ -77,3 +77,4 @@ window.LEVEL_DEFS = [
 ];
 
 window.PROFILE_ANIMALS = ['🐱','🐶','🦊','🐯','🐻','🐼','🐸','🦁','🐺','🦝','🐨','🦄'];
+
