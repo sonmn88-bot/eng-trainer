@@ -2,6 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="English Trainer">
+<meta name="theme-color" content="#C9A961">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>리스닝 학습</title>
 <link rel="stylesheet" href="shared/theme.css">
@@ -42,7 +47,8 @@
       <div class="logo-text-sub">Listening</div>
     </div>
   </div>
-  <button class="btn btn-ghost" id="back-btn" onclick="goBack()">← 홈</button>
+  <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px" title="테마 전환">🌙</button>
+        <button class="btn btn-ghost" id="back-btn" onclick="goBack()">← 홈</button>
 </div>
 
 <div id="view-library" class="fade-in">
@@ -145,6 +151,12 @@
 </div>
 
 </div>
+
+// 저장된 테마 즉시 적용
+(function() {
+  var t = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+})();
 <script src="data/_index.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
@@ -580,6 +592,39 @@ async function markDone() {
   var btn = document.getElementById('done-btn');
   btn.textContent = '✓ 완료됨';
   btn.className = 'btn btn-ghost btn-full';
+
+  // XP 지급 (문항 1개 완료 = +20 XP)
+  try {
+    if (STU_ID && STU_ID !== 'guest') {
+      await DB.addXP(STU_ID, 20);
+      sessionStorage.setItem('last_listening_' + STU_ID, new Date().toISOString());
+    }
+  } catch(e) {}
+
+  // 현재 세트 전체 완료 시 리스닝킬러 배지 체크
+  var doneCount = Object.values(progress).filter(Boolean).length;
+  if (currentSetInfo && doneCount >= (currentSetInfo.total || 0)) {
+    listeningCheckBadge();
+  }
+}
+
+async function listeningCheckBadge() {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    // 전체 리스닝 회차 완료 여부 체크
+    var allSets = window.LISTENING_CATALOG || [];
+    var allDone = true;
+    for (var i = 0; i < allSets.length; i++) {
+      var p = await DB.getListeningProgress(STU_ID, allSets[i].id);
+      var cnt = Object.values(p||{}).filter(Boolean).length;
+      if (cnt < (allSets[i].total || 1)) { allDone = false; break; }
+    }
+    if (allDone) {
+      await DB.awardBadge(STU_ID, 'listening_kill');
+    }
+    // 개별 세트 완료 XP 보너스
+    await DB.addXP(STU_ID, 100);
+  } catch(e) {}
 }
 var abPoints = { a: null, b: null };
 var abLooping = false;
