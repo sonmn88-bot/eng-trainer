@@ -66,6 +66,48 @@
 /* ── Reset & Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+
+/* ── 라이트 모드 ── */
+[data-theme="light"] {
+  --bg:        #F8F7F4;
+  --bg2:       #F0EDE8;
+  --bg3:       #E8E4DF;
+  --sur:       #FFFFFF;
+  --sur2:      #F4F1EC;
+  --sur3:      #EAE6E0;
+
+  --bdr:       rgba(0,0,0,.08);
+  --bdr2:      rgba(0,0,0,.14);
+
+  --txt:       #1A1814;
+  --txt2:      #6B6560;
+  --txt3:      #A09890;
+
+  --gold:      #B8882A;
+  --gold2:     #D4A043;
+  --gold-bg:   rgba(184,136,42,.08);
+  --gold-bdr:  rgba(184,136,42,.25);
+
+  --grn:       #2D9E5F;
+  --grn-bg:    rgba(45,158,95,.08);
+  --grn-bdr:   rgba(45,158,95,.2);
+
+  --red:       #D94F4F;
+  --red-bg:    rgba(217,79,79,.08);
+  --red-bdr:   rgba(217,79,79,.2);
+
+  --amb:       #D4870A;
+  --amb-bg:    rgba(212,135,10,.08);
+  --amb-bdr:   rgba(212,135,10,.2);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow:    0 4px 16px rgba(0,0,0,.12);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.16);
+}
+
+[data-theme="light"] body::before { opacity: .15; }
+[data-theme="light"] .app { background: transparent; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -483,6 +525,9 @@ select option { background: var(--sur); }
   transform: rotateY(180deg);
   background: var(--gold-bg);
   border: 1px solid var(--gold-bdr);
+  justify-content: flex-start;
+  overflow-y: auto;
+  max-height: 420px;
 }
 .fc-en {
   font-family: var(--font-body);
@@ -493,10 +538,12 @@ select option { background: var(--sur); }
   line-height: 1.1;
 }
 .fc-ko {
-  font-size: 18px;
+  font-size: clamp(14px, 4vw, 18px);
   font-weight: 500;
   color: var(--gold);
-  line-height: 1.5;
+  line-height: 1.6;
+  word-break: keep-all;
+  white-space: pre-line;
 }
 .fc-mnemonic {
   font-family: var(--font-body);
@@ -851,10 +898,65 @@ select option { background: var(--sur); }
 ::-webkit-scrollbar-thumb:hover { background: var(--bdr2); }
 
 /* ── Media ── */
+
+/* ── 모바일 최적화 ── */
+/* 터치 최소 영역 44px 보장 */
+button, .btn, .module-card, .catalog-card, .mode-card,
+.week-card, .flip-card-wrap, .q-list-item, .stu-card {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+.btn { min-height: 40px; }
+.btn-sm { min-height: 34px; }
+
+/* 입력 필드 모바일 최적화 */
+input[type="text"], input[type="password"], input[type="number"],
+input[type="date"], select, textarea {
+  font-size: 16px !important; /* iOS 줌 방지 */
+  min-height: 44px;
+}
+.btn-sm input, .quiz-input { min-height: 48px; }
+
+/* 퀴즈 입력창 */
+.quiz-input { font-size: 17px !important; padding: .875rem 1rem; }
+
+/* 탭 버튼 터치 영역 */
+.tab, .sub-tab-btn { min-height: 40px; padding: 8px 12px; }
+
+/* 플래시카드 최소 높이 */
+.fc-front, .fc-back { min-height: 240px; }
+
+/* 카탈로그 카드 - 모바일에서 2열 유지 */
+@media (max-width: 360px) {
+  .catalog-grid { grid-template-columns: 1fr; }
+  .module-grid { grid-template-columns: 1fr; }
+}
+
+/* 큰 화면에서 3열 */
+@media (min-width: 520px) {
+  .catalog-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* 바텀시트 느낌의 팝업 */
 @media (max-width: 480px) {
   .metrics { grid-template-columns: 1fr 1fr; }
   .big-word { font-size: 30px; }
-  .mode-grid { grid-template-columns: 1fr; }
-  .catalog-grid { grid-template-columns: 1fr; }
+  .mode-grid { grid-template-columns: 1fr 1fr; }
+  /* 세로 긴 화면 스크롤 */
+  .app { padding-bottom: 6rem; }
+  /* 버튼 간격 */
+  .btn + .btn { margin-top: 0; }
+  /* topbar 고정 */
+  .topbar { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+}
+
+/* 스와이프 힌트 제거 */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* 포커스 스타일 (모바일) */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--gold-bdr);
+  box-shadow: 0 0 0 3px rgba(201,169,97,.12);
 }
 
