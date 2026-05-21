@@ -334,6 +334,31 @@
   </div>
 </div>
 
+<!-- ══ VIEW CONFUSE: 혼동단어쌍 특훈 ══ -->
+<div id="view-confuse" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+    <p class="sec-title" style="margin:0">🔀 혼동 단어쌍 특훈</p>
+    <button class="btn btn-ghost btn-sm" onclick="backToSet()">← 돌아가기</button>
+  </div>
+  <!-- 단어쌍 비교 카드 -->
+  <div id="confuse-pair-card" class="card" style="margin-bottom:1rem">
+    <div style="font-size:11px;color:var(--txt3);text-align:center;margin-bottom:.75rem;letter-spacing:.06em">이 두 단어, 헷갈리지 마세요!</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.875rem" id="confuse-pair-display"></div>
+    <div style="font-size:11px;color:var(--txt3);text-align:center" id="confuse-pair-count"></div>
+  </div>
+  <!-- 퀴즈 -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:.75rem">
+      <span id="confuse-prog" style="font-size:13px;font-weight:600"></span>
+      <span id="confuse-score" style="font-size:13px;font-family:var(--font-mono)"></span>
+    </div>
+    <div id="confuse-question" style="font-size:13px;color:var(--txt2);text-align:center;margin-bottom:.75rem;line-height:1.6"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem" id="confuse-choices"></div>
+    <div id="confuse-feedback" style="display:none;padding:.75rem;border-radius:var(--rs);text-align:center;font-size:13px;margin-bottom:.75rem"></div>
+    <button id="confuse-next-btn" class="btn btn-gold btn-full" style="display:none" onclick="nextConfuse()">다음 →</button>
+  </div>
+</div>
+
 <!-- ══ VIEW 4: 퀴즈 ══ -->
 <div id="view-quiz" style="display:none">
   <div class="card">
@@ -1349,45 +1374,152 @@ var CONFUSE_PAIRS = [
   ['incredible','믿기 힘든','incredulous','의심하는'],
   ['moral','도덕적인','morale','사기, 의욕'],
   ['precede','앞서다','proceed','진행하다'],
-  ['prescribe','처방하다','proscribe','금지하다'],
-  ['regress','퇴보하다','progress','진보하다'],
   ['sensible','분별 있는','sensitive','예민한'],
   ['stationary','고정된','stationery','문구류'],
   ['beside','~옆에','besides','~외에도'],
-  ['bring','가져오다','take','가져가다'],
-  ['fewer','더 적은(가산)','less','더 적은(불가산)'],
   ['lend','빌려주다','borrow','빌리다'],
-  ['lie','눕다/거짓말','lay','놓다/눕히다'],
+  ['lie','눕다','lay','놓다, 눕히다'],
+  ['fewer','더 적은(가산)','less','더 적은(불가산)'],
+  ['rise','오르다(자동사)','raise','올리다(타동사)'],
+  ['find','발견하다','found','설립하다'],
+  ['lose','잃다','loose','느슨한'],
+  ['quite','꽤, 완전히','quiet','조용한'],
 ];
 
+// 혼동단어쌍 상태
+var confuse = { pairs:[], pairIdx:0, qIdx:0, questions:[], correct:0, wrong:0 };
+
 function goConfuseMode() {
-  // 현재 단어장에서 혼동단어쌍 필터링 + 전체 목록 혼합
-  var words = [];
-  var wordSet = new Set((window._selectedWords||allWords).map(function(w){return w[0].toLowerCase();}));
+  Utils.shuffle(CONFUSE_PAIRS);
+  confuse.pairs = CONFUSE_PAIRS.slice(0, 10); // 10쌍
+  confuse.pairIdx = 0;
+  confuse.qIdx = 0;
+  confuse.correct = 0;
+  confuse.wrong = 0;
+  confuse.questions = [];
 
-  CONFUSE_PAIRS.forEach(function(pair) {
-    // 단어장에 있는 쌍 우선, 없으면 기본 데이터
-    var w1 = wordSet.has(pair[0].toLowerCase()) ? pair[0] : pair[0];
-    var w2 = wordSet.has(pair[2].toLowerCase()) ? pair[2] : pair[2];
-    words.push([w1, pair[1]]);
-    words.push([w2, pair[3]]);
+  // 각 쌍에서 2문제씩 생성 (양쪽 다 나옴)
+  confuse.pairs.forEach(function(pair) {
+    confuse.questions.push({ word: pair[0], ko: pair[1], pair: pair, answerIdx: 0 });
+    confuse.questions.push({ word: pair[2], ko: pair[3], pair: pair, answerIdx: 2 });
   });
+  Utils.shuffle(confuse.questions);
 
-  Utils.shuffle(words);
-  window._selectedWords = words.slice(0, 40);
-  currentMode = 'confuse';
+  showView('confuse');
+  renderConfusePair();
+  renderConfuseQuestion();
+  showToast('🔀 두 단어를 비교하며 학습해요!');
+}
 
-  // 퀴즈 count 설정
-  var sel = document.getElementById('quiz-count');
-  if (sel) {
-    sel.innerHTML = '<option value="20">20개</option><option value="40">40개</option>';
-    sel.value = '20';
+function renderConfusePair() {
+  var q = confuse.questions[confuse.qIdx];
+  if (!q) return;
+  var pair = q.pair;
+  var display = document.getElementById('confuse-pair-display');
+  var count = document.getElementById('confuse-pair-count');
+  if (!display) return;
+
+  // 현재 문제의 단어쌍을 나란히 표시
+  display.innerHTML =
+    '<div style="background:var(--sur2);border:2px solid rgba(201,169,97,.3);border-radius:12px;padding:.875rem;text-align:center">' +
+      '<div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--txt);margin-bottom:4px">' + pair[0] + '</div>' +
+      '<div style="font-size:11px;color:var(--gold);font-weight:600">' + pair[1] + '</div>' +
+    '</div>' +
+    '<div style="background:var(--sur2);border:2px solid rgba(96,165,250,.3);border-radius:12px;padding:.875rem;text-align:center">' +
+      '<div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--txt);margin-bottom:4px">' + pair[2] + '</div>' +
+      '<div style="font-size:11px;color:#60A5FA;font-weight:600">' + pair[3] + '</div>' +
+    '</div>';
+
+  if (count) count.textContent = (confuse.qIdx+1) + ' / ' + confuse.questions.length + '번째 문제';
+}
+
+function renderConfuseQuestion() {
+  var q = confuse.questions[confuse.qIdx];
+  if (!q) { finishConfuse(); return; }
+  var pair = q.pair;
+
+  document.getElementById('confuse-prog').textContent = (confuse.qIdx+1) + ' / ' + confuse.questions.length;
+  document.getElementById('confuse-score').textContent = '✓' + confuse.correct + ' ✗' + confuse.wrong;
+
+  // 질문: "_____ 는 어떤 뜻인가요?"
+  var qEl = document.getElementById('confuse-question');
+  if (qEl) qEl.innerHTML = '<span style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--gold)">' + q.word + '</span> 의 뜻은?';
+
+  // 선택지: 두 단어의 뜻 중 하나 + 가끔 랜덤 오답
+  var choices = [
+    { text: pair[1], correct: q.answerIdx === 0 },
+    { text: pair[3], correct: q.answerIdx === 2 },
+  ];
+  Utils.shuffle(choices);
+
+  var choicesEl = document.getElementById('confuse-choices');
+  if (choicesEl) {
+    choicesEl.innerHTML = choices.map(function(ch, i) {
+      return '<button onclick="answerConfuse(' + i + ')" data-correct="' + ch.correct + '" ' +
+        'style="padding:.875rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;cursor:pointer;font-size:13px;color:var(--txt);text-align:left;line-height:1.4;min-height:48px">' +
+        ch.text + '</button>';
+    }).join('');
   }
 
-  // 퀴즈 시작
-  goQuiz();
-  showToast('🔀 혼동 단어쌍 특훈 시작! 비슷한 단어들을 구별해보세요');
+  var fb = document.getElementById('confuse-feedback');
+  var btn = document.getElementById('confuse-next-btn');
+  if (fb) fb.style.display = 'none';
+  if (btn) btn.style.display = 'none';
 }
+
+function answerConfuse(idx) {
+  var q = confuse.questions[confuse.qIdx];
+  var choicesEl = document.getElementById('confuse-choices');
+  var btns = choicesEl ? choicesEl.querySelectorAll('button') : [];
+  var selected = btns[idx];
+  if (!selected) return;
+
+  var isCorrect = selected.dataset.correct === 'true';
+  if (isCorrect) confuse.correct++; else confuse.wrong++;
+
+  // 버튼 색상 표시
+  btns.forEach(function(btn) {
+    btn.disabled = true;
+    if (btn.dataset.correct === 'true') {
+      btn.style.background = 'rgba(74,222,128,.15)';
+      btn.style.borderColor = 'var(--grn,#4ade80)';
+      btn.style.color = 'var(--grn,#4ade80)';
+    } else if (btn === selected && !isCorrect) {
+      btn.style.background = 'rgba(248,113,113,.15)';
+      btn.style.borderColor = 'var(--red,#f87171)';
+      btn.style.color = 'var(--red,#f87171)';
+    }
+  });
+
+  var fb = document.getElementById('confuse-feedback');
+  if (fb) {
+    fb.style.display = 'block';
+    fb.style.background = isCorrect ? 'rgba(74,222,128,.1)' : 'rgba(248,113,113,.1)';
+    fb.style.border = '1px solid ' + (isCorrect?'rgba(74,222,128,.3)':'rgba(248,113,113,.3)');
+    fb.style.color = isCorrect ? 'var(--grn,#4ade80)' : 'var(--red,#f87171)';
+    fb.textContent = isCorrect ? '✓ 정확해요!' : '✗ ' + q.word + ' = ' + q.ko;
+  }
+
+  document.getElementById('confuse-next-btn').style.display = 'block';
+  document.getElementById('confuse-score').textContent = '✓' + confuse.correct + ' ✗' + confuse.wrong;
+
+  try { DB.updateWeakWord(STU_ID, q.word, q.ko, isCorrect); } catch(e) {}
+}
+
+function nextConfuse() {
+  confuse.qIdx++;
+  if (confuse.qIdx >= confuse.questions.length) { finishConfuse(); return; }
+  renderConfusePair();
+  renderConfuseQuestion();
+}
+
+function finishConfuse() {
+  var score = Math.round(confuse.correct / confuse.questions.length * 100);
+  backToSet();
+  showToast('🔀 혼동단어 특훈 완료! ' + score + '% 정답');
+  giveXP(Math.round(score / 10) * 5);
+}
+
 
 // ── 단어 검색 ────────────────────────────────
 var _searchTimer = null;
@@ -2132,6 +2264,12 @@ async function checkAndAward(badgeId) {
   try {
     var awarded = await DB.awardBadge(STU_ID, badgeId);
     if (awarded) {
+      // 배지 달성 칭호 자동 부여
+      var titleReward = window.BADGE_TITLES && window.BADGE_TITLES[badgeId];
+      if (titleReward) {
+        DB.saveProfile(STU_ID, { selectedTitle: titleReward.title }).catch(function(){});
+        showToast('🎖 새 칭호 획득: ' + titleReward.title);
+      }
       var def = (window.BADGE_DEFS||[]).find(function(d){return d.id===badgeId;});
       if (def) {
         showToast((def.icon||'🏆') + ' 배지 획득! ' + def.name);
@@ -2599,14 +2737,28 @@ var WORD_RELATIONS = {
 
 function getRelatedWords(word, ko) {
   try {
-    var grade = window.WORD_GRADES && window.WORD_GRADES[word.toLowerCase()];
-    if (!grade || !window._selectedWords) return [];
-    var sameGrade = (window._selectedWords || []).filter(function(w) {
-      return w[0].toLowerCase() !== word.toLowerCase() &&
-             window.WORD_GRADES[w[0].toLowerCase()] === grade;
-    });
-    if (sameGrade.length < 2) return [];
-    return sameGrade.slice().sort(function(){ return Math.random()-.5; }).slice(0,2).map(function(w){ return w[0]; });
+    // 1순위: WORD_RELATIONS에서 유의어/반의어
+    var rel = WORD_RELATIONS && WORD_RELATIONS[word.toLowerCase()];
+    if (rel) {
+      var result = [];
+      if (rel.syn && rel.syn.length) result = result.concat(rel.syn.slice(0,2));
+      if (rel.ant && rel.ant.length) result = result.concat(rel.ant.slice(0,1));
+      if (result.length >= 2) return result;
+    }
+    // 2순위: 같은 단어장에서 뜻 첫 단어가 겹치는 단어
+    if (window._selectedWords) {
+      var koCore = (ko||'').split(/[,\/]/)[0].replace(/하다$|되다$|이다$/, '').trim();
+      if (koCore.length >= 2) {
+        var similar = window._selectedWords.filter(function(w) {
+          return w[0].toLowerCase() !== word.toLowerCase() &&
+                 w[1] && w[1].includes(koCore);
+        });
+        if (similar.length >= 2) {
+          return similar.sort(function(){ return Math.random()-.5; }).slice(0,3).map(function(w){ return w[0]; });
+        }
+      }
+    }
+    return [];
   } catch(e) { return []; }
 }
 
