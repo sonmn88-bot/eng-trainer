@@ -588,12 +588,13 @@
 </div><!-- .app -->
 
 <script src="data/words/mnemonics.js"></script>
-
+<script>
 // 저장된 테마 즉시 적용
 (function() {
   var t = localStorage.getItem('theme') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
 })();
+</script>
 <script src="data/_index.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
