@@ -2,9 +2,50 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="English Trainer">
+<meta name="theme-color" content="#C9A961">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>English Trainer</title>
 <link rel="stylesheet" href="shared/theme.css">
+<style>
+/* 홈 배경 개선 */
+.app {
+  background: radial-gradient(ellipse at 20% 0%, rgba(201,169,97,.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 100%, rgba(96,165,250,.04) 0%, transparent 50%),
+              var(--bg);
+}
+.hero-title {
+  filter: drop-shadow(0 0 32px rgba(201,169,97,.15));
+}
+.streak-bar {
+  background: linear-gradient(135deg, rgba(201,169,97,.08) 0%, rgba(201,169,97,.03) 100%);
+  border: 1px solid rgba(201,169,97,.15);
+  border-radius: var(--rx);
+  padding: .75rem 1rem;
+}
+
+/* BGM 시각화 바 애니메이션 */
+.bgm-bar {
+  transition: height .1s ease;
+}
+.bgm-playing .bgm-bar:nth-child(1) { animation: bgm-bounce 0.8s ease-in-out infinite; }
+.bgm-playing .bgm-bar:nth-child(2) { animation: bgm-bounce 0.6s ease-in-out infinite 0.1s; }
+.bgm-playing .bgm-bar:nth-child(3) { animation: bgm-bounce 0.9s ease-in-out infinite 0.2s; }
+.bgm-playing .bgm-bar:nth-child(4) { animation: bgm-bounce 0.7s ease-in-out infinite 0.05s; }
+.bgm-playing .bgm-bar:nth-child(5) { animation: bgm-bounce 0.85s ease-in-out infinite 0.15s; }
+@keyframes bgm-bounce {
+  0%,100% { height: 4px; }
+  50% { height: 18px; }
+}
+.bgm-btn.active {
+  border-color: var(--gold-bdr) !important;
+  background: var(--gold-bg) !important;
+}
+@keyframes confetti-fall{0%{transform:translateY(0) rotate(0deg);opacity:1}80%{opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+</style>
 <style>
 .module-grid {
   display: grid;
@@ -113,6 +154,26 @@
 
 <!-- ── 학생 홈 ── -->
 <div id="screen-home" class="screen active">
+  <!-- 연결 오류 배너 -->
+  <div id="conn-error-banner" style="display:none;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);border-radius:var(--rs);padding:.625rem 1rem;margin-bottom:.75rem;display:none">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:16px">⚠️</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--red,#f87171)">서버 연결 실패</div>
+        <div style="font-size:11px;color:var(--txt2)">인터넷 연결을 확인하고 다시 시도해주세요</div>
+      </div>
+      <button onclick="retryConnection()" class="btn btn-sm" style="font-size:11px;flex-shrink:0">다시 시도</button>
+    </div>
+  </div>
+
+  <!-- 다크/라이트 토글 -->
+  <div style="position:absolute;top:12px;right:12px;z-index:100">
+    <button id="theme-toggle-btn" onclick="toggleTheme()"
+      style="background:var(--sur2);border:1px solid var(--bdr);border-radius:99px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--txt);display:flex;align-items:center;gap:4px;transition:all .2s">
+      <span id="theme-icon">🌙</span>
+      <span id="theme-label" style="font-size:10px;font-weight:600;letter-spacing:.04em">DARK</span>
+    </button>
+  </div>
   <div class="hero">
     <div id="app-title-display" class="hero-title">English Trainer</div>
     <div class="hero-sub">수능 영어 전문</div>
@@ -182,6 +243,9 @@
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
             <span id="profile-xp-num" style="font-size:10px;color:var(--txt3)">XP 0</span>
+            <span id="profile-xp-next" style="font-size:10px;color:var(--gold);font-weight:600"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1px">
             <button onclick="openBadgeDocs()" style="background:none;border:none;font-size:11px;color:var(--txt3);cursor:pointer;padding:0" id="profile-badge-count">🏆 0/40</button>
           </div>
         </div>
@@ -196,7 +260,10 @@
         <div class="streak-num" id="streak-num">0</div>
         <div style="font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:.08em">연속 출석일</div>
       </div>
-      <div style="margin-left:auto;font-size:12px;color:var(--gold);font-weight:500;text-align:right;line-height:1.4" id="streak-msg"></div>
+      <div style="margin-left:auto;text-align:right;line-height:1.6">
+        <div style="font-size:12px;color:var(--gold);font-weight:500" id="streak-msg"></div>
+        <div style="font-size:10px;color:var(--txt3)" id="streak-max-msg"></div>
+      </div>
     </div>
 
     <div class="greeting" id="greeting"></div>
@@ -233,6 +300,56 @@
       </div>
     </div>
 
+    <!-- 주간 MVP 배너 -->
+    <div id="mvp-banner" style="display:none;background:linear-gradient(135deg,rgba(201,169,97,.1),rgba(201,169,97,.04));border:1px solid rgba(201,169,97,.25);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;text-align:center">
+      <div style="font-size:11px;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">이번 주 MVP 🏆</div>
+      <div style="font-size:15px;font-weight:700;color:var(--gold)" id="mvp-name"></div>
+    </div>
+
+    <!-- 추천 단어장 + 시험 일정 배너 -->
+    <div id="rec-set-banner" style="display:none;background:rgba(201,169,97,.08);border:1px solid rgba(201,169,97,.2);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;cursor:pointer" onclick="goToRecommendedSet()">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">📌</span>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--gold)" id="rec-set-title">이번 주 추천</div>
+          <div style="font-size:11px;color:var(--txt2)" id="rec-set-desc"></div>
+        </div>
+        <span style="margin-left:auto;font-size:11px;color:var(--txt3)">바로가기 →</span>
+      </div>
+    </div>
+    <div id="exam-schedule-banner" style="display:none;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">📝</span>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--red,#f87171)" id="exam-schedule-dday"></div>
+          <div style="font-size:11px;color:var(--txt2)" id="exam-schedule-desc"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오늘의 미션 -->
+    <div id="daily-mission-card" style="display:none;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rx);padding:.875rem 1rem;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+        <div style="font-size:13px;font-weight:700">⚡ 오늘의 미션</div>
+        <span id="mission-xp-badge" class="badge b-gold" style="font-size:10px"></span>
+      </div>
+      <div id="mission-list" style="display:flex;flex-direction:column;gap:6px"></div>
+      <div id="mission-complete-msg" style="display:none;text-align:center;padding:.5rem;font-size:13px;color:var(--gold);font-weight:600">🎉 오늘 미션 완료! 보너스 XP 지급!</div>
+    </div>
+
+    <!-- 주간 목표 달성률 -->
+    <div id="weekly-goal-card" style="display:none;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rx);padding:.875rem 1rem;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+        <div style="font-size:13px;font-weight:700">📊 이번 주 학습 현황</div>
+        <span id="weekly-goal-pct" style="font-size:12px;font-weight:700;color:var(--gold)"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:.5rem" id="weekly-day-dots"></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txt3)">
+        <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+      </div>
+      <div style="margin-top:.5rem;font-size:11px;color:var(--txt3)" id="weekly-goal-detail"></div>
+    </div>
+
     <p class="sec-title">학습 시작</p>
 
     <!-- 오늘의 한 단어 -->
@@ -262,12 +379,14 @@
         <span class="module-icon">📖</span>
         <div class="module-name">단어</div>
         <div class="module-desc">Vocabulary</div>
+        <div id="mod-vocab-last" style="font-size:9px;color:var(--txt3);margin-top:4px"></div>
       </a>
       <a class="module-card" href="listening.html" id="mod-listen"
          style="--accent-color:rgba(96,165,250,.1);--accent-bdr:rgba(96,165,250,.25)">
         <span class="module-icon">🎧</span>
         <div class="module-name">리스닝</div>
         <div class="module-desc">Listening</div>
+        <div id="mod-listen-last" style="font-size:9px;color:var(--txt3);margin-top:4px"></div>
       </a>
     </div>
 
@@ -277,9 +396,80 @@
       <div class="metrics" id="stats-grid"></div>
     </div>
 
-    <div style="text-align:center;margin-top:1.5rem">
-      <button class="btn btn-ghost btn-sm" onclick="logout()">← 나가기</button>
+    <!-- 포인트 상점 -->
+    <div style="margin-top:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+        <p class="sec-title" style="margin:0">🛒 포인트 상점</p>
+        <button onclick="showHelp('shop')" style="background:none;border:none;font-size:13px;color:var(--txt3);cursor:pointer;padding:2px 4px" title="상점 도움말">❓</button>
+        <span id="shop-points" style="font-size:12px;color:var(--gold);font-weight:700"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="shop-grid"></div>
+      <div id="shop-msg" style="font-size:11px;text-align:center;min-height:14px;margin-top:.375rem;color:var(--grn,#4caf50)"></div>
     </div>
+
+    <!-- 학습 BGM (Web Audio API - 페이지 전환해도 재생 유지) -->
+    <div style="margin-top:1rem">
+      <p class="sec-title" style="margin-bottom:.5rem">🎵 학습 BGM</p>
+      <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rx);padding:.875rem 1rem">
+        <!-- 현재 재생 중 표시 -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem">
+          <div id="bgm-visualizer" style="display:flex;align-items:flex-end;gap:2px;height:20px">
+            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:6px"></div>
+            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:12px"></div>
+            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:8px"></div>
+            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:16px"></div>
+            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:10px"></div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:600;color:var(--txt)" id="bgm-now-title">선택 안 됨</div>
+            <div style="font-size:10px;color:var(--txt3)" id="bgm-now-sub">사운드를 선택하세요</div>
+          </div>
+          <button id="bgm-play-btn" onclick="toggleBGM()"
+            style="width:36px;height:36px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">▶</button>
+        </div>
+        <!-- 볼륨 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+          <span style="font-size:12px">🔈</span>
+          <input type="range" id="bgm-volume" min="0" max="100" value="30"
+            oninput="setBGMVolume(this.value)"
+            style="flex:1;accent-color:var(--gold);height:4px">
+          <span style="font-size:12px">🔊</span>
+        </div>
+        <!-- 사운드 선택 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button class="bgm-btn" data-type="lofi" onclick="selectBGM('lofi','☕ Lofi Beat','집중 공부용')"
+            style="display:flex;align-items:center;gap:6px;padding:.5rem .625rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;text-align:left;transition:all .15s">
+            <span style="font-size:16px">☕</span>
+            <div><div style="font-size:11px;font-weight:600;color:var(--txt)">Lofi Beat</div>
+            <div style="font-size:10px;color:var(--txt3)">집중 공부용</div></div>
+          </button>
+          <button class="bgm-btn" data-type="rain" onclick="selectBGM('rain','🌧️ 빗소리','편안한 집중')"
+            style="display:flex;align-items:center;gap:6px;padding:.5rem .625rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;text-align:left;transition:all .15s">
+            <span style="font-size:16px">🌧️</span>
+            <div><div style="font-size:11px;font-weight:600;color:var(--txt)">빗소리</div>
+            <div style="font-size:10px;color:var(--txt3)">편안한 집중</div></div>
+          </button>
+          <button class="bgm-btn" data-type="white" onclick="selectBGM('white','🌊 백색소음','소음 차단용')"
+            style="display:flex;align-items:center;gap:6px;padding:.5rem .625rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;text-align:left;transition:all .15s">
+            <span style="font-size:16px">🌊</span>
+            <div><div style="font-size:11px;font-weight:600;color:var(--txt)">백색소음</div>
+            <div style="font-size:10px;color:var(--txt3)">소음 차단용</div></div>
+          </button>
+          <button class="bgm-btn" data-type="nature" onclick="selectBGM('nature','🌿 자연 소리','스트레스 해소')"
+            style="display:flex;align-items:center;gap:6px;padding:.5rem .625rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;text-align:left;transition:all .15s">
+            <span style="font-size:16px">🌿</span>
+            <div><div style="font-size:11px;font-weight:600;color:var(--txt)">자연 소리</div>
+            <div style="font-size:10px;color:var(--txt3)">스트레스 해소</div></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:1.5rem">
+      <button class="btn btn-ghost btn-sm" onclick="logout()">← 나가기</button>
+      <button class="btn btn-ghost btn-sm" onclick="showHelp('home')">❓ 도움말</button>
+    </div>
+
   </div>
 </div>
 
@@ -304,7 +494,82 @@
 
 </div><!-- .app -->
 
-<!-- 레벨업 팡파레 팝업 -->
+
+
+<!-- 첫 접속 온보딩 -->
+<div id="onboarding-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10005;align-items:center;justify-content:center">
+  <div style="background:var(--sur);border-radius:24px;padding:2rem 1.5rem;max-width:300px;width:90%;text-align:center">
+    <div id="onboard-slides">
+      <!-- 슬라이드 1 -->
+      <div class="onboard-slide" id="onboard-slide-1">
+        <div style="font-size:56px;margin-bottom:.75rem">📖</div>
+        <div style="font-size:18px;font-weight:800;color:var(--txt);margin-bottom:.5rem">단어 학습</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.7">플래시카드로 단어를 익히고<br>퀴즈로 실력을 확인해요.<br>취약단어는 자동으로 모아서 집중 훈련!</div>
+      </div>
+      <!-- 슬라이드 2 -->
+      <div class="onboard-slide" id="onboard-slide-2" style="display:none">
+        <div style="font-size:56px;margin-bottom:.75rem">🏆</div>
+        <div style="font-size:18px;font-weight:800;color:var(--txt);margin-bottom:.5rem">XP & 레벨</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.7">퀴즈를 풀면 XP를 얻고 레벨이 올라요.<br>배지를 모으고 칭호를 획득해보세요.<br>포인트로 아이템도 살 수 있어요!</div>
+      </div>
+      <!-- 슬라이드 3 -->
+      <div class="onboard-slide" id="onboard-slide-3" style="display:none">
+        <div style="font-size:56px;margin-bottom:.75rem">🔥</div>
+        <div style="font-size:18px;font-weight:800;color:var(--txt);margin-bottom:.5rem">매일 꾸준히!</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.7">매일 접속하면 연속 출석 스트릭이 쌓여요.<br>수능까지 D-day를 확인하며<br>목표를 향해 달려가봐요! 💪</div>
+      </div>
+    </div>
+    <!-- 진행 점 -->
+    <div style="display:flex;justify-content:center;gap:6px;margin:1.25rem 0 1rem">
+      <div class="ob-dot active" id="ob-dot-1" style="width:8px;height:8px;border-radius:50%;background:var(--gold);transition:all .2s"></div>
+      <div class="ob-dot" id="ob-dot-2" style="width:8px;height:8px;border-radius:50%;background:var(--sur3);transition:all .2s"></div>
+      <div class="ob-dot" id="ob-dot-3" style="width:8px;height:8px;border-radius:50%;background:var(--sur3);transition:all .2s"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="ob-skip-btn" class="btn btn-ghost btn-full" onclick="closeOnboarding()" style="font-size:12px">건너뛰기</button>
+      <button id="ob-next-btn" class="btn btn-gold btn-full" onclick="nextOnboardSlide()">다음 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 도움말 팝업 -->
+<div id="help-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10006;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--sur);border-radius:20px;width:100%;max-width:340px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem .75rem;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:var(--sur);z-index:1;border-radius:20px 20px 0 0">
+      <div style="font-size:15px;font-weight:700" id="help-title">도움말</div>
+      <button onclick="document.getElementById('help-popup').style.display='none'" style="background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer;padding:0">×</button>
+    </div>
+    <div id="help-content" style="padding:1rem 1.25rem 1.5rem"></div>
+  </div>
+</div>
+<!-- D-100 특별 팝업 -->
+<div id="d100-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10002;align-items:center;justify-content:center">
+  <div style="background:var(--sur);border:1px solid var(--gold-bdr);border-radius:24px;padding:2rem 1.5rem;max-width:300px;width:90%;text-align:center;position:relative">
+    <div style="font-size:56px;margin-bottom:.5rem;line-height:1.2">🎯</div>
+    <div style="font-size:11px;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;margin-bottom:.5rem">SPECIAL EVENT</div>
+    <div style="font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.5rem">D-100</div>
+    <div style="font-size:15px;font-weight:700;color:var(--txt);margin-bottom:.5rem">수능까지 100일!</div>
+    <div style="font-size:13px;color:var(--txt2);line-height:1.7;margin-bottom:1.25rem">
+      여기까지 포기하지 않고 온 것만으로도<br>
+      이미 대단해요. 앞으로 100일,<br>
+      지금처럼만 하면 반드시 됩니다. 💪<br>
+      <span style="color:var(--gold);font-weight:600;margin-top:.5rem;display:block">🎁 보너스 +500 XP 지급!</span>
+    </div>
+    <button class="btn btn-gold btn-full" onclick="document.getElementById('d100-popup').style.display='none'">
+      💪 파이팅!
+    </button>
+  </div>
+</div>
+<!-- streak 팡파레 팝업 -->
+<div id="streak-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10001;align-items:center;justify-content:center">
+  <div style="background:var(--sur);border-radius:24px;padding:2rem 1.5rem;max-width:300px;width:90%;text-align:center;position:relative">
+    <div id="streak-popup-emoji" style="font-size:64px;margin-bottom:.5rem;line-height:1.2"></div>
+    <div style="font-size:11px;color:var(--txt3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.25rem">STREAK!</div>
+    <div id="streak-popup-title" style="font-size:22px;font-weight:800;color:var(--gold);margin-bottom:.5rem"></div>
+    <div id="streak-popup-msg" style="font-size:13px;color:var(--txt2);margin-bottom:1.25rem;line-height:1.6"></div>
+    <button class="btn btn-gold btn-full" onclick="document.getElementById('streak-popup').style.display='none'">계속하기 🔥</button>
+  </div>
+</div>
 <div id="levelup-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center">
   <div style="background:var(--sur);border-radius:24px;padding:2rem 1.5rem;max-width:300px;width:90%;text-align:center;position:relative">
     <div id="levelup-emoji" style="font-size:60px;margin-bottom:.5rem;line-height:1.2"></div>
@@ -375,6 +640,18 @@
     <!-- 동물 선택 -->
     <div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">프로필 아이콘</div>
     <div id="animal-grid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem"></div>
+    <!-- 배경 색상 선택 -->
+    <div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">아바타 배경 색상</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem" id="color-grid">
+      <button onclick="selectAvatarColor('#C9A961')" data-color="#C9A961" style="width:32px;height:32px;border-radius:50%;background:#C9A961;border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#A78BFA')" data-color="#A78BFA" style="width:32px;height:32px;border-radius:50%;background:#A78BFA;border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#60A5FA')" data-color="#60A5FA" style="width:32px;height:32px;border-radius:50%;background:#60A5FA;border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#4ADE80')" data-color="#4ADE80" style="width:32px;height:32px;border-radius:50%;background:#4ADE80;border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#F87171')" data-color="#F87171" style="width:32px;height:32px;border-radius:50%;background:#F87171;border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#FB923C')" data-color="#FB923C" style="width:32px;height:32px;border-radius:50%;background:#FB923C;border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#E879F9')" data-color="#E879F9" style="width:32px;height:32px;border-radius:50%;background:#E879F9;border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#94A3B8')" data-color="#94A3B8" style="width:32px;height:32px;border-radius:50%;background:#94A3B8;border:2px solid transparent;cursor:pointer"></button>
+    </div>
     <!-- 칭호 선택 -->
     <div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">칭호 선택 <span style="color:var(--txt3);font-size:11px">(획득한 칭호만)</span></div>
     <div id="title-grid" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem"></div>
@@ -428,8 +705,17 @@ async function init() {
     state.settings = await DB.getSettings();
     document.getElementById('app-title-display').textContent = state.settings.appName || 'English Trainer';
     document.title = state.settings.appName || 'English Trainer';
-  } catch(e) { /* Firebase 미설정 시 무시 */ }
+    // 앱 로고 이모지 적용
+    if (state.settings.appEmoji) {
+      document.querySelectorAll('.logo-mark').forEach(function(m){ m.textContent = state.settings.appEmoji; });
+    }
+    hideConnError();
+  } catch(e) {
+    showConnError();
+  }
 
+  // 첫 접속 온보딩 체크
+  checkOnboarding();
   // 세션 복원
   const saved = sessionStorage.getItem('stuId');
   if (saved) {
@@ -552,24 +838,46 @@ async function init() {
     if (qEl) qEl.textContent = QUOTES[qi];
   } catch(e) {}
 
-  // D-day 계산 (2026 수능: 11월 12일) - 로컬 날짜 숫자만 비교
+  // D-day 계산 - settings.suneungDate 기반 (선생님이 변경 가능, 기본값 2026-11-19)
   try {
+    var _sdStr = (state.settings && state.settings.suneungDate) || '2026-11-19';
+    var _sp = _sdStr.split('-');
     var _n = new Date();
-    var _ty = _n.getFullYear(), _tm = _n.getMonth()+1, _td = _n.getDate();
-    var _sy = 2026, _sm = 11, _sd = 19;
-    // 날짜를 YYYYMMDD 정수로 비교 (타임존 완전 무관)
-    var _todayNum = _ty*10000 + _tm*100 + _td;
-    var _sunNum   = _sy*10000 + _sm*100 + _sd;
-    // 두 날짜 사이 일수: 로컬 자정 기준
-    var _t0 = new Date(_ty,_tm-1,_td).getTime();
-    var _s0 = new Date(_sy,_sm-1,_sd).getTime();
+    var _t0 = new Date(_n.getFullYear(),_n.getMonth(),_n.getDate()).getTime();
+    var _s0 = new Date(parseInt(_sp[0]),parseInt(_sp[1])-1,parseInt(_sp[2])).getTime();
     var diff = Math.round((_s0 - _t0) / 86400000);
     var ddayEl = document.getElementById('dday-count');
     var ddayDetail = document.getElementById('dday-detail');
     if (ddayEl) {
-      if (diff > 0) { ddayEl.textContent = 'D-' + diff; if(ddayDetail) ddayDetail.textContent = '2026학년도 수능까지'; }
+      if (diff > 0) { ddayEl.textContent = 'D-' + diff; if(ddayDetail) ddayDetail.textContent = '수능까지'; }
       else if (diff === 0) { ddayEl.textContent = 'D-DAY!'; }
       else { ddayEl.textContent = '수능 완료 🎉'; }
+      // D-100 특별 이벤트 체크
+      checkD100Event(diff);
+      // 학습 목표 달성 예측
+      if (diff > 0) predictStudyGoal(diff);
+    }
+  } catch(e) {}
+}
+
+async function predictStudyGoal(daysLeft) {
+  try {
+    var results = window._cachedResults || await DB.getResults(state.stuId);
+    if (!results || results.length < 3) return;
+    // 최근 7일 학습 패턴
+    var now = new Date();
+    var week = new Date(now - 7 * 86400000);
+    var recentResults = results.filter(function(r){ return r.date && new Date(r.date) >= week; });
+    if (!recentResults.length) return;
+    var avgPerDay = recentResults.length / 7;
+    var avgCorrect = recentResults.reduce(function(s,r){return s+(r.correct||0);},0) / recentResults.length;
+    // 수능까지 예상 학습 횟수
+    var predicted = Math.round(avgPerDay * daysLeft);
+    var predictedWords = Math.round(avgCorrect * avgPerDay * daysLeft);
+    var el = document.getElementById('dday-words-needed');
+    if (el && predicted > 0) {
+      el.innerHTML = '📈 현재 페이스면 <b style="color:var(--gold)">' + predictedWords.toLocaleString() + '개</b> 단어 학습 예정 (' + predicted + '회)';
+      document.getElementById('dday-goal-wrap').style.display = 'block';
     }
   } catch(e) {}
 }
@@ -632,13 +940,35 @@ async function doStuLogin() {
 async function showMain() {
   document.getElementById('view-login').style.display = 'none';
   document.getElementById('view-main').style.display = 'block';
+  // ── DB 캐시 초기화 (showMain당 1회 fetch, 이후 재사용) ──
+  window._cachedResults = null;
+  window._cachedWeakWords = null;
+  window._cachedProfile = null;
+  // getResults 미리 1번만 fetch
+  try {
+    window._cachedResults = await DB.getResults(state.stuId);
+    window._cachedWeakWords = await DB.getWeakWords(state.stuId);
+  } catch(e) { window._cachedResults = []; window._cachedWeakWords = []; }
 
   // 링크에 stuId 파라미터 전달
   document.getElementById('mod-vocab').href   = `vocab.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
   document.getElementById('mod-listen').href  = `listening.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
 
-  // 프로필 카드 로드
+  // 오늘의 미션 + 주간 목표
+  loadDailyMission().catch(function(){});
+  loadWeeklyGoal().catch(function(){});
+  loadModuleLastStudy(state.stuId).catch(function(){});
+  loadRecommendedSet().catch(function(){});
+  loadExamSchedule().catch(function(){});
+  loadWeeklyMVPBanner().catch(function(){});
+  loadShop();
+  applyOwnedItems();
+
+  // 프로필 카드 로드 (vocab에서 XP 변경 시 갱신)
   try {
+    if (sessionStorage.getItem('xpUpdated')) {
+      sessionStorage.removeItem('xpUpdated');
+    }
     await loadProfileCard(state.stuId, state.stuName);
   } catch(e) {}
 
@@ -678,10 +1008,8 @@ async function showMain() {
     var weekKey = 'weekly_report_' + state.stuId + '_' + getWeekKey();
     var alreadyShown = localStorage.getItem(weekKey);
     if (isMonday && !alreadyShown) {
-      var [results2, weakList2] = await Promise.all([
-        DB.getResults(state.stuId),
-        DB.getAllWeakWords(state.stuId)
-      ]);
+      var results2 = window._cachedResults || await DB.getResults(state.stuId);
+      var weakList2 = await DB.getAllWeakWords(state.stuId);
       showWeeklyReport(results2, weakList2, weekKey);
     }
   } catch(e) {}
@@ -735,20 +1063,26 @@ async function showMain() {
 
   // 스트릭
   try {
-    const cnt = await DB.updateStreak(state.stuId);
+    var streakResult = await DB.updateStreak(state.stuId);
+    var cnt = typeof streakResult === 'object' ? streakResult.count : streakResult;
+    var maxStreak = typeof streakResult === 'object' ? (streakResult.max || cnt) : cnt;
     if (cnt > 0) {
       document.getElementById('streak-num').textContent = cnt;
-      document.getElementById('streak-msg').textContent = cnt >= 7 ? '🔥 7일 연속 달성!' : `${cnt}일째 공부 중`;
+      document.getElementById('streak-msg').textContent = cnt >= 30 ? '👑 30일 연속! 전설이에요!' : cnt >= 7 ? '🔥 7일 연속 달성!' : cnt + '일째 공부 중';
+      var maxEl = document.getElementById('streak-max-msg');
+      if (maxEl && maxStreak > cnt) maxEl.textContent = '최고 ' + maxStreak + '일';
+      else if (maxEl && maxStreak === cnt && cnt >= 3) maxEl.textContent = '🏅 현재가 최고기록!';
       document.getElementById('streak-bar').style.display = 'flex';
+      if (cnt === 7 || cnt === 14 || cnt === 30 || cnt === 60 || cnt === 100) {
+        showStreakPopup(cnt);
+      }
     }
   } catch(e) {}
 
   // 현황 통계 + 복습/취약 알림 (동시에)
   try {
-    const [results, weakList] = await Promise.all([
-      DB.getResults(state.stuId),
-      DB.getWeakWords(state.stuId)
-    ]);
+    const results = window._cachedResults || await DB.getResults(state.stuId);
+    const weakList = window._cachedWeakWords || await DB.getWeakWords(state.stuId);
 
     if (results.length) {
       const total = results.length;
@@ -887,6 +1221,7 @@ var _badgesCache = {};
 var _progressCache = {};
 var _editAnimal = null;
 var _editTitle = null;
+var _editColor = '';
 
 async function loadProfileCard(stuId, stuName) {
   try {
@@ -919,6 +1254,11 @@ function renderProfileCard(stuName) {
   }
   var avatarEl = document.getElementById('profile-avatar-img');
   if (avatarEl) avatarEl.textContent = prof.animal||'🐱';
+  // 아바타 배경 색상 적용
+  if (prof.avatarColor) {
+    var avatarRingEl = document.getElementById('profile-avatar-ring');
+    if (avatarRingEl) avatarRingEl.style.background = prof.avatarColor + '33';
+  }
   renderAvatarRing(document.getElementById('profile-avatar-ring'), lvDef.border);
   renderCardBorder(document.getElementById('profile-card-border'), lvDef.border);
 
@@ -927,6 +1267,16 @@ function renderProfileCard(stuName) {
   var lvEl = document.getElementById('profile-lv'); if (lvEl) lvEl.textContent='Lv.'+lv;
   var pctEl = document.getElementById('profile-xp-pct'); if (pctEl) pctEl.textContent=pct+'%';
   var xpEl = document.getElementById('profile-xp-num'); if (xpEl) xpEl.textContent='XP '+xp.toLocaleString();
+  // 다음 레벨까지 카운트다운
+  var nextEl = document.getElementById('profile-xp-next');
+  if (nextEl) {
+    if (nextDef) {
+      var remain = (nextDef.xp||0) - xp;
+      nextEl.textContent = '다음 레벨까지 ' + remain.toLocaleString() + ' XP';
+    } else {
+      nextEl.textContent = '👑 최고 레벨 달성!';
+    }
+  }
   var bcEl = document.getElementById('profile-badge-count');
   if (bcEl) bcEl.textContent='🏆 '+Object.keys(_badgesCache).length+'/40';
   renderProfileBadges();
@@ -1049,6 +1399,13 @@ function openProfileEdit() {
   var prof=_profileCache||{};
   _editAnimal=prof.animal||'🐱';
   _editTitle=prof.selectedTitle||'';
+  _editColor=prof.avatarColor||'';
+  // 색상 버튼 초기 선택 표시
+  setTimeout(function(){
+    document.querySelectorAll('#color-grid button').forEach(function(btn){
+      btn.style.borderColor = btn.dataset.color === _editColor ? '#fff' : 'transparent';
+    });
+  },50);
   var ag=document.getElementById('animal-grid');
   if(ag) ag.innerHTML=(window.PROFILE_ANIMALS||['🐱','🐶','🦊','🐯','🐻','🐼','🐸','🦁','🐺','🦝','🐨','🦄']).map(function(a){
     return '<button class="animal-btn '+(a===_editAnimal?'selected':'')+'" onclick="selectAnimal(\''+a+'\')">'+a+'</button>';
@@ -1065,6 +1422,15 @@ function openProfileEdit() {
   }).join('');
   document.getElementById('profile-edit-popup').style.display='flex';
 }
+
+function selectAvatarColor(color) {
+  _editColor = color;
+  document.querySelectorAll('#color-grid button').forEach(function(btn) {
+    btn.style.borderColor = btn.dataset.color === color ? '#fff' : 'transparent';
+    btn.style.transform = btn.dataset.color === color ? 'scale(1.15)' : '';
+  });
+}
+
 function closeProfileEdit() { document.getElementById('profile-edit-popup').style.display='none'; }
 function selectAnimal(a) {
   _editAnimal=a;
@@ -1079,11 +1445,862 @@ function selectTitle(t) {
 async function saveProfileEdit() {
   if(!state.stuId) return;
   try {
-    await DB.saveProfile(state.stuId,{animal:_editAnimal,selectedTitle:_editTitle});
-    if(_profileCache){_profileCache.animal=_editAnimal;_profileCache.selectedTitle=_editTitle;}
+    await DB.saveProfile(state.stuId,{animal:_editAnimal,selectedTitle:_editTitle,avatarColor:_editColor});
+    if(_profileCache){_profileCache.animal=_editAnimal;_profileCache.selectedTitle=_editTitle;_profileCache.avatarColor=_editColor;}
     closeProfileEdit();
     renderProfileCard(state.stuName);
   } catch(e){}
+}
+
+
+// ── 오늘의 미션 ────────────────────────────────
+async function loadDailyMission() {
+  if (!state.stuId) return;
+  var card = document.getElementById('daily-mission-card');
+  if (!card) return;
+
+  var today = new Date().toISOString().slice(0,10);
+  var mKey = 'mission_' + today + '_' + state.stuId;
+  var saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem(mKey)); } catch(e) {}
+
+  // 미션 정의
+  var missions = [
+    { id:'quiz20',     icon:'✏️', text:'퀴즈 20개 풀기',    xp:100, done:false },
+    { id:'weak5',      icon:'⚡', text:'취약단어 5개 맞추기', xp:80,  done:false },
+    { id:'flash10',    icon:'📖', text:'플래시카드 10개 학습', xp:50,  done:false },
+  ];
+
+  // 오늘 결과에서 달성 여부 확인
+  try {
+    var results = window._cachedResults || await DB.getResults(state.stuId);
+    var todayResults = (results||[]).filter(function(r){ return r.date && r.date.startsWith(today); });
+    var todayCorrect = todayResults.reduce(function(s,r){ return s+(r.correct||0); }, 0);
+    // sessionStorage 즉시 카운터 (vocab에서 방금 한 것도 반영)
+    var sessionQuiz = parseInt(sessionStorage.getItem('mission_quiz_' + today) || '0');
+    var effectiveQuiz = Math.max(todayCorrect, sessionQuiz);
+    var todayFlash = parseInt(sessionStorage.getItem('flash_count_' + today) || '0');
+
+    missions[0].done = effectiveQuiz >= 20;
+    missions[2].done = todayFlash >= 10;
+
+    // 취약단어는 weakWordsToday 카운터
+    var weakToday = parseInt(sessionStorage.getItem('weak_correct_' + today) || '0');
+    missions[1].done = weakToday >= 5;
+  } catch(e) {}
+
+  var totalXP = missions.reduce(function(s,m){ return s + m.xp; }, 0);
+  var doneAll = missions.every(function(m){ return m.done; });
+  var doneCount = missions.filter(function(m){ return m.done; }).length;
+
+  document.getElementById('mission-xp-badge').textContent = '+' + totalXP + ' XP';
+  document.getElementById('mission-list').innerHTML = missions.map(function(m) {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0">' +
+      '<span style="font-size:16px">' + (m.done ? '✅' : '⬜') + '</span>' +
+      '<span style="font-size:12px;color:' + (m.done ? 'var(--grn,#4caf50)' : 'var(--txt)') + ';' + (m.done ? 'text-decoration:line-through;opacity:.6' : '') + '">' +
+        m.icon + ' ' + m.text +
+      '</span>' +
+      '<span style="margin-left:auto;font-size:10px;color:var(--gold)">+' + m.xp + ' XP</span>' +
+    '</div>';
+  }).join('');
+
+  // 전부 완료 시 완료 메시지 + 보너스 XP (하루 1회)
+  var bonusKey = 'mission_bonus_' + today + '_' + state.stuId;
+  if (doneAll && !sessionStorage.getItem(bonusKey)) {
+    document.getElementById('mission-complete-msg').style.display = 'block';
+    sessionStorage.setItem(bonusKey, '1');
+    try { await DB.addXP(state.stuId, 200); } catch(e) {} // 미션 완료 보너스
+  }
+
+  card.style.display = 'block';
+}
+
+
+// ── 주간 목표 달성률 ──────────────────────────
+async function loadWeeklyGoal() {
+  if (!state.stuId) return;
+  var card = document.getElementById('weekly-goal-card');
+  if (!card) return;
+
+  try {
+    var results = window._cachedResults || await DB.getResults(state.stuId);
+    if (!results || !results.length) return;
+
+    // 이번 주 월~일 범위
+    var now = new Date();
+    var dayOfWeek = now.getDay(); // 0=일, 1=월 ...
+    var monday = new Date(now); monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)); monday.setHours(0,0,0,0);
+    var sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
+
+    // 요일별 학습 여부 (월=0 ~ 일=6)
+    var dayDone = [false,false,false,false,false,false,false];
+    var weekCount = 0;
+    var weekCorrect = 0;
+
+    results.forEach(function(r) {
+      if (!r.date) return;
+      var d = new Date(r.date);
+      if (d < monday || d > sunday) return;
+      var di = d.getDay() === 0 ? 6 : d.getDay() - 1; // 월=0...일=6
+      dayDone[di] = true;
+      weekCount++;
+      weekCorrect += (r.correct || 0);
+    });
+
+    var doneDays = dayDone.filter(Boolean).length;
+    var pct = Math.round(doneDays / 7 * 100);
+
+    // 요일 점 렌더 (일요일을 마지막으로)
+    var reordered = [dayDone[0],dayDone[1],dayDone[2],dayDone[3],dayDone[4],dayDone[5],dayDone[6]];
+    // 요일 순서: 일월화수목금토 → 인덱스 재배치
+    var displayOrder = [6,0,1,2,3,4,5]; // 일,월,화,수,목,금,토
+    var dotsEl = document.getElementById('weekly-day-dots');
+    if (dotsEl) {
+      dotsEl.innerHTML = displayOrder.map(function(di) {
+        var isToday = (di === (now.getDay()===0?6:now.getDay()-1)) && doneDays > 0;
+        var done2 = dayDone[di];
+        var bg = done2 ? 'var(--gold)' : 'var(--sur2)';
+        var border = isToday ? '2px solid var(--gold)' : '2px solid transparent';
+        return '<div style="height:28px;border-radius:6px;background:' + bg + ';border:' + border + ';display:flex;align-items:center;justify-content:center;font-size:12px">' +
+          (done2 ? '✓' : '') + '</div>';
+      }).join('');
+    }
+
+    var pctEl = document.getElementById('weekly-goal-pct');
+    if (pctEl) pctEl.textContent = doneDays + '/7일 (' + pct + '%)';
+
+    var detailEl = document.getElementById('weekly-goal-detail');
+    if (detailEl) detailEl.textContent = '이번 주 ' + weekCount + '회 시험 · 정답 ' + weekCorrect + '개';
+
+    card.style.display = 'block';
+  } catch(e) {}
+}
+
+
+function elapsedLabel(dateStr) {
+  if (!dateStr) return '';
+  var diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  if (diff === 0) return '오늘';
+  if (diff === 1) return '어제';
+  if (diff < 7) return diff + '일 전';
+  if (diff < 30) return Math.floor(diff/7) + '주 전';
+  return Math.floor(diff/30) + '달 전';
+}
+
+async function loadModuleLastStudy(stuId) {
+  try {
+    var results = window._cachedResults || await DB.getResults(stuId);
+    if (!results || !results.length) return;
+    // 단어 마지막
+    var vocabLast = null, listenLast = null;
+    results.forEach(function(r) {
+      if (r.date) {
+        if (!r.setId || !r.setId.startsWith('2026')) {
+          if (!vocabLast || r.date > vocabLast) vocabLast = r.date;
+        }
+      }
+    });
+    var vEl = document.getElementById('mod-vocab-last');
+    if (vEl && vocabLast) vEl.textContent = elapsedLabel(vocabLast);
+  } catch(e) {}
+  try {
+    // 리스닝 마지막 (Firebase에서 listening/${stuId} 경로 확인)
+    var lEl = document.getElementById('mod-listen-last');
+    if (lEl) {
+      var lDate = sessionStorage.getItem('last_listening_' + stuId);
+      if (lDate) lEl.textContent = elapsedLabel(lDate);
+    }
+  } catch(e) {}
+}
+
+
+
+async function loadWeeklyMVPBanner() {
+  try {
+    var mvp = state.settings && state.settings.weeklyMVP;
+    if (!mvp || !mvp.name) return;
+    // 이번 주 데이터인지 확인
+    var monday = new Date();
+    var dow = monday.getDay();
+    monday.setDate(monday.getDate() - (dow===0?6:dow-1));
+    monday.setHours(0,0,0,0);
+    if (mvp.week && new Date(mvp.week) < monday) return; // 지난 주 데이터
+    var banner = document.getElementById('mvp-banner');
+    var nameEl = document.getElementById('mvp-name');
+    if (banner && nameEl) {
+      nameEl.textContent = mvp.name + (mvp.name === state.stuName ? ' (나!)' : '');
+      banner.style.display = 'block';
+    }
+  } catch(e) {}
+}
+
+async function loadRecommendedSet() {
+  try {
+    var rec = state.settings && state.settings.recommendedSet;
+    if (!rec || !rec.setId) return;
+    var banner = document.getElementById('rec-set-banner');
+    var title = document.getElementById('rec-set-title');
+    var desc = document.getElementById('rec-set-desc');
+    if (!banner) return;
+    if (title) title.textContent = '📌 이번 주 추천: ' + rec.setName;
+    if (desc) desc.textContent = rec.weekNum + '주차 · 지금 바로 학습해보세요!';
+    banner.style.display = 'block';
+    // 링크 설정
+    window._recSetId = rec.setId;
+    window._recWeekNum = rec.weekNum;
+  } catch(e) {}
+}
+
+function goToRecommendedSet() {
+  if (!window._recSetId) return;
+  window.location.href = 'vocab.html?stu=' + state.stuId + '&name=' + encodeURIComponent(state.stuName) + '&rec=' + window._recSetId + '&recWeek=' + (window._recWeekNum||1);
+}
+
+async function loadExamSchedule() {
+  try {
+    var sched = state.settings && state.settings.examSchedule;
+    if (!sched || !sched.date) return;
+    var banner = document.getElementById('exam-schedule-banner');
+    var ddayEl = document.getElementById('exam-schedule-dday');
+    var descEl = document.getElementById('exam-schedule-desc');
+    if (!banner) return;
+    var sp = sched.date.split('-');
+    var t0 = new Date(parseInt(sp[0]),parseInt(sp[1])-1,parseInt(sp[2])).getTime();
+    var n = new Date(); var t1 = new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();
+    var diff = Math.round((t0-t1)/86400000);
+    if (diff < 0) return; // 지난 시험
+    var ddayStr = diff===0 ? '📝 오늘 시험!' : '📝 시험 D-' + diff;
+    if (ddayEl) ddayEl.textContent = ddayStr;
+    if (descEl) descEl.textContent = sched.desc || sched.date;
+    banner.style.display = 'block';
+  } catch(e) {}
+}
+
+
+// ── 학습 BGM (Web Audio API) ────────────────────
+var _bgmCtx = null;
+var _bgmNodes = [];
+var _bgmType = null;
+var _bgmPlaying = false;
+var _bgmVolume = 0.3;
+
+function _initAudioCtx() {
+  if (_bgmCtx) return _bgmCtx;
+  _bgmCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _bgmCtx;
+}
+
+function _stopBGM() {
+  _bgmNodes.forEach(function(n) { try { n.stop(); } catch(e) {} try { n.disconnect(); } catch(e) {} });
+  _bgmNodes = [];
+}
+
+// 각 사운드 타입별 생성 함수
+function _createLofi(ctx, gainNode) {
+  // 베이스 드럼 패턴 + 부드러운 멜로디 느낌 (단순 비트)
+  function beat(time, freq, dur) {
+    var osc = ctx.createOscillator();
+    var g = ctx.createGain();
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    g.gain.setValueAtTime(0.4, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    osc.connect(g); g.connect(gainNode);
+    osc.start(time); osc.stop(time + dur);
+    _bgmNodes.push(osc);
+  }
+  // 4/4박자 루프 (BPM 80)
+  var bpm = 80, spb = 60/bpm;
+  function loop(startTime) {
+    if (!_bgmPlaying) return;
+    beat(startTime,       60,  0.15); // kick
+    beat(startTime+spb*2, 60,  0.15); // kick
+    beat(startTime+spb,   200, 0.08); // snare
+    beat(startTime+spb*3, 200, 0.08); // snare
+    // 하이햇
+    for (var i=0;i<8;i++) beat(startTime + i*spb*0.5, 800+Math.random()*200, 0.04);
+    // 코드 느낌
+    [220, 277, 330].forEach(function(f) {
+      var o = ctx.createOscillator();
+      var g2 = ctx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      g2.gain.setValueAtTime(0.08, startTime);
+      g2.gain.exponentialRampToValueAtTime(0.001, startTime + spb*4);
+      o.connect(g2); g2.connect(gainNode);
+      o.start(startTime); o.stop(startTime + spb*4);
+      _bgmNodes.push(o);
+    });
+    setTimeout(function(){ loop(ctx.currentTime); }, spb*4*1000 - 50);
+  }
+  loop(ctx.currentTime + 0.1);
+}
+
+function _createRain(ctx, gainNode) {
+  // 빗소리: 랜덤 노이즈 버스트 여러 개
+  function rainDrop() {
+    if (!_bgmPlaying) return;
+    var bufSize = ctx.sampleRate * 0.05;
+    var buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i=0;i<bufSize;i++) data[i] = (Math.random()*2-1) * Math.random();
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    var bpf = ctx.createBiquadFilter();
+    bpf.type = 'bandpass';
+    bpf.frequency.value = 1000 + Math.random()*2000;
+    bpf.Q.value = 0.5;
+    var g2 = ctx.createGain();
+    g2.gain.value = Math.random() * 0.3;
+    src.connect(bpf); bpf.connect(g2); g2.connect(gainNode);
+    src.start();
+    _bgmNodes.push(src);
+    setTimeout(rainDrop, 20 + Math.random()*80);
+  }
+  for (var i=0;i<3;i++) setTimeout(rainDrop, i*20);
+}
+
+function _createWhiteNoise(ctx, gainNode) {
+  var bufSize = ctx.sampleRate * 2;
+  var buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  var data = buf.getChannelData(0);
+  for (var i=0;i<bufSize;i++) data[i] = Math.random()*2-1;
+  var src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  var filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 800;
+  src.connect(filter); filter.connect(gainNode);
+  src.start();
+  _bgmNodes.push(src);
+}
+
+function _createNature(ctx, gainNode) {
+  // 새소리 + 바람 느낌
+  function chirp(time) {
+    if (!_bgmPlaying) return;
+    var freq = 800 + Math.random()*400;
+    var dur = 0.1 + Math.random()*0.2;
+    var o = ctx.createOscillator();
+    var g2 = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, time);
+    o.frequency.linearRampToValueAtTime(freq*1.3, time+dur*0.3);
+    o.frequency.linearRampToValueAtTime(freq, time+dur);
+    g2.gain.setValueAtTime(0, time);
+    g2.gain.linearRampToValueAtTime(0.15, time+0.02);
+    g2.gain.exponentialRampToValueAtTime(0.001, time+dur);
+    o.connect(g2); g2.connect(gainNode);
+    o.start(time); o.stop(time+dur+0.05);
+    _bgmNodes.push(o);
+    setTimeout(function(){ chirp(ctx.currentTime); }, 500+Math.random()*2000);
+  }
+  // 바람 (filtered noise)
+  _createWhiteNoise(ctx, gainNode); // 배경
+  for (var i=0;i<2;i++) setTimeout(function(){ chirp(ctx.currentTime); }, i*300);
+}
+
+function selectBGM(type, title, sub) {
+  _bgmType = type;
+  document.getElementById('bgm-now-title').textContent = title;
+  document.getElementById('bgm-now-sub').textContent = sub;
+  document.querySelectorAll('.bgm-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+  // 재생 중이면 즉시 변경
+  if (_bgmPlaying) { _stopAllBGM(); setTimeout(startBGM, 100); }
+}
+
+function startBGM() {
+  if (!_bgmType) return;
+  try {
+    var ctx = _initAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    var gainNode = ctx.createGain();
+    gainNode.gain.value = _bgmVolume;
+    gainNode.connect(ctx.destination);
+    _bgmNodes.push(gainNode);
+    if (_bgmType === 'lofi')   _createLofi(ctx, gainNode);
+    if (_bgmType === 'rain')   _createRain(ctx, gainNode);
+    if (_bgmType === 'white')  _createWhiteNoise(ctx, gainNode);
+    if (_bgmType === 'nature') _createNature(ctx, gainNode);
+    _bgmPlaying = true;
+    document.getElementById('bgm-play-btn').textContent = '⏸';
+    document.getElementById('bgm-visualizer').classList.add('bgm-playing');
+    localStorage.setItem('bgm_type', _bgmType);
+  } catch(e) { console.warn('BGM error:', e); }
+}
+
+function _stopAllBGM() {
+  _stopBGM();
+  _bgmPlaying = false;
+  document.getElementById('bgm-play-btn').textContent = '▶';
+  document.getElementById('bgm-visualizer').classList.remove('bgm-playing');
+}
+
+function toggleBGM() {
+  if (_bgmPlaying) { _stopAllBGM(); }
+  else {
+    if (!_bgmType) { showToast('먼저 사운드를 선택하세요'); return; }
+    startBGM();
+  }
+}
+
+function setBGMVolume(val) {
+  _bgmVolume = val / 100;
+  var gainNodes = _bgmNodes.filter(function(n){ return n.gain !== undefined; });
+  gainNodes.forEach(function(g){ try { g.gain.value = _bgmVolume; } catch(e) {} });
+}
+
+// 저장된 BGM 상태 복원
+(function() {
+  var saved = localStorage.getItem('bgm_type');
+  if (saved) {
+    var titles = { lofi:'☕ Lofi Beat', rain:'🌧️ 빗소리', white:'🌊 백색소음', nature:'🌿 자연 소리' };
+    var subs   = { lofi:'집중 공부용', rain:'편안한 집중', white:'소음 차단용', nature:'스트레스 해소' };
+    setTimeout(function() {
+      selectBGM(saved, titles[saved]||saved, subs[saved]||'');
+    }, 500);
+  }
+})();
+
+
+// ── 다크/라이트 모드 토글 ─────────────────────
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  var icon  = document.getElementById('theme-icon');
+  var label = document.getElementById('theme-label');
+  if (theme === 'light') {
+    if (icon)  icon.textContent  = '☀️';
+    if (label) label.textContent = 'LIGHT';
+  } else {
+    if (icon)  icon.textContent  = '🌙';
+    if (label) label.textContent = 'DARK';
+  }
+  localStorage.setItem('theme', theme);
+}
+
+function toggleTheme() {
+  var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+
+// 저장된 테마 즉시 적용 (깜빡임 방지)
+(function() {
+  var saved = localStorage.getItem('theme') || 'dark';
+  applyTheme(saved);
+})();
+
+// ── D-100 특별 이벤트 ─────────────────────────
+function checkD100Event(diff) {
+  if (diff !== 100) return;
+  // D-100 팝업 표시
+  var popup = document.getElementById('d100-popup');
+  var shown = sessionStorage.getItem('d100_shown');
+  if (popup && !shown) {
+    sessionStorage.setItem('d100_shown', '1');
+    popup.style.display = 'flex';
+    // 보너스 XP
+    if (state.stuId) {
+      DB.addXP(state.stuId, 500).catch(function(){});
+    }
+    // 컨페티 (index에 없으므로 간단하게)
+    launchD100Confetti();
+  }
+}
+
+function launchD100Confetti() {
+  var colors = ['#C9A961','#F0D080','#FF6B6B','#6BCB77','#4D96FF','#FFD93D'];
+  for (var i=0;i<80;i++) {
+    (function(i) {
+      setTimeout(function() {
+        var el = document.createElement('div');
+        el.style.cssText = 'position:fixed;width:8px;height:14px;border-radius:2px;top:-20px;pointer-events:none;z-index:99999;' +
+          'left:' + Math.random()*100 + 'vw;' +
+          'background:' + colors[Math.floor(Math.random()*colors.length)] + ';' +
+          'animation:confetti-fall ' + (1.5+Math.random()*2) + 's linear forwards;' +
+          'transform:rotate(' + Math.random()*360 + 'deg)';
+        document.body.appendChild(el);
+        setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 4000);
+      }, i*25);
+    })(i);
+  }
+}
+
+
+// ── 포인트 상점 ──────────────────────────────
+var SHOP_ITEMS = [
+
+  // ══ 칭호 ══════════════════════════════════════
+  // 공통
+  { id:'title_star',      name:'⭐ 스타',         icon:'⭐', unlockXP:300,   type:'title', value:'⭐ 스타',         category:'title', rarity:'common',    desc:'반짝이는 신인 스타' },
+  { id:'title_fire',      name:'🔥 파이어',       icon:'🔥', unlockXP:500,   type:'title', value:'🔥 파이어',       category:'title', rarity:'common',    desc:'꺼지지 않는 불꽃' },
+  { id:'title_lightning', name:'⚡ 번개',         icon:'⚡', unlockXP:800,   type:'title', value:'⚡ 번개',         category:'title', rarity:'common',    desc:'빠른 암기력' },
+  { id:'title_diamond',   name:'💎 다이아',       icon:'💎', unlockXP:1500,  type:'title', value:'💎 다이아',       category:'title', rarity:'rare',      desc:'빛나는 보석처럼' },
+  { id:'title_genius',    name:'🧠 천재',         icon:'🧠', unlockXP:2000,  type:'title', value:'🧠 천재',         category:'title', rarity:'rare',      desc:'타고난 언어 감각' },
+  { id:'title_legend',    name:'🌟 레전드',       icon:'🌟', unlockXP:3000,  type:'title', value:'🌟 레전드',       category:'title', rarity:'rare',      desc:'전설의 시작' },
+  // 여성향
+  { id:'title_blossom',   name:'🌸 블라썸',       icon:'🌸', unlockXP:600,   type:'title', value:'🌸 블라썸',       category:'title', rarity:'common',    desc:'봄꽃처럼 피어나는' },
+  { id:'title_fairy',     name:'🧚 요정',         icon:'🧚', unlockXP:1200,  type:'title', value:'🧚 요정',         category:'title', rarity:'rare',      desc:'마법 같은 암기력' },
+  { id:'title_princess',  name:'👸 프린세스',     icon:'👸', unlockXP:2500,  type:'title', value:'👸 프린세스',     category:'title', rarity:'rare',      desc:'우아한 공주님' },
+  { id:'title_rose',      name:'🌹 로즈',         icon:'🌹', unlockXP:1800,  type:'title', value:'🌹 로즈',         category:'title', rarity:'rare',      desc:'아름다운 장미처럼' },
+  { id:'title_moon',      name:'🌙 문레이',       icon:'🌙', unlockXP:3500,  type:'title', value:'🌙 문레이',       category:'title', rarity:'epic',      desc:'달빛처럼 신비로운' },
+  { id:'title_mermaid',   name:'🧜 인어',         icon:'🧜', unlockXP:4500,  type:'title', value:'🧜 인어공주',     category:'title', rarity:'epic',      desc:'신화 속 인어공주' },
+  { id:'title_angel',     name:'😇 엔젤',         icon:'😇', unlockXP:5000,  type:'title', value:'😇 엔젤',         category:'title', rarity:'epic',      desc:'천사 같은 마음씨' },
+  // 남성향
+  { id:'title_wolf',      name:'🐺 늑대',         icon:'🐺', unlockXP:1000,  type:'title', value:'🐺 늑대',         category:'title', rarity:'rare',      desc:'고독한 승부사' },
+  { id:'title_ninja',     name:'🥷 닌자',         icon:'🥷', unlockXP:2200,  type:'title', value:'🥷 닌자',         category:'title', rarity:'rare',      desc:'빠르고 조용한 고수' },
+  { id:'title_dragon',    name:'🐉 드래곤',       icon:'🐉', unlockXP:4000,  type:'title', value:'🐉 드래곤',       category:'title', rarity:'epic',      desc:'전설의 드래곤' },
+  { id:'title_warrior',   name:'⚔️ 전사',         icon:'⚔️', unlockXP:3000,  type:'title', value:'⚔️ 전사',         category:'title', rarity:'epic',      desc:'영어의 전사' },
+  { id:'title_ghost',     name:'👻 고스트',       icon:'👻', unlockXP:2800,  type:'title', value:'👻 고스트',       category:'title', rarity:'rare',      desc:'남들이 모르는 실력자' },
+  { id:'title_king',      name:'👑 수능왕',       icon:'👑', unlockXP:8000,  type:'title', value:'👑 수능왕',       category:'title', rarity:'legendary', desc:'수능을 정복한 자' },
+  { id:'title_master',    name:'🎓 마스터',       icon:'🎓', unlockXP:6000,  type:'title', value:'🎓 마스터',       category:'title', rarity:'legendary', desc:'단어를 마스터한 자' },
+  { id:'title_goat',      name:'🐐 GOAT',         icon:'🐐', unlockXP:10000, type:'title', value:'🐐 GOAT',         category:'title', rarity:'legendary', desc:'Greatest Of All Time' },
+
+  // ══ 프로필 테마 ═══════════════════════════════
+  { id:'theme_gold',      name:'골드 링',         icon:'✨', unlockXP:400,   type:'theme', value:'gold',    category:'theme', rarity:'common',    desc:'황금빛 프로필 링' },
+  { id:'theme_silver',    name:'실버 링',         icon:'🩶', unlockXP:400,   type:'theme', value:'silver',  category:'theme', rarity:'common',    desc:'은빛 세련된 링' },
+  { id:'theme_purple',    name:'퍼플 링',         icon:'💜', unlockXP:700,   type:'theme', value:'purple',  category:'theme', rarity:'common',    desc:'보랏빛 신비로운 링' },
+  { id:'theme_rose',      name:'로즈골드 링',     icon:'🌹', unlockXP:1200,  type:'theme', value:'rose',    category:'theme', rarity:'rare',      desc:'로즈골드 우아한 링' },
+  { id:'theme_sky',       name:'스카이 링',       icon:'🩵', unlockXP:1200,  type:'theme', value:'sky',     category:'theme', rarity:'rare',      desc:'하늘빛 시원한 링' },
+  { id:'theme_neon',      name:'네온 링',         icon:'💚', unlockXP:2000,  type:'theme', value:'neon',    category:'theme', rarity:'rare',      desc:'형광 네온 링' },
+  { id:'theme_black',     name:'다크 링',         icon:'🖤', unlockXP:2500,  type:'theme', value:'black',   category:'theme', rarity:'rare',      desc:'쿨한 블랙 링' },
+  { id:'theme_rainbow',   name:'레인보우 링',     icon:'🌈', unlockXP:5000,  type:'theme', value:'rainbow', category:'theme', rarity:'epic',      desc:'무지개빛 화려한 링' },
+  { id:'theme_fire',      name:'파이어 링',       icon:'🔥', unlockXP:4000,  type:'theme', value:'fire',    category:'theme', rarity:'epic',      desc:'불꽃처럼 타오르는 링' },
+  { id:'theme_diamond',   name:'다이아 링',       icon:'💎', unlockXP:7000,  type:'theme', value:'diamond', category:'theme', rarity:'legendary', desc:'최고급 다이아몬드 링' },
+
+  // ══ 아바타 배경 ══════════════════════════════
+  { id:'bg_star',         name:'별빛',            icon:'🌟', unlockXP:800,   type:'bg', value:'#0d0d2b', category:'avatar', rarity:'common',    desc:'반짝이는 별이 가득' },
+  { id:'bg_mint',         name:'민트',            icon:'🌿', unlockXP:800,   type:'bg', value:'#0d2b1a', category:'avatar', rarity:'common',    desc:'상큼한 민트 그린' },
+  { id:'bg_sakura',       name:'벚꽃',            icon:'🌸', unlockXP:1200,  type:'bg', value:'#2b0d1a', category:'avatar', rarity:'rare',      desc:'봄날의 벚꽃 정원' },
+  { id:'bg_ocean',        name:'오션',            icon:'🌊', unlockXP:1500,  type:'bg', value:'#0a1a3d', category:'avatar', rarity:'rare',      desc:'깊고 푸른 바다' },
+  { id:'bg_lavender',     name:'라벤더',          icon:'💜', unlockXP:1500,  type:'bg', value:'#1a0d2b', category:'avatar', rarity:'rare',      desc:'보라빛 라벤더 밭' },
+  { id:'bg_sunset',       name:'노을',            icon:'🌅', unlockXP:2000,  type:'bg', value:'#2b1a0d', category:'avatar', rarity:'rare',      desc:'황홀한 노을빛' },
+  { id:'bg_aurora',       name:'오로라',          icon:'🌌', unlockXP:3500,  type:'bg', value:'#051a10', category:'avatar', rarity:'epic',      desc:'신비로운 오로라' },
+  { id:'bg_galaxy',       name:'갤럭시',          icon:'🔭', unlockXP:5000,  type:'bg', value:'#050520', category:'avatar', rarity:'epic',      desc:'우주의 신비' },
+  { id:'bg_lava',         name:'라바',            icon:'🌋', unlockXP:4500,  type:'bg', value:'#2b0a00', category:'avatar', rarity:'epic',      desc:'뜨거운 용암 세계' },
+  { id:'bg_crystal',      name:'크리스탈',        icon:'🔮', unlockXP:6000,  type:'bg', value:'#0a0a1a', category:'avatar', rarity:'legendary', desc:'투명한 크리스탈 궁전' },
+
+  // ══ 부스트 아이템 ═════════════════════════════
+  { id:'font_large',      name:'큰 글씨',         icon:'🔠', unlockXP:500,   type:'font',   value:'large',  category:'boost', rarity:'common',  desc:'앱 글씨 크기 확대' },
+  { id:'hint_free',       name:'힌트 무제한',     icon:'💡', unlockXP:1500,  type:'hint',   value:'1',      category:'boost', rarity:'rare',    desc:'오늘 하루 힌트 무제한' },
+  { id:'combo_shield',    name:'콤보 실드',       icon:'🛡️', unlockXP:2000,  type:'shield', value:'1',      category:'boost', rarity:'rare',    desc:'오답 1회 콤보 유지' },
+  { id:'xp_boost',        name:'XP 2배',          icon:'⚡', unlockXP:4000,  type:'xpboost',value:'2',      category:'boost', rarity:'epic',    desc:'1시간 동안 XP 2배 획득' },
+  { id:'auto_hint',       name:'자동 힌트 끄기',  icon:'🙈', unlockXP:1000,  type:'nohint', value:'1',      category:'boost', rarity:'rare',    desc:'15초 자동 힌트 비활성화' },
+  { id:'skip_token',      name:'스킵 패스',       icon:'⏩', unlockXP:1200,  type:'skip',   value:'3',      category:'boost', rarity:'rare',    desc:'퀴즈 3문제 스킵 가능' },
+
+  // ══ 재미 & 꾸미기 ════════════════════════════
+  { id:'sound_effect',    name:'효과음 ON',       icon:'🔔', unlockXP:600,   type:'fun',    value:'sound',    category:'fun', rarity:'common',    desc:'정답/오답 효과음 활성화' },
+  { id:'confetti_auto',   name:'자동 컨페티',     icon:'🎊', unlockXP:2000,  type:'fun',    value:'confetti', category:'fun', rarity:'rare',      desc:'정답 맞힐 때마다 컨페티!' },
+  { id:'emoji_rain',      name:'이모지 비',       icon:'🌧️', unlockXP:4000,  type:'fun',    value:'emoji',    category:'fun', rarity:'epic',      desc:'레벨업 시 이모지 폭발' },
+  { id:'night_mode',      name:'별밤 모드',       icon:'🌙', unlockXP:3000,  type:'fun',    value:'night',    category:'fun', rarity:'rare',      desc:'특별한 딥다크 테마' },
+  { id:'cat_cursor',      name:'고양이 커서',     icon:'🐱', unlockXP:1500,  type:'fun',    value:'cat',      category:'fun', rarity:'rare',      desc:'귀여운 고양이 커서' },
+  { id:'heart_particle',  name:'하트 파티클',     icon:'💕', unlockXP:2500,  type:'fun',    value:'heart',    category:'fun', rarity:'rare',      desc:'정답 시 하트 날아오르기' },
+  { id:'rainbow_text',    name:'무지개 텍스트',   icon:'🌈', unlockXP:5000,  type:'fun',    value:'rainbow',  category:'fun', rarity:'epic',      desc:'퀴즈 단어가 무지개 색으로' },
+  { id:'fireworks',       name:'불꽃놀이',        icon:'🎆', unlockXP:6000,  type:'fun',    value:'firework', category:'fun', rarity:'epic',      desc:'100% 달성 시 불꽃놀이 🎆' },
+  { id:'golden_card',     name:'황금 플래시카드', icon:'🃏', unlockXP:8000,  type:'fun',    value:'gold',     category:'fun', rarity:'legendary', desc:'플래시카드가 황금빛으로' },
+  { id:'vip_badge',       name:'VIP 뱃지',        icon:'💠', unlockXP:10000, type:'fun',    value:'vip',      category:'fun', rarity:'legendary', desc:'전설의 VIP 마크' },
+]
+function getOwnedItems() {
+  try { return JSON.parse(localStorage.getItem('shop_owned_' + (state.stuId||'')) || '{}'); } catch(e) { return {}; }
+}
+function saveOwnedItems(owned) {
+  localStorage.setItem('shop_owned_' + (state.stuId||''), JSON.stringify(owned));
+}
+
+function loadShop() {
+  var grid = document.getElementById('shop-grid');
+  var pointsEl = document.getElementById('shop-points');
+  if (!grid) return;
+  var owned = getOwnedItems();
+  try {
+    DB.getProfile(state.stuId).then(function(prof) {
+      var xp = (prof && prof.xp) || 0;
+      var ownedCount = Object.keys(owned).length;
+      if (pointsEl) pointsEl.textContent = 'XP ' + xp.toLocaleString() + ' · ' + ownedCount + '개 보유';
+      renderShopGrid(xp, owned);
+    }).catch(function(){});
+  } catch(e) {}
+}
+
+function renderShopGrid(currentXP, owned) {
+  var grid = document.getElementById('shop-grid');
+  if (!grid) return;
+  var cats = [
+    { key:'title',  label:'칭호',   icon:'🏷' },
+    { key:'theme',  label:'테마',   icon:'💎' },
+    { key:'avatar', label:'배경',   icon:'🎨' },
+    { key:'boost',  label:'부스트', icon:'⚡' },
+    { key:'fun',    label:'재미',   icon:'🎊' },
+  ];
+  // 탭 활성화 상태
+  var activeTab = window._shopTab || 'title';
+
+  // 탭 HTML
+  var tabHtml = '<div style="display:flex;gap:4px;margin-bottom:.75rem;overflow-x:auto;pb:.25rem">' +
+    cats.map(function(cat) {
+      var isActive = cat.key === activeTab;
+      var style = 'flex-shrink:0;padding:5px 10px;border-radius:99px;cursor:pointer;white-space:nowrap;font-size:11px;font-weight:600;' +
+        'border:1px solid ' + (isActive?'var(--gold)':'var(--bdr)') + ';' +
+        'background:' + (isActive?'var(--gold-bg)':'var(--sur2)') + ';' +
+        'color:' + (isActive?'var(--gold)':'var(--txt3)') + ';';
+      return '<button data-tab="' + cat.key + '" onclick="setShopTab(this.dataset.tab)" style="' + style + '">' + cat.icon + ' ' + cat.label + '</button>';
+    }).join('') +
+  '</div>';
+
+  // 현재 탭 아이템 필터링
+  var items = SHOP_ITEMS.filter(function(i){ return i.category === activeTab; });
+  var rarityColors = { common:'var(--txt3)', rare:'#60A5FA', epic:'#A78BFA', legendary:'#C9A961' };
+  var rarityLabels = { common:'일반', rare:'레어', epic:'에픽', legendary:'전설' };
+  var rarityBgs    = { common:'var(--sur2)', rare:'rgba(96,165,250,.08)', epic:'rgba(167,139,250,.08)', legendary:'rgba(201,169,97,.08)' };
+  var rarityBdr    = { common:'var(--bdr)', rare:'rgba(96,165,250,.25)', epic:'rgba(167,139,250,.25)', legendary:'rgba(201,169,97,.3)' };
+
+  var itemsHtml = items.map(function(item) {
+    var isOwned = !!owned[item.id];
+    var isUnlocked = currentXP >= item.unlockXP;
+    var rc = rarityColors[item.rarity]||'var(--txt3)';
+    var rb = rarityBgs[item.rarity]||'var(--sur2)';
+    var rd = rarityBdr[item.rarity]||'var(--bdr)';
+    var rl = rarityLabels[item.rarity]||'일반';
+
+    var statusBtn = '';
+    if (isOwned) {
+      statusBtn = '<div style="font-size:10px;color:var(--grn,#4ade80);font-weight:700;text-align:center;padding:4px 0">✓ 보유중</div>';
+    } else if (!isUnlocked) {
+      var needed = item.unlockXP - currentXP;
+      statusBtn = '<div style="font-size:9px;color:var(--txt3);text-align:center;padding:4px 0">🔒 ' + needed.toLocaleString() + ' XP 더 필요</div>';
+    } else {
+      statusBtn = '<button data-iid="' + item.id + '" onclick="buyShopItem(this.dataset.iid)" style="width:100%;padding:5px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;margin-top:2px">잠금 해제</button>';
+    }
+
+    return '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:12px;padding:.75rem;position:relative;' + (isOwned?'box-shadow:0 0 8px rgba(201,169,97,.15)':'') + '">' +
+      '<div style="position:absolute;top:6px;right:6px;font-size:9px;font-weight:700;color:' + rc + ';letter-spacing:.04em">' + rl.toUpperCase() + '</div>' +
+      '<div style="font-size:28px;text-align:center;margin-bottom:4px;' + (!isUnlocked&&!isOwned?'filter:grayscale(1);opacity:.4':'') + '">' + item.icon + '</div>' +
+      '<div style="font-size:11px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:2px">' + item.name + '</div>' +
+      '<div style="font-size:9px;color:var(--txt3);text-align:center;margin-bottom:4px;line-height:1.4">' + item.desc + '</div>' +
+      '<div style="font-size:10px;color:' + rc + ';text-align:center;margin-bottom:4px;font-weight:600">' + item.unlockXP.toLocaleString() + ' XP</div>' +
+      statusBtn +
+    '</div>';
+  }).join('');
+
+  grid.innerHTML = tabHtml +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' + itemsHtml + '</div>';
+}
+
+function setShopTab(tab) {
+  window._shopTab = tab;
+  loadShop();
+}
+
+
+async function buyShopItem(itemId) {
+  var item = SHOP_ITEMS.find(function(i){return i.id===itemId;});
+  if (!item) return;
+  var owned = getOwnedItems();
+  if (owned[itemId]) { showShopMsg('이미 보유한 아이템이에요'); return; }
+
+  try {
+    var prof = await DB.getProfile(state.stuId);
+    var xp = (prof && prof.xp) || 0;
+    if (xp < item.unlockXP) {
+      showShopMsg('XP가 부족해요 (' + (item.unlockXP - xp).toLocaleString() + ' XP 더 필요)');
+      return;
+    }
+    // XP 차감 없이 소유 기록만 저장
+    owned[itemId] = { unlockedAt: Date.now() };
+    saveOwnedItems(owned);
+    applyShopItem(item);
+    loadShop();
+    showShopMsg('🎉 ' + item.name + ' 잠금 해제!');
+    loadProfileCard(state.stuId, state.stuName);
+  } catch(e) { showShopMsg('오류: ' + e.message); }
+}
+
+
+function applyShopItem(item) {
+  if (item.type === 'title') {
+    DB.saveProfile(state.stuId, { selectedTitle: item.value }).catch(function(){});
+  } else if (item.type === 'font') {
+    document.documentElement.style.fontSize = '17px';
+    localStorage.setItem('font_size', 'large');
+  } else if (item.type === 'hint') {
+    sessionStorage.setItem('hint_unlimited', new Date().toISOString().slice(0,10));
+  } else if (item.type === 'shield') {
+    sessionStorage.setItem('combo_shield', '1');
+  } else if (item.type === 'bg') {
+    localStorage.setItem('avatar_bg_' + (state.stuId||''), item.value);
+    // 즉시 프로필 아바타 배경 적용
+    var ring = document.getElementById('profile-avatar-ring');
+    if (ring) ring.style.background = item.value;
+  } else if (item.type === 'fun') {
+    localStorage.setItem('fun_' + item.value, '1');
+    if (item.value === 'sound') localStorage.setItem('sfx_enabled', '1');
+    if (item.value === 'confetti') localStorage.setItem('auto_confetti', '1');
+    if (item.value === 'night') document.documentElement.setAttribute('data-theme', 'dark');
+  } else if (item.type === 'nohint') {
+    localStorage.setItem('auto_hint_disabled', '1');
+  } else if (item.type === 'skip') {
+    var cur = parseInt(sessionStorage.getItem('skip_tokens')||'0');
+    sessionStorage.setItem('skip_tokens', cur + parseInt(item.value));
+  } else if (item.type === 'xpboost') {
+    var exp = Date.now() + 3600000;
+    sessionStorage.setItem('xp_boost_exp', exp);
+    sessionStorage.setItem('xp_boost_mul', item.value);
+  }
+}
+
+function showShopMsg(msg) {
+  var el = document.getElementById('shop-msg');
+  if (!el) return;
+  el.textContent = msg;
+  setTimeout(function(){el.textContent='';}, 3000);
+}
+
+// 저장된 아이템 자동 적용
+function applyOwnedItems() {
+  if (!state.stuId) return;
+  var owned = getOwnedItems();
+  SHOP_ITEMS.forEach(function(item) {
+    if (owned[item.id]) applyShopItem(item);
+  });
+}
+
+
+
+// ── 첫 접속 온보딩 ─────────────────────────────
+var _obSlide = 1;
+var _obTotal = 3;
+
+function checkOnboarding() {
+  var done = localStorage.getItem('onboarding_done');
+  if (!done) {
+    var popup = document.getElementById('onboarding-popup');
+    if (popup) popup.style.display = 'flex';
+  }
+}
+
+function nextOnboardSlide() {
+  if (_obSlide < _obTotal) {
+    document.getElementById('onboard-slide-' + _obSlide).style.display = 'none';
+    document.getElementById('ob-dot-' + _obSlide).style.background = 'var(--sur3)';
+    _obSlide++;
+    document.getElementById('onboard-slide-' + _obSlide).style.display = 'block';
+    document.getElementById('ob-dot-' + _obSlide).style.background = 'var(--gold)';
+    if (_obSlide === _obTotal) {
+      document.getElementById('ob-next-btn').textContent = '시작하기 🚀';
+      document.getElementById('ob-next-btn').onclick = closeOnboarding;
+      document.getElementById('ob-skip-btn').style.display = 'none';
+    }
+  } else {
+    closeOnboarding();
+  }
+}
+
+function closeOnboarding() {
+  var popup = document.getElementById('onboarding-popup');
+  if (popup) popup.style.display = 'none';
+  localStorage.setItem('onboarding_done', '1');
+}
+
+
+// ── 도움말 시스템 ────────────────────────────────
+var HELP_CONTENTS = {
+  home: {
+    title: '🏠 홈 화면 도움말',
+    sections: [
+      { icon:'📖', title:'단어 학습', body:'플래시카드로 단어를 보고, 퀴즈로 실력을 확인해요. 단어 → 모드 선택 → 시작!' },
+      { icon:'🎧', title:'리스닝', body:'수능 리스닝 문항을 듣고 스크립트, 단어, 받아쓰기로 학습해요.' },
+      { icon:'🔥', title:'스트릭', body:'매일 접속하면 연속 출석일이 쌓여요. 7일, 14일, 30일마다 보너스!' },
+      { icon:'🎮', title:'XP & 레벨', body:'퀴즈를 풀면 XP를 얻고 레벨이 올라요. 프로필 카드에서 확인하세요.' },
+      { icon:'🛒', title:'포인트 상점', body:'XP를 모으면 칭호, 테마, 배경 등 아이템을 잠금 해제할 수 있어요. XP는 차감되지 않아요!' },
+      { icon:'🎵', title:'학습 BGM', body:'공부할 때 Lofi, 빗소리, 백색소음 등 배경음악을 틀 수 있어요.' },
+    ]
+  },
+  vocab: {
+    title: '📖 단어 학습 도움말',
+    sections: [
+      { icon:'🃏', title:'플래시카드', body:'카드를 탭하면 뒤집혀서 뜻을 확인해요. 😊알아요 / 🤔애매해요 / 😅몰라요로 셀프평가!' },
+      { icon:'✏️', title:'타이핑 퀴즈', body:'영어 단어를 보고 한글 뜻을 입력해요. 정답 시 XP +5, 연속 정답 콤보 보너스!' },
+      { icon:'🔀', title:'4지선다', body:'4개 보기 중 정답을 선택하는 가벼운 퀴즈. 헷갈리는 단어들로 보기가 구성돼요.' },
+      { icon:'📝', title:'빈칸 채우기', body:'예문에서 단어가 빠진 자리를 채워요. 문맥으로 단어를 익히는 최고의 방법!' },
+      { icon:'🔥', title:'취약단어 훈련', body:'틀린 단어만 모아서 집중 연습. 5회 연속 맞히면 졸업!' },
+      { icon:'📌', title:'북마크', body:'퀴즈 중 ☆ 버튼으로 단어 저장. 폴더에 분류해서 관리할 수 있어요.' },
+      { icon:'💡', title:'힌트', body:'15초 동안 답 못 하면 자동 힌트! 힌트 버튼을 눌러도 돼요.' },
+      { icon:'🎴', title:'카드 연습', body:'카드 뒤집기 방식으로 빠르게 단어 훑어보기. Set1~Set5로 나뉘어요.' },
+    ]
+  },
+  level: {
+    title: '🎮 레벨 & 배지 도움말',
+    sections: [
+      { icon:'⭐', title:'XP 획득', body:'퀴즈 정답 +5XP, 콤보 보너스, 취약단어 졸업 +10XP, 리스닝 완료 +20XP' },
+      { icon:'📈', title:'레벨 구조', body:'Lv1 새싹 → Lv2 입문자 → Lv3 학습자 → Lv4 탐구자 → Lv5 도전자 → Lv6 집중자 → Lv7 실력자 → Lv8 고수 → Lv9 수능전사 → Lv10 단어마스터' },
+      { icon:'🏆', title:'배지', body:'특별한 조건을 달성하면 배지를 획득해요. 프로필 카드에서 내 배지를 확인하세요!' },
+      { icon:'🛒', title:'상점 잠금해제', body:'XP가 쌓일수록 더 많은 아이템이 잠금 해제돼요. XP는 차감되지 않으니 맘껏 모으세요!' },
+      { icon:'🎖', title:'칭호', body:'레벨업 시 칭호가 자동 부여돼요. 상점에서 특별 칭호도 잠금 해제 가능!' },
+    ]
+  },
+  shop: {
+    title: '🛒 상점 도움말',
+    sections: [
+      { icon:'💰', title:'잠금 해제 방식', body:'XP를 모으면 아이템이 잠금 해제돼요. XP는 차감되지 않아요!' },
+      { icon:'🏷', title:'칭호', body:'프로필에 표시되는 특별한 칭호. 레벨이 높을수록 희귀한 칭호를 열 수 있어요.' },
+      { icon:'💎', title:'테마/배경', body:'프로필 링 색상과 아바타 배경을 꾸밀 수 있어요.' },
+      { icon:'⚡', title:'부스트 아이템', body:'힌트 무제한, 콤보 실드, XP 2배 등 학습에 도움이 되는 아이템!' },
+      { icon:'🎊', title:'재미 아이템', body:'효과음, 컨페티, 특별 이펙트 등 앱을 더 재미있게 만드는 아이템!' },
+      { icon:'🌟 희귀도', title:'희귀도', body:'일반 < 레어 < 에픽 < 전설 순으로 높은 XP가 필요하지만 더 특별해요!' },
+    ]
+  }
+};
+
+function showHelp(context) {
+  var data = HELP_CONTENTS[context] || HELP_CONTENTS.home;
+  document.getElementById('help-title').textContent = data.title;
+  document.getElementById('help-content').innerHTML = data.sections.map(function(s) {
+    return '<div style="display:flex;gap:10px;margin-bottom:1rem;align-items:flex-start">' +
+      '<span style="font-size:20px;flex-shrink:0;margin-top:1px">' + s.icon + '</span>' +
+      '<div>' +
+        '<div style="font-size:13px;font-weight:700;color:var(--txt);margin-bottom:2px">' + s.title + '</div>' +
+        '<div style="font-size:12px;color:var(--txt2);line-height:1.6">' + s.body + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('help-popup').style.display = 'flex';
+}
+
+function showConnError() {
+  var el = document.getElementById('conn-error-banner');
+  if (el) el.style.display = 'block';
+}
+function hideConnError() {
+  var el = document.getElementById('conn-error-banner');
+  if (el) el.style.display = 'none';
+}
+async function retryConnection() {
+  var el = document.getElementById('conn-error-banner');
+  if (el) el.innerHTML = '<div style="text-align:center;padding:.25rem;font-size:12px;color:var(--txt3)">연결 중...</div>';
+  try {
+    state.settings = await DB.getSettings();
+    hideConnError();
+    init();
+  } catch(e) {
+    if (el) el.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span>⚠️</span><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--red,#f87171)">여전히 연결 실패</div><div style="font-size:11px;color:var(--txt2)">잠시 후 다시 시도해주세요</div></div><button onclick="retryConnection()" class="btn btn-sm" style="font-size:11px">재시도</button></div>';
+  }
+}
+
+function showStreakPopup(cnt) {
+  var milestones = {
+    7:   { emoji:'🔥', title:'7일 연속!', msg:'일주일 내내 공부했어요!\n이 기세로 계속 달려봐요!' },
+    14:  { emoji:'💪', title:'2주 연속!', msg:'2주 동안 하루도 빠짐없이!\n습관이 만들어지고 있어요!' },
+    30:  { emoji:'👑', title:'한달 연속!', msg:'무려 30일 연속이에요!\n이제 진짜 루틴이 됐어요!' },
+    60:  { emoji:'💎', title:'60일 연속!', msg:'두 달 연속 달성!\n수능 합격이 보이는 페이스예요!' },
+    100: { emoji:'🏆', title:'100일 연속!', msg:'100일 연속 전설 달성!\n이 앱 역사에 남을 기록이에요!' },
+  };
+  var m = milestones[cnt];
+  if (!m) return;
+  document.getElementById('streak-popup-emoji').textContent = m.emoji;
+  document.getElementById('streak-popup-title').textContent = m.title;
+  document.getElementById('streak-popup-msg').textContent = m.msg;
+  document.getElementById('streak-popup').style.display = 'flex';
 }
 
 function closeSticker() {
@@ -1200,4 +2417,3 @@ init();
 </script>
 </body>
 </html>
-
