@@ -206,6 +206,10 @@
         <div class="dd" id="stu-dd"></div>
       </div>
       <input type="hidden" id="stu-id">
+      <div id="stu-pw-wrap" style="display:none;margin-bottom:.5rem">
+        <input type="password" id="stu-pw-input" placeholder="비밀번호 입력 (없으면 그냥 입장)"
+               style="text-align:center" onkeydown="if(event.key==='Enter')doStuLogin()">
+      </div>
       <div id="stu-err" style="color:var(--red);font-size:12px;text-align:center;margin-bottom:.5rem;min-height:16px"></div>
       <button class="btn btn-gold btn-full" onclick="doStuLogin()">입장 →</button>
       <p style="text-align:center;margin-top:1rem">
@@ -412,7 +416,7 @@
         <button onclick="showHelp('shop')" style="background:none;border:none;font-size:13px;color:var(--txt3);cursor:pointer;padding:2px 4px" title="상점 도움말">❓</button>
         <span id="shop-points" style="font-size:12px;color:var(--gold);font-weight:700"></span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="shop-grid"></div>
+      <div id="shop-grid"></div>
       <div id="shop-msg" style="font-size:11px;text-align:center;min-height:14px;margin-top:.375rem;color:var(--grn,#4caf50)"></div>
     </div>
 
@@ -960,6 +964,10 @@ function selectStudent(id, name) {
   document.getElementById('stu-input').value = name;
   document.getElementById('stu-id').value = id;
   document.getElementById('stu-dd').style.display = 'none';
+  // 비밀번호 설정된 학생이면 입력창 표시
+  var stu = state.students[id];
+  var pwWrap = document.getElementById('stu-pw-wrap');
+  if (pwWrap) pwWrap.style.display = (stu && stu.password) ? 'block' : 'none';
 }
 
 async function doStuLogin() {
@@ -976,6 +984,21 @@ async function doStuLogin() {
     } else {
       const err = document.getElementById('stu-err');
       if (err) err.textContent = '등록되지 않은 학생입니다. 선생님에게 문의하세요.';
+      return;
+    }
+  }
+
+  // 비밀번호 검증
+  var _stu = state.students[id];
+  if (_stu && _stu.password) {
+    var _pwInput = document.getElementById('stu-pw-input');
+    var _entered = _pwInput ? _pwInput.value : '';
+    if (_entered !== _stu.password) {
+      var _err = document.getElementById('stu-err');
+      if (_err) _err.textContent = '비밀번호가 틀렸습니다.';
+      var _pwWrap = document.getElementById('stu-pw-wrap');
+      if (_pwWrap) _pwWrap.style.display = 'block';
+      if (_pwInput) { _pwInput.value = ''; _pwInput.focus(); }
       return;
     }
   }
@@ -1306,18 +1329,16 @@ function renderProfileCard(stuName) {
   }
   var avatarEl = document.getElementById('profile-avatar-img');
   if (avatarEl) avatarEl.textContent = prof.animal||'🐱';
-  // 아바타 배경 색상/이미지 적용
+  renderAvatarRing(document.getElementById('profile-avatar-ring'), lvDef.border);
+  // 아바타 배경 색상 적용 (renderAvatarRing 이후에 덮어써야 유지됨)
   var avatarRingEl = document.getElementById('profile-avatar-ring');
   if (avatarRingEl) {
     if (prof.avatarBg) {
-      // 상점에서 구매한 배경 (색상 코드)
       avatarRingEl.style.background = prof.avatarBg + '55';
     } else if (prof.avatarColor) {
-      // 색상 선택기로 선택한 색상
-      avatarRingEl.style.background = prof.avatarColor + '33';
+      avatarRingEl.style.background = prof.avatarColor + '44';
     }
   }
-  renderAvatarRing(document.getElementById('profile-avatar-ring'), lvDef.border);
   renderCardBorder(document.getElementById('profile-card-border'), lvDef.border);
 
   var barEl = document.getElementById('profile-xp-bar');
@@ -1336,7 +1357,7 @@ function renderProfileCard(stuName) {
     }
   }
   var bcEl = document.getElementById('profile-badge-count');
-  if (bcEl) bcEl.textContent='🏆 '+Object.keys(_badgesCache).length+'/40';
+  if (bcEl) bcEl.textContent='🏆 '+Object.keys(_badgesCache).length+'/50';
   renderProfileBadges();
   var _pc = document.getElementById('profile-card');
   if (_pc) {
