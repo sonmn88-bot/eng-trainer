@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="English Trainer">
 <meta name="theme-color" content="#C9A961">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
 <title>리스닝 학습</title>
 <link rel="stylesheet" href="shared/theme.css">
 <style>
@@ -818,6 +819,71 @@ function showBmToast(msg) {
 
 // 페이지 로드 시 북마크 로드
 loadListeningBookmarks();
+</script>
+
+<!-- ── 플로팅 BGM ── -->
+<div id="bgm-float" style="position:fixed;bottom:20px;right:16px;z-index:9980">
+  <button id="bgm-float-btn" onclick="toggleBgmPanel()"
+    style="width:48px;height:48px;border-radius:50%;background:var(--sur);border:1px solid var(--bdr);
+    box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:pointer;font-size:20px;display:flex;align-items:center;
+    justify-content:center">
+    🎵
+    <div id="bgm-float-dot" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;
+      border-radius:50%;background:var(--gold);animation:bgm-bounce .8s ease-in-out infinite"></div>
+  </button>
+  <div id="bgm-panel" style="display:none;position:absolute;bottom:58px;right:0;
+    background:var(--sur);border:1px solid var(--bdr);border-radius:16px;
+    padding:.875rem;width:220px;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+      <div id="bgm-visualizer" style="display:flex;align-items:flex-end;gap:2px;height:16px">
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:6px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:10px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:7px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:13px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:9px"></div>
+      </div>
+      <div style="flex:1;font-size:11px;font-weight:600;color:var(--txt)" id="bgm-now-title">선택 안 됨</div>
+      <button id="bgm-play-btn" onclick="toggleBGM()"
+        style="width:28px;height:28px;border-radius:50%;background:var(--gold);border:none;
+        cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">▶</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
+      <span style="font-size:11px">🔈</span>
+      <input type="range" id="bgm-volume" min="0" max="100" value="30"
+        oninput="setBGMVolume(this.value)" style="flex:1;accent-color:var(--gold);height:3px">
+      <span style="font-size:11px">🔊</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+      <button class="bgm-btn" data-type="lofi" onclick="selectBGM('lofi','☕ Lofi Beat','집중 공부용')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:10px;font-weight:600;color:var(--txt)">☕ Lofi</button>
+      <button class="bgm-btn" data-type="rain" onclick="selectBGM('rain','🌧️ 빗소리','편안한 집중')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:10px;font-weight:600;color:var(--txt)">🌧️ 비</button>
+      <button class="bgm-btn" data-type="white" onclick="selectBGM('white','🌊 백색소음','소음 차단용')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:10px;font-weight:600;color:var(--txt)">🌊 백색</button>
+      <button class="bgm-btn" data-type="nature" onclick="selectBGM('nature','🌿 자연','스트레스 해소')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:10px;font-weight:600;color:var(--txt)">🌿 자연</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── BGM (각 페이지 독립 실행) ────────────────
+var _bgmCtx=null,_bgmNodes=[],_bgmType=null,_bgmPlaying=false,_bgmVolume=0.3;
+function _initAudioCtx(){if(_bgmCtx)return _bgmCtx;_bgmCtx=new(window.AudioContext||window.webkitAudioContext)();return _bgmCtx;}
+function _stopBGM(){_bgmNodes.forEach(function(n){try{n.stop();}catch(e){}try{n.disconnect();}catch(e){}});_bgmNodes=[];}
+function _createLofi(ctx,g){var bpm=80,spb=60/bpm;function loop(t){if(!_bgmPlaying)return;function beat(t,f,d){var o=ctx.createOscillator(),gn=ctx.createGain();o.frequency.value=f;o.type='sine';gn.gain.setValueAtTime(0.4,t);gn.gain.exponentialRampToValueAtTime(0.001,t+d);o.connect(gn);gn.connect(g);o.start(t);o.stop(t+d);_bgmNodes.push(o);}beat(t,60,0.15);beat(t+spb*2,60,0.15);beat(t+spb,200,0.08);beat(t+spb*3,200,0.08);for(var i=0;i<8;i++)beat(t+i*spb*0.5,800+Math.random()*200,0.04);[220,277,330].forEach(function(f){var o=ctx.createOscillator(),g2=ctx.createGain();o.type='triangle';o.frequency.value=f;g2.gain.setValueAtTime(0.08,t);g2.gain.exponentialRampToValueAtTime(0.001,t+spb*4);o.connect(g2);g2.connect(g);o.start(t);o.stop(t+spb*4);_bgmNodes.push(o);});setTimeout(function(){loop(ctx.currentTime);},spb*4*1000-50);}loop(ctx.currentTime+0.1);}
+function _createRain(ctx,g){function d(){if(!_bgmPlaying)return;var b=ctx.createBuffer(1,ctx.sampleRate*0.05,ctx.sampleRate),data=b.getChannelData(0);for(var i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.random();var s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g2=ctx.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=1000+Math.random()*2000;f.Q.value=0.5;g2.gain.value=Math.random()*0.3;s.connect(f);f.connect(g2);g2.connect(g);s.start();_bgmNodes.push(s);setTimeout(d,20+Math.random()*80);}for(var i=0;i<3;i++)setTimeout(d,i*20);}
+function _createWhite(ctx,g){var b=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),d=b.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1;var s=ctx.createBufferSource(),f=ctx.createBiquadFilter();s.buffer=b;s.loop=true;f.type='lowpass';f.frequency.value=800;s.connect(f);f.connect(g);s.start();_bgmNodes.push(s);}
+function _createNature(ctx,g){function chirp(t){if(!_bgmPlaying)return;var f=800+Math.random()*400,d=0.1+Math.random()*0.2,o=ctx.createOscillator(),g2=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.linearRampToValueAtTime(f*1.3,t+d*0.3);o.frequency.linearRampToValueAtTime(f,t+d);g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(0.15,t+0.02);g2.gain.exponentialRampToValueAtTime(0.001,t+d);o.connect(g2);g2.connect(g);o.start(t);o.stop(t+d+0.05);_bgmNodes.push(o);setTimeout(function(){chirp(ctx.currentTime);},500+Math.random()*2000);}_createWhite(ctx,g);for(var i=0;i<2;i++)setTimeout(function(){chirp(ctx.currentTime);},i*300);}
+function selectBGM(type,title,sub){_bgmType=type;var nt=document.getElementById('bgm-now-title');if(nt)nt.textContent=title;document.querySelectorAll('.bgm-btn').forEach(function(b){b.classList.toggle('active',b.dataset.type===type);});if(_bgmPlaying){_stopAllBGM2();setTimeout(startBGM,100);}localStorage.setItem('bgm_type',type);}
+function startBGM(){if(!_bgmType)return;localStorage.setItem('bgm_playing','1');try{var ctx=_initAudioCtx();if(ctx.state==='suspended')ctx.resume();var gn=ctx.createGain();gn.gain.value=_bgmVolume;gn.connect(ctx.destination);_bgmNodes.push(gn);if(_bgmType==='lofi')_createLofi(ctx,gn);if(_bgmType==='rain')_createRain(ctx,gn);if(_bgmType==='white')_createWhite(ctx,gn);if(_bgmType==='nature')_createNature(ctx,gn);_bgmPlaying=true;var pb=document.getElementById('bgm-play-btn');if(pb)pb.textContent='⏸';var vi=document.getElementById('bgm-visualizer');if(vi)vi.classList.add('bgm-playing');var dt=document.getElementById('bgm-float-dot');if(dt)dt.style.display='block';var fb=document.getElementById('bgm-float-btn');if(fb)fb.style.borderColor='var(--gold-bdr)';}catch(e){}}
+function _stopAllBGM2(){_stopBGM();_bgmPlaying=false;localStorage.removeItem('bgm_playing');var pb=document.getElementById('bgm-play-btn');if(pb)pb.textContent='▶';var vi=document.getElementById('bgm-visualizer');if(vi)vi.classList.remove('bgm-playing');var dt=document.getElementById('bgm-float-dot');if(dt)dt.style.display='none';}
+function toggleBGM(){if(_bgmPlaying)_stopAllBGM2();else{if(!_bgmType){var t=localStorage.getItem('bgm_type')||'lofi';var titles={lofi:'☕ Lofi Beat',rain:'🌧️ 빗소리',white:'🌊 백색소음',nature:'🌿 자연 소리'};var subs={lofi:'집중 공부용',rain:'편안한 집중',white:'소음 차단용',nature:'스트레스 해소'};selectBGM(t,titles[t]||t,subs[t]||'');}startBGM();}}
+function setBGMVolume(v){_bgmVolume=v/100;_bgmNodes.filter(function(n){return n.gain;}).forEach(function(g){try{g.gain.value=_bgmVolume;}catch(e){}});}
+function toggleBgmPanel(){var p=document.getElementById('bgm-panel');if(p)p.style.display=p.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){var f=document.getElementById('bgm-float');if(f&&!f.contains(e.target)){var p=document.getElementById('bgm-panel');if(p)p.style.display='none';}});
+// 페이지 로드 시 자동 재개
+(function(){var saved=localStorage.getItem('bgm_type');var wasPlaying=localStorage.getItem('bgm_playing')==='1';if(saved&&wasPlaying){var titles={lofi:'☕ Lofi Beat',rain:'🌧️ 빗소리',white:'🌊 백색소음',nature:'🌿 자연 소리'};var subs={lofi:'집중 공부용',rain:'편안한 집중',white:'소음 차단용',nature:'스트레스 해소'};setTimeout(function(){selectBGM(saved,titles[saved]||saved,subs[saved]||'');startBGM();},500);}})();
 </script>
 </body>
 </html>
