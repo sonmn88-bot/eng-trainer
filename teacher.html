@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="English Trainer">
 <meta name="theme-color" content="#C9A961">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
 <title>선생님 모드</title>
 <link rel="stylesheet" href="shared/theme.css">
 <style>
@@ -144,6 +145,7 @@
           <input type="text" id="detail-pw" placeholder="없으면 비워두세요"
             style="flex:1;font-size:14px;letter-spacing:.08em;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.5rem .75rem;color:var(--txt)">
           <button class="btn btn-gold btn-sm" onclick="saveStudentPassword()">저장</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetStudentPassword()" style="font-size:11px">초기화</button>
         </div>
         <div id="detail-pw-msg" style="font-size:11px;min-height:14px;margin-top:4px;color:var(--grn,#4caf50)"></div>
       </div>
@@ -2837,6 +2839,23 @@ async function exportAllExcel() {
 
 
 // ── 학생 메모 ─────────────────────────────────
+
+
+async function resetStudentPassword() {
+  if (!selectedStuId) return;
+  if (!confirm('비밀번호를 초기화할까요? 학생이 비밀번호 없이 접속할 수 있게 됩니다.')) return;
+  var msgEl = document.getElementById('detail-pw-msg');
+  var pwEl  = document.getElementById('detail-pw');
+  try {
+    await DB.saveStudentPassword(selectedStuId, '');
+    if (students[selectedStuId]) students[selectedStuId].password = '';
+    if (pwEl)  pwEl.value = '';
+    if (msgEl) {
+      msgEl.textContent = '✓ 비밀번호가 초기화됐습니다';
+      setTimeout(function(){ msgEl.textContent=''; }, 2500);
+    }
+  } catch(e) { if(msgEl) msgEl.textContent='오류: '+e.message; }
+}
 
 async function saveStudentPassword() {
   if (!selectedStuId) return;
