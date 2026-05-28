@@ -209,6 +209,77 @@ const DB = {
     return snap.exists() ? snap.val() : '';
   },
 
+
+  // ── 골드 시스템 ────────────────────────────
+  async getGold(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `gold/${stuId}`));
+    if (!snap.exists()) return { amount: 0, totalEarned: 0, lastDailyDate: '', dailyEarned: 0 };
+    return snap.val();
+  },
+
+  async addGold(stuId, amount, reason) {
+    const { db, ref, get, update } = await initDB();
+    const path = `gold/${stuId}`;
+    const snap = await get(ref(db, path));
+    const g = snap.exists() ? snap.val() : { amount: 0, totalEarned: 0, lastDailyDate: '', dailyEarned: 0 };
+
+    const today = new Date().toISOString().slice(0, 10);
+    // 날짜 리셋
+    if (g.lastDailyDate !== today) { g.dailyEarned = 0; g.lastDailyDate = today; }
+
+    // 하루 획득 상한 15골드
+    const DAILY_MAX = 15;
+    const MAX_HOLD  = 50;
+    const canEarn = Math.min(amount, DAILY_MAX - (g.dailyEarned || 0));
+    if (canEarn <= 0) return { amount: g.amount, capped: true };
+
+    g.amount      = Math.min(MAX_HOLD, (g.amount || 0) + canEarn);
+    g.totalEarned = (g.totalEarned || 0) + canEarn;
+    g.dailyEarned = (g.dailyEarned || 0) + canEarn;
+    g.lastDailyDate = today;
+
+    await update(ref(db, path), g);
+    return { amount: g.amount, earned: canEarn, dailyEarned: g.dailyEarned };
+  },
+
+  async spendGold(stuId, amount) {
+    const { db, ref, get, update } = await initDB();
+    const path = `gold/${stuId}`;
+    const snap = await get(ref(db, path));
+    const g = snap.exists() ? snap.val() : { amount: 0 };
+    if ((g.amount || 0) < amount) return { success: false, amount: g.amount || 0 };
+    g.amount = (g.amount || 0) - amount;
+    await update(ref(db, path), g);
+    return { success: true, amount: g.amount };
+  },
+
+  async getDailyFreeItems(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `daily_free/${stuId}`));
+    const today = new Date().toISOString().slice(0, 10);
+    if (!snap.exists() || snap.val().date !== today) {
+      return { date: today, hint: 0, shield: 0, skip: 0 };
+    }
+    return snap.val();
+  },
+
+  async useDailyFreeItem(stuId, itemType) {
+    const { db, ref, get, update } = await initDB();
+    const path = `daily_free/${stuId}`;
+    const today = new Date().toISOString().slice(0, 10);
+    const snap = await get(ref(db, path));
+    const d = (snap.exists() && snap.val().date === today)
+      ? snap.val()
+      : { date: today, hint: 0, shield: 0, skip: 0 };
+
+    const limits = { hint: 2, shield: 1, skip: 1 };
+    if ((d[itemType] || 0) >= (limits[itemType] || 0)) return { success: false, used: d[itemType] };
+    d[itemType] = (d[itemType] || 0) + 1;
+    await update(ref(db, path), d);
+    return { success: true, used: d[itemType], limit: limits[itemType] };
+  },
+
   async getMnemonics() {
     const { db, ref, get } = await initDB();
     const snap = await get(ref(db, 'mnemonics'));
