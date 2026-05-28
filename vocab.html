@@ -849,7 +849,8 @@ function goBlankQuiz() {
 
   // 최대 20개
   Utils.shuffle(withEx);
-  blank.words = withEx.slice(0, Math.min(20, withEx.length));
+  var _bCnt = parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
+  blank.words = withEx.slice(0, Math.min(_bCnt, withEx.length));
   blank.idx = 0;
   blank.correct = 0;
   blank.wrong = 0;
@@ -1835,9 +1836,31 @@ function selectWeek(wk) {
   showModePanel(words);
 }
 
-function showStartPanel(words) {
+function showStartPanel(words, mode) {
   window._baseWords = words; // 품사 필터용 원본 저장
+  window._startMode = mode || currentMode; // 시작할 모드 저장
   applyPosFilter(window._currentPos || 'all', words);
+  // 모드별 버튼 텍스트 + onclick 변경
+  var btn = document.getElementById('btn-start-quiz');
+  if (btn) {
+    var modeLabels = {
+      'choice':  '🎯 4지선다 시작',
+      'blank':   '📝 빈칸 채우기 시작',
+      'speed':   '⚡ 속도 인식 시작',
+      'quiz':    '✏️ 시험 보기',
+      'weak':    '⚡ 취약단어 훈련',
+    };
+    btn.textContent = modeLabels[mode] || '✏️ 시험 보기';
+    btn.onclick = function() { startCurrentMode(); };
+  }
+}
+
+function startCurrentMode() {
+  var mode = window._startMode || currentMode;
+  if (mode === 'choice') goChoiceQuiz();
+  else if (mode === 'blank') goBlankQuiz();
+  else if (mode === 'speed') goSpeedMode();
+  else goQuiz();
 }
 
 function applyPosFilter(pos, baseWords) {
@@ -3227,22 +3250,22 @@ async function selectMode(mode) {
 
   if (mode === 'blank') {
     document.getElementById('week-panel').style.display = 'none';
-    document.getElementById('start-panel').style.display = 'none';
-    goBlankQuiz();
+    window._selectedWords = window._selectedWords || allWords;
+    showStartPanel(window._selectedWords, 'blank');
     return;
   }
 
   if (mode === 'choice') {
     document.getElementById('week-panel').style.display = 'none';
-    document.getElementById('start-panel').style.display = 'none';
-    goChoiceQuiz();
+    window._selectedWords = window._selectedWords || allWords;
+    showStartPanel(window._selectedWords, 'choice');
     return;
   }
 
   if (mode === 'speed') {
     document.getElementById('week-panel').style.display = 'none';
-    document.getElementById('start-panel').style.display = 'none';
-    goSpeedMode();
+    window._selectedWords = window._selectedWords || allWords;
+    showStartPanel(window._selectedWords, 'speed');
     return;
   }
 
@@ -3306,7 +3329,8 @@ async function selectMode(mode) {
 var choice = { words: [], idx: 0, correct: 0, wrong: 0, combo: 0, maxCombo: 0, results: [] };
 
 function goChoiceQuiz() {
-  choice.words = Utils.shuffle((window._selectedWords || allWords).slice()).slice(0, 40);
+  var _cnt = parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
+  choice.words = Utils.shuffle((window._selectedWords || allWords).slice()).slice(0, _cnt);
   choice.idx = 0; choice.correct = 0; choice.wrong = 0; choice.combo = 0; choice.maxCombo = 0; choice.results = [];
   showView('choice');
   renderChoice();
@@ -3419,7 +3443,8 @@ function answerChoice(i) {
 var speed = { words: [], idx: 0, know: 0, dontKnow: 0, results: [] };
 
 function goSpeedMode() {
-  speed.words = Utils.shuffle((window._selectedWords || allWords).slice()).slice(0, 30);
+    var _sCnt = parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
+  speed.words = Utils.shuffle((window._selectedWords || allWords).slice()).slice(0, _sCnt);
   speed.idx = 0; speed.know = 0; speed.dontKnow = 0; speed.results = [];
   showView('speed');
   renderSpeed();
