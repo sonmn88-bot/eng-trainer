@@ -3006,6 +3006,7 @@ async function savePwSetting() {
     }
     msg.style.color = 'var(--grn,#4ade80)';
     msg.textContent = newPw ? '✓ 비밀번호가 설정됐어요!' : '✓ 비밀번호가 삭제됐어요';
+    _pwForced = false; // 저장 성공 시 강제 모드 해제
     setTimeout(closePwSetting, 1200);
   } catch(e) {
     msg.style.color = 'var(--red,#f87171)';
