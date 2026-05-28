@@ -267,6 +267,10 @@
       <div id="profile-badges-row" style="display:flex;gap:6px;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--bdr)"></div>
     </div>
 
+    <!-- 골드 표시 -->
+    <div id="gold-bar" style="display:none;align-items:center;justify-content:flex-end;margin-bottom:.5rem">
+      <span id="gold-display" style="display:none;background:rgba(201,169,97,.1);border:1px solid rgba(201,169,97,.25);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer" onclick="openGoldShop()" title="골드 현황">💰 0</span>
+    </div>
     <div id="streak-bar" class="streak-bar" style="display:none">
       <span style="font-size:22px">🔥</span>
       <div>
@@ -365,26 +369,7 @@
 
     <p class="sec-title">학습 시작</p>
 
-    <!-- 오늘의 한 단어 -->
-    <div id="word-of-day" style="display:none;margin-bottom:1rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
-        <p class="sec-title" style="margin:0">✨ 오늘의 단어</p>
-        <span id="wod-date" style="font-size:11px;color:var(--txt3)"></span>
-      </div>
-      <div class="card card-sm" style="position:relative">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-          <div style="flex:1">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:.375rem">
-              <span id="wod-en" style="font-size:22px;font-weight:700;color:var(--txt);font-style:italic"></span>
-              <button onclick="Utils.speak(document.getElementById('wod-en').textContent)" class="tts-btn" style="font-size:11px;padding:3px 8px">🔊</button>
-            </div>
-            <div id="wod-ko" style="font-size:14px;color:var(--gold);font-weight:500;margin-bottom:.375rem"></div>
-            <div id="wod-mnemonic" style="display:none;font-size:12px;color:var(--txt2);background:var(--sur2);border-radius:var(--rs);padding:.375rem .625rem;border-left:2px solid var(--gold-bdr);line-height:1.5;margin-bottom:.375rem"></div>
-            <div id="wod-example" style="display:none;font-size:12px;color:var(--txt3);font-style:italic;line-height:1.6"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <div class="module-grid">
       <a class="module-card" href="vocab.html" id="mod-vocab"
@@ -409,78 +394,17 @@
       <div class="metrics" id="stats-grid"></div>
     </div>
 
-    <!-- 포인트 상점 -->
-    <div style="margin-top:1rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
-        <p class="sec-title" style="margin:0">🛒 포인트 상점</p>
-        <button onclick="showHelp('shop')" style="background:none;border:none;font-size:13px;color:var(--txt3);cursor:pointer;padding:2px 4px" title="상점 도움말">❓</button>
-        <span id="shop-points" style="font-size:12px;color:var(--gold);font-weight:700"></span>
-      </div>
-      <div id="shop-grid"></div>
-      <div id="shop-msg" style="font-size:11px;text-align:center;min-height:14px;margin-top:.375rem;color:var(--grn,#4caf50)"></div>
-    </div>
+    <!-- 상점은 STATUS 창에서 접근 -->
+    <div id="shop-grid" style="display:none"></div>
+    <div id="shop-msg" style="display:none"></div>
+    <div id="shop-points" style="display:none"></div>
 
-    <!-- 학습 BGM (Web Audio API - 페이지 전환해도 재생 유지) -->
-    <div style="margin-top:1rem">
-      <p class="sec-title" style="margin-bottom:.5rem">🎵 학습 BGM</p>
-      <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rx);padding:.875rem 1rem">
-        <!-- 현재 재생 중 표시 -->
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem">
-          <div id="bgm-visualizer" style="display:flex;align-items:flex-end;gap:2px;height:20px">
-            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:6px"></div>
-            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:12px"></div>
-            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:8px"></div>
-            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:16px"></div>
-            <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:10px"></div>
-          </div>
-          <div style="flex:1">
-            <div style="font-size:12px;font-weight:600;color:var(--txt)" id="bgm-now-title">선택 안 됨</div>
-            <div style="font-size:10px;color:var(--txt3)" id="bgm-now-sub">사운드를 선택하세요</div>
-          </div>
-          <button id="bgm-play-btn" onclick="toggleBGM()"
-            style="width:36px;height:36px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">▶</button>
-        </div>
-        <!-- 볼륨 -->
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
-          <span style="font-size:12px">🔈</span>
-          <input type="range" id="bgm-volume" min="0" max="100" value="30"
-            oninput="setBGMVolume(this.value)"
-            style="flex:1;accent-color:var(--gold);height:4px">
-          <span style="font-size:12px">🔊</span>
-        </div>
-        <!-- 사운드 선택 -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <button class="bgm-btn" data-type="lofi" onclick="selectBGM('lofi','☕ Lofi Beat','집중 공부용')"
-            style="display:flex;align-items:center;gap:6px;padding:.5rem .625rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;text-align:left;transition:all .15s">
-            <span style="font-size:16px">☕</span>
-            <div><div style="font-size:11px;font-weight:600;color:var(--txt)">Lofi Beat</div>
-            <div style="font-size:10px;color:var(--txt3)">집중 공부용</div></div>
-          </button>
-          <button class="bgm-btn" data-type="rain" onclick="selectBGM('rain','🌧️ 빗소리','편안한 집중')"
-            style="display:flex;align-items:center;gap:6px;padding:.5rem .625rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;text-align:left;transition:all .15s">
-            <span style="font-size:16px">🌧️</span>
-            <div><div style="font-size:11px;font-weight:600;color:var(--txt)">빗소리</div>
-            <div style="font-size:10px;color:var(--txt3)">편안한 집중</div></div>
-          </button>
-          <button class="bgm-btn" data-type="white" onclick="selectBGM('white','🌊 백색소음','소음 차단용')"
-            style="display:flex;align-items:center;gap:6px;padding:.5rem .625rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;text-align:left;transition:all .15s">
-            <span style="font-size:16px">🌊</span>
-            <div><div style="font-size:11px;font-weight:600;color:var(--txt)">백색소음</div>
-            <div style="font-size:10px;color:var(--txt3)">소음 차단용</div></div>
-          </button>
-          <button class="bgm-btn" data-type="nature" onclick="selectBGM('nature','🌿 자연 소리','스트레스 해소')"
-            style="display:flex;align-items:center;gap:6px;padding:.5rem .625rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;text-align:left;transition:all .15s">
-            <span style="font-size:16px">🌿</span>
-            <div><div style="font-size:11px;font-weight:600;color:var(--txt)">자연 소리</div>
-            <div style="font-size:10px;color:var(--txt3)">스트레스 해소</div></div>
-          </button>
-        </div>
-      </div>
-    </div>
 
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:1.5rem">
+
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:1.5rem;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" onclick="logout()">← 나가기</button>
       <button class="btn btn-ghost btn-sm" onclick="showHelp('home')">❓ 도움말</button>
+      <button class="btn btn-ghost btn-sm" onclick="openPasswordSetting()">🔑 비밀번호</button>
     </div>
 
   </div>
@@ -590,12 +514,35 @@
       <button class="status-tab" data-tab="titles" onclick="switchStatusTab('titles')" style="flex:1;padding:10px 4px;background:none;border:none;font-size:11px;font-weight:600;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:60px">🎖 칭호</button>
       <button class="status-tab" data-tab="items" onclick="switchStatusTab('items')" style="flex:1;padding:10px 4px;background:none;border:none;font-size:11px;font-weight:600;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:60px">🎒 아이템</button>
       <button class="status-tab" data-tab="analysis" onclick="switchStatusTab('analysis')" style="flex:1;padding:10px 4px;background:none;border:none;font-size:11px;font-weight:600;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:60px">📊 분석</button>
+      <button class="status-tab" data-tab="shop" onclick="switchStatusTab('shop')" style="flex:1;padding:10px 4px;background:none;border:none;font-size:11px;font-weight:600;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:60px">🛒 상점</button>
     </div>
 
     <!-- 탭 내용 -->
     <div id="status-tab-content" style="padding:1rem;max-height:55vh;overflow-y:auto">
       <div style="text-align:center;padding:2rem;color:var(--txt3)">불러오는 중...</div>
     </div>
+  </div>
+</div>
+
+<!-- ── 비밀번호 설정 팝업 ── -->
+<div id="pw-setting-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10015;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--sur);border-radius:20px;width:100%;max-width:320px;padding:1.5rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div style="font-size:15px;font-weight:700">🔑 비밀번호 설정</div>
+      <button onclick="closePwSetting()" style="background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:1rem;line-height:1.6">
+      비밀번호를 설정하면 다음 접속부터 입력이 필요해요.<br>
+      비워두면 비밀번호가 제거됩니다.
+    </div>
+    <div id="pw-current-status" style="font-size:11px;margin-bottom:.75rem;padding:.5rem .75rem;background:var(--sur2);border-radius:var(--rs)"></div>
+    <input type="password" id="pw-new-input" placeholder="새 비밀번호 (비우면 삭제)"
+      style="margin-bottom:.5rem" maxlength="20">
+    <input type="password" id="pw-confirm-input" placeholder="비밀번호 확인"
+      style="margin-bottom:.75rem" maxlength="20"
+      onkeydown="if(event.key==='Enter')savePwSetting()">
+    <div id="pw-setting-msg" style="font-size:11px;min-height:16px;margin-bottom:.5rem;text-align:center"></div>
+    <button class="btn btn-gold btn-full" onclick="savePwSetting()">저장</button>
   </div>
 </div>
 <!-- D-100 특별 팝업 -->
@@ -1025,6 +972,14 @@ async function showMain() {
     window._cachedWeakWords = await DB.getWeakWords(state.stuId);
   } catch(e) { window._cachedResults = []; window._cachedWeakWords = []; }
 
+  // 비밀번호 미설정 학생이면 강제 설정 팝업
+  var _stuData = state.students[state.stuId];
+  if (!_stuData || !_stuData.password) {
+    setTimeout(function() {
+      openPasswordSetting(true); // true = 강제 설정 모드
+    }, 800);
+  }
+
   // 링크에 stuId 파라미터 전달
   document.getElementById('mod-vocab').href   = `vocab.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
   document.getElementById('mod-listen').href  = `listening.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
@@ -1038,6 +993,11 @@ async function showMain() {
   loadWeeklyMVPBanner().catch(function(){});
   loadShop();
   applyOwnedItems();
+  loadGoldDisplay().catch(function(){});
+  document.getElementById('gold-bar').style.display = 'flex';
+  // 플로팅 BGM 버튼 표시
+  var _bgmFloat = document.getElementById('bgm-float');
+  if (_bgmFloat) _bgmFloat.style.display = 'block';
 
   // 프로필 카드 로드 (vocab에서 XP 변경 시 갱신)
   try {
@@ -1138,6 +1098,16 @@ async function showMain() {
 
   // 스트릭
   try {
+    // 첫 일일 접속 골드 지급
+    try {
+      var _goldToday = sessionStorage.getItem('gold_daily_' + state.stuId);
+      if (!_goldToday) {
+        sessionStorage.setItem('gold_daily_' + state.stuId, '1');
+        DB.addGold(state.stuId, 3, 'daily_login').then(function(r) {
+          if (r && r.earned > 0) showGoldToast('+3 💰 출석 보너스!');
+        }).catch(function(){});
+      }
+    } catch(e) {}
     var streakResult = await DB.updateStreak(state.stuId);
     var cnt = typeof streakResult === 'object' ? streakResult.count : streakResult;
     var maxStreak = typeof streakResult === 'object' ? (streakResult.max || cnt) : cnt;
@@ -1150,6 +1120,10 @@ async function showMain() {
       document.getElementById('streak-bar').style.display = 'flex';
       if (cnt === 7 || cnt === 14 || cnt === 30 || cnt === 60 || cnt === 100) {
         showStreakPopup(cnt);
+        // 스트릭 7일마다 골드 보너스
+        DB.addGold(state.stuId, 5, 'streak_bonus').then(function(r){
+          if(r && r.earned>0) showGoldToast('+5 💰 스트릭 보너스!');
+        }).catch(function(){});
       }
     }
   } catch(e) {}
@@ -1718,7 +1692,8 @@ async function loadWeeklyMVPBanner() {
     var banner = document.getElementById('mvp-banner');
     var nameEl = document.getElementById('mvp-name');
     if (banner && nameEl) {
-      nameEl.textContent = mvp.name + (mvp.name === state.stuName ? ' (나!)' : '');
+      var isMine = mvp.name === state.stuName;
+      nameEl.textContent = isMine ? mvp.name + ' (나!)' : maskName(mvp.name);
       banner.style.display = 'block';
     }
   } catch(e) {}
@@ -1901,8 +1876,27 @@ function selectBGM(type, title, sub) {
   if (_bgmPlaying) { _stopAllBGM(); setTimeout(startBGM, 100); }
 }
 
+
+function toggleBgmPanel() {
+  var panel = document.getElementById('bgm-panel');
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+// 외부 클릭 시 패널 닫기
+document.addEventListener('click', function(e) {
+  var float = document.getElementById('bgm-float');
+  if (float && !float.contains(e.target)) {
+    var panel = document.getElementById('bgm-panel');
+    if (panel) panel.style.display = 'none';
+  }
+});
+
 function startBGM() {
   if (!_bgmType) return;
+  // 재생 상태를 localStorage에 저장
+  localStorage.setItem('bgm_playing', '1');
+  localStorage.setItem('bgm_type', _bgmType);
   try {
     var ctx = _initAudioCtx();
     if (ctx.state === 'suspended') ctx.resume();
@@ -1915,8 +1909,10 @@ function startBGM() {
     if (_bgmType === 'white')  _createWhiteNoise(ctx, gainNode);
     if (_bgmType === 'nature') _createNature(ctx, gainNode);
     _bgmPlaying = true;
-    document.getElementById('bgm-play-btn').textContent = '⏸';
-    document.getElementById('bgm-visualizer').classList.add('bgm-playing');
+    var _pbtn = document.getElementById('bgm-play-btn'); if(_pbtn) _pbtn.textContent='⏸';
+    var _vis = document.getElementById('bgm-visualizer'); if(_vis) _vis.classList.add('bgm-playing');
+    var _dot = document.getElementById('bgm-float-dot'); if(_dot) _dot.style.display='block';
+    var _fbtn = document.getElementById('bgm-float-btn'); if(_fbtn) _fbtn.style.borderColor='var(--gold-bdr)';
     localStorage.setItem('bgm_type', _bgmType);
   } catch(e) { console.warn('BGM error:', e); }
 }
@@ -1924,8 +1920,11 @@ function startBGM() {
 function _stopAllBGM() {
   _stopBGM();
   _bgmPlaying = false;
-  document.getElementById('bgm-play-btn').textContent = '▶';
-  document.getElementById('bgm-visualizer').classList.remove('bgm-playing');
+  localStorage.removeItem('bgm_playing');
+  var _pb = document.getElementById('bgm-play-btn'); if(_pb) _pb.textContent='▶';
+  var _vi = document.getElementById('bgm-visualizer'); if(_vi) _vi.classList.remove('bgm-playing');
+  var _dt = document.getElementById('bgm-float-dot'); if(_dt) _dt.style.display='none';
+  var _fb = document.getElementById('bgm-float-btn'); if(_fb) _fb.style.borderColor='var(--bdr)';
 }
 
 function toggleBGM() {
@@ -1942,17 +1941,32 @@ function setBGMVolume(val) {
   gainNodes.forEach(function(g){ try { g.gain.value = _bgmVolume; } catch(e) {} });
 }
 
-// 저장된 BGM 상태 복원
+// 저장된 BGM 상태 복원 + 자동 재개
 (function() {
   var saved = localStorage.getItem('bgm_type');
+  var wasPlaying = localStorage.getItem('bgm_playing') === '1';
   if (saved) {
     var titles = { lofi:'☕ Lofi Beat', rain:'🌧️ 빗소리', white:'🌊 백색소음', nature:'🌿 자연 소리' };
     var subs   = { lofi:'집중 공부용', rain:'편안한 집중', white:'소음 차단용', nature:'스트레스 해소' };
     setTimeout(function() {
       selectBGM(saved, titles[saved]||saved, subs[saved]||'');
+      // 재생 중이었으면 자동 재개
+      if (wasPlaying) startBGM();
     }, 500);
   }
 })();
+
+// 다른 페이지 다녀온 후 자동 재개 (pageshow = 뒤로가기/홈 복귀 시)
+window.addEventListener('pageshow', function(e) {
+  var saved = localStorage.getItem('bgm_type');
+  var wasPlaying = localStorage.getItem('bgm_playing') === '1';
+  if (saved && wasPlaying && !_bgmPlaying) {
+    var titles = { lofi:'☕ Lofi Beat', rain:'🌧️ 빗소리', white:'🌊 백색소음', nature:'🌿 자연 소리' };
+    var subs   = { lofi:'집중 공부용', rain:'편안한 집중', white:'소음 차단용', nature:'스트레스 해소' };
+    selectBGM(saved, titles[saved]||saved, subs[saved]||'');
+    setTimeout(function() { if (!_bgmPlaying) startBGM(); }, 300);
+  }
+});
 
 
 // ── 다크/라이트 모드 토글 ─────────────────────
@@ -2444,6 +2458,65 @@ function renderStatusHeader(prof, results, weak) {
   }).join('');
 }
 
+
+async function renderStatusShop(el) {
+  if (!state.stuId) return;
+  try {
+    var prof = await DB.getProfile(state.stuId);
+    var xp = (prof && prof.xp) || 0;
+    var owned = getOwnedItems();
+    var g = await DB.getGold(state.stuId);
+    var goldAmt = g.amount || 0;
+
+    var html = '<div style="padding:.25rem 0">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem;padding:.625rem .75rem;background:var(--sur2);border-radius:10px">';
+    html += '<div><div style="font-size:12px;font-weight:700;color:var(--gold)">총 XP: ' + xp.toLocaleString() + '</div>';
+    html += '<div style="font-size:10px;color:var(--txt3)">XP로 아이템 잠금 해제</div></div>';
+    html += '<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:var(--gold)">💰 ' + goldAmt + ' 골드</div>';
+    html += '<button onclick="openGoldShop()" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);cursor:pointer;margin-top:2px">골드 상점</button></div>';
+    html += '</div>';
+
+    // 탭 버튼
+    var cats = [{key:'title',label:'칭호'},{key:'theme',label:'테마'},{key:'avatar',label:'배경'},{key:'boost',label:'부스트'},{key:'fun',label:'재미'}];
+    var activeShopTab = window._shopTab || 'title';
+    html += '<div style="display:flex;gap:4px;margin-bottom:.75rem;overflow-x:auto">';
+    cats.forEach(function(cat) {
+      var ia = cat.key === activeShopTab;
+      html += '<button onclick="window._shopTab=\'' + cat.key + '\';renderStatusShop(document.getElementById(\'status-tab-content\'))" style="flex-shrink:0;padding:4px 10px;border-radius:99px;border:1px solid ' + (ia?'var(--gold)':'var(--bdr)') + ';background:' + (ia?'var(--gold-bg)':'var(--sur2)') + ';color:' + (ia?'var(--gold)':'var(--txt3)') + ';font-size:11px;font-weight:600;cursor:pointer">' + cat.label + '</button>';
+    });
+    html += '</div>';
+
+    // 아이템 목록
+    var items = (window.SHOP_ITEMS||[]).filter(function(i){return i.category===activeShopTab;});
+    var rarityColors = {common:'var(--txt3)',rare:'#60A5FA',epic:'#A78BFA',legendary:'#C9A961'};
+    var rarityBgs = {common:'var(--sur2)',rare:'rgba(96,165,250,.08)',epic:'rgba(167,139,250,.08)',legendary:'rgba(201,169,97,.08)'};
+    var rarityBdr = {common:'var(--bdr)',rare:'rgba(96,165,250,.25)',epic:'rgba(167,139,250,.25)',legendary:'rgba(201,169,97,.3)'};
+
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+    items.forEach(function(item) {
+      var isOwned = !!owned[item.id];
+      var isUnlocked = xp >= item.unlockXP;
+      var rc = rarityColors[item.rarity]||'var(--txt3)';
+      var rb = rarityBgs[item.rarity]||'var(--sur2)';
+      var rd = rarityBdr[item.rarity]||'var(--bdr)';
+      var btn = isOwned
+        ? '<div style="font-size:10px;color:var(--grn,#4ade80);font-weight:700;text-align:center">✓ 보유</div>'
+        : (!isUnlocked
+          ? '<div style="font-size:9px;color:var(--txt3);text-align:center">🔒 ' + (item.unlockXP-xp).toLocaleString() + ' XP 필요</div>'
+          : '<button data-iid="' + item.id + '" onclick="buyShopItem(this.dataset.iid)" style="width:100%;padding:4px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);font-size:10px;font-weight:700;cursor:pointer">잠금 해제</button>');
+      html += '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:10px;padding:.5rem;position:relative">';
+      html += '<div style="position:absolute;top:4px;right:4px;font-size:8px;font-weight:700;color:' + rc + '">' + (item.rarity==='legendary'?'전설':item.rarity==='epic'?'에픽':item.rarity==='rare'?'레어':'') + '</div>';
+      html += '<div style="font-size:22px;text-align:center;margin-bottom:2px;' + (!isUnlocked&&!isOwned?'filter:grayscale(1);opacity:.4':'') + '">' + item.icon + '</div>';
+      html += '<div style="font-size:10px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:2px">' + item.name + '</div>';
+      html += '<div style="font-size:8px;color:var(--txt3);text-align:center;margin-bottom:3px">' + item.desc + '</div>';
+      html += '<div style="font-size:9px;color:' + rc + ';text-align:center;margin-bottom:3px;font-weight:600">' + item.unlockXP.toLocaleString() + ' XP</div>';
+      html += btn + '</div>';
+    });
+    html += '</div></div>';
+    el.innerHTML = html;
+  } catch(e) { if(el) el.innerHTML = '<div style="color:var(--red)">오류</div>'; }
+}
+
 function switchStatusTab(tab) {
   _statusTab = tab;
   // 탭 버튼 스타일
@@ -2460,6 +2533,7 @@ function switchStatusTab(tab) {
   if (tab === 'titles')   el.innerHTML = renderTitlesTab();
   if (tab === 'items')    el.innerHTML = renderItemsTab();
   if (tab === 'analysis') el.innerHTML = renderAnalysisTab();
+  if (tab === 'shop')     { el.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--txt3)">불러오는 중...</div>'; renderStatusShop(el); }
 }
 
 function renderBadgesTab() {
@@ -2707,6 +2781,227 @@ function renderAnalysisTab() {
   return html;
 }
 
+
+function maskName(name) {
+  if (!name) return '';
+  if (name.length === 1) return name;
+  if (name.length === 2) return name[0] + 'ㅇ';
+  return name[0] + 'ㅇㅇ';
+}
+
+
+// ── 골드 시스템 (홈) ─────────────────────────
+
+function showGoldInfo() {
+  DB.getGold(state.stuId).then(function(g) {
+    var today = new Date().toISOString().slice(0,10);
+    var dailyLeft = 15 - ((g.date===today ? g.dailyEarned : 0) || 0);
+    alert(
+      '💰 골드 현황\n\n' +
+      '보유: ' + (g.amount||0) + ' / 50 골드\n' +
+      '오늘 획득 가능: ' + Math.max(0,dailyLeft) + ' 골드 남음\n' +
+      '누적 획득: ' + (g.totalEarned||0) + ' 골드\n\n' +
+      '━ 소비성 아이템 가격 ━\n' +
+      '💡 힌트 추가 1회 = 5골드\n' +
+      '🛡️ 콤보 실드 추가 1회 = 8골드\n' +
+      '⏩ 스킵 추가 1회 = 6골드\n' +
+      '⚡ XP 2배 30분 = 20골드\n\n' +
+      '━ 무료 사용 ━\n' +
+      '힌트 2회/일, 실드 1회/일, 스킵 1회/일'
+    );
+  }).catch(function(){});
+}
+
+function showGoldToast(msg) {
+  var el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a0a;border:1px solid #C9A961;border-radius:99px;padding:8px 18px;font-size:13px;color:#C9A961;font-weight:700;z-index:9999;pointer-events:none;animation:fadeup .3s ease';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 2500);
+}
+
+async function loadGoldDisplay() {
+  if (!state.stuId) return;
+  try {
+    var g = await DB.getGold(state.stuId);
+    var el = document.getElementById('gold-display');
+    if (el) {
+      el.textContent = '💰 ' + (g.amount || 0);
+      el.style.display = 'inline-flex';
+    }
+  } catch(e) {}
+}
+
+
+// ── 골드 상점 (소비성 아이템) ────────────────
+var GOLD_ITEMS = [
+  { id:'hint_extra',   name:'💡 힌트 추가',    price:5,  type:'hint',   desc:'오늘 힌트 1회 추가' },
+  { id:'shield_extra', name:'🛡️ 콤보 실드 추가', price:8, type:'shield', desc:'오늘 콤보 실드 1회 추가' },
+  { id:'skip_extra',   name:'⏩ 스킵 추가',     price:6,  type:'skip',   desc:'오늘 스킵 1회 추가' },
+  { id:'xp_boost_30',  name:'⚡ XP 2배 30분',  price:20, type:'xpboost',desc:'30분간 XP 2배 획득', weekLimit:2 },
+];
+
+async function openGoldShop() {
+  var g = await DB.getGold(state.stuId);
+  var content = '<div style="padding:1rem">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">' +
+      '<div style="font-size:15px;font-weight:700">💰 골드 상점</div>' +
+      '<div style="font-size:14px;font-weight:700;color:var(--gold)">보유 ' + (g.amount||0) + ' 골드</div>' +
+    '</div>' +
+    GOLD_ITEMS.map(function(item) {
+      var canBuy = (g.amount||0) >= item.price;
+      return '<div style="display:flex;align-items:center;gap:10px;padding:.75rem;background:var(--sur2);border-radius:10px;margin-bottom:6px">' +
+        '<div style="flex:1">' +
+          '<div style="font-size:13px;font-weight:600">' + item.name + '</div>' +
+          '<div style="font-size:11px;color:var(--txt3)">' + item.desc + '</div>' +
+        '</div>' +
+        '<button data-gid="' + item.id + '" onclick="buyGoldItem(this.dataset.gid)" ' +
+          'style="padding:6px 14px;border-radius:8px;border:1px solid var(--gold-bdr);background:' + (canBuy?'var(--gold)':'var(--sur3)') + ';color:' + (canBuy?'#111':'var(--txt3)') + ';font-size:12px;font-weight:700;cursor:' + (canBuy?'pointer':'default') + '">' +
+          item.price + '골드' +
+        '</button>' +
+      '</div>';
+    }).join('') +
+  '</div>';
+  var popup = document.getElementById('gold-shop-popup');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'gold-shop-popup';
+    popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10020;display:flex;align-items:flex-end;justify-content:center';
+    var _inner = document.createElement('div');
+    _inner.style.cssText = 'background:var(--sur);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:70vh;overflow-y:auto';
+    var _hdr = document.createElement('div');
+    _hdr.style.cssText = 'display:flex;justify-content:flex-end;padding:.75rem 1rem .25rem';
+    var _x = document.createElement('button');
+    _x.textContent = '×'; _x.style.cssText = 'background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer';
+    _x.onclick = function(){ var p=document.getElementById('gold-shop-popup'); if(p) p.remove(); };
+    _hdr.appendChild(_x);
+    var _gc = document.createElement('div'); _gc.id = 'gold-shop-content';
+    _inner.appendChild(_hdr); _inner.appendChild(_gc);
+    popup.appendChild(_inner);
+    document.body.appendChild(popup);
+  }
+  document.getElementById('gold-shop-content').innerHTML = content;
+  popup.style.display = 'flex';
+}
+
+async function buyGoldItem(itemId) {
+  var item = GOLD_ITEMS.find(function(i){return i.id===itemId;});
+  if (!item) return;
+  var g = await DB.getGold(state.stuId);
+  if ((g.amount||0) < item.price) { showGoldToast('골드가 부족해요'); return; }
+  var sp = await DB.spendGold(state.stuId, item.price);
+  if (!sp.success) { showGoldToast('구매 실패'); return; }
+
+  if (item.type === 'xpboost') {
+    var exp = Date.now() + 1800000; // 30분
+    sessionStorage.setItem('xp_boost_exp', exp);
+    sessionStorage.setItem('xp_boost_mul', '2');
+    showGoldToast('⚡ XP 2배 30분 시작! (남은 골드: ' + sp.amount + ')');
+  } else {
+    // 힌트/실드/스킵 추가 - daily_free 카운터를 1 줄여서 1회 더 쓸 수 있게
+    var path = 'daily_free/' + state.stuId;
+    var today = new Date().toISOString().slice(0,10);
+    showGoldToast(item.name + ' 구매! (남은 골드: ' + sp.amount + ')');
+    // DB에 추가 사용 가능 횟수 기록
+    var typeMap = { hint:'hint', shield:'shield', skip:'skip' };
+    var t = typeMap[item.type];
+    if (t) {
+      DB.getGold(state.stuId).then(function(){});
+      // 임시: sessionStorage에 추가 횟수 저장
+      var extraKey = 'extra_' + t + '_' + today;
+      var cur = parseInt(sessionStorage.getItem(extraKey)||'0');
+      sessionStorage.setItem(extraKey, cur+1);
+    }
+  }
+  // 골드 표시 갱신
+  loadGoldDisplay().catch(function(){});
+  document.getElementById('gold-shop-popup').remove();
+}
+
+
+// ── 학생 비밀번호 설정 (홈에서) ──────────────
+var _pwForced = false; // 강제 설정 모드
+
+function openPasswordSetting(forced) {
+  _pwForced = !!forced;
+  var popup = document.getElementById('pw-setting-popup');
+  if (!popup) return;
+
+  // 강제 모드 UI
+  var closeBtn = popup.querySelector('button[onclick="closePwSetting()"]');
+  if (closeBtn) closeBtn.style.display = forced ? 'none' : 'block';
+
+  var titleEl = popup.querySelector('[data-pw-title]') || popup.querySelector('.pw-title');
+  var statusEl = document.getElementById('pw-current-status');
+  if (statusEl) {
+    if (forced) {
+      statusEl.innerHTML = '<span style="color:var(--gold);font-weight:600">⚠️ 처음 접속 시 비밀번호를 설정해야 해요!</span><br><span style="font-size:10px;color:var(--txt3)">비밀번호는 본인만 알 수 있어요. 선생님은 초기화만 가능합니다.</span>';
+    } else {
+      var stu = state.students[state.stuId];
+      statusEl.innerHTML = (stu && stu.password) ? '🔒 현재 비밀번호 설정됨' : '🔓 현재 비밀번호 없음';
+    }
+  }
+  // 입력창 초기화
+  var ni = document.getElementById('pw-new-input');
+  var ci = document.getElementById('pw-confirm-input');
+  var msg = document.getElementById('pw-setting-msg');
+  if (ni) ni.value = '';
+  if (ci) ci.value = '';
+  if (msg) { msg.textContent = ''; msg.style.color = 'var(--txt3)'; }
+  // 강제 모드일 때 placeholder 변경
+  if (ni) ni.placeholder = forced ? '비밀번호 입력 (4자 이상)' : '새 비밀번호 (비우면 삭제)';
+  popup.style.display = 'flex';
+  setTimeout(function(){ if(ni) ni.focus(); }, 100);
+}
+
+function closePwSetting() {
+  if (_pwForced) return; // 강제 모드에서는 닫기 불가
+  var popup = document.getElementById('pw-setting-popup');
+  if (popup) popup.style.display = 'none';
+}
+
+async function savePwSetting() {
+  var newPw = (document.getElementById('pw-new-input').value || '').trim();
+  var confPw = (document.getElementById('pw-confirm-input').value || '').trim();
+  var msg = document.getElementById('pw-setting-msg');
+
+  // 강제 모드에서는 반드시 설정
+  if (_pwForced && !newPw) {
+    msg.style.color = 'var(--red,#f87171)';
+    msg.textContent = '비밀번호를 반드시 설정해야 해요!';
+    return;
+  }
+  // 비밀번호 삭제 (빈 칸)
+  if (!newPw) {
+    if (!confirm('비밀번호를 삭제할까요? 다음부터 바로 접속 가능해집니다.')) return;
+  } else {
+    if (newPw.length < 4) {
+      msg.style.color = 'var(--red,#f87171)';
+      msg.textContent = '비밀번호는 4자 이상이어야 해요';
+      return;
+    }
+    if (newPw !== confPw) {
+      msg.style.color = 'var(--red,#f87171)';
+      msg.textContent = '비밀번호가 일치하지 않아요';
+      return;
+    }
+  }
+
+  try {
+    await DB.saveStudentPassword(state.stuId, newPw);
+    // 로컬 students 캐시 업데이트
+    if (state.students[state.stuId]) {
+      state.students[state.stuId].password = newPw;
+    }
+    msg.style.color = 'var(--grn,#4ade80)';
+    msg.textContent = newPw ? '✓ 비밀번호가 설정됐어요!' : '✓ 비밀번호가 삭제됐어요';
+    setTimeout(closePwSetting, 1200);
+  } catch(e) {
+    msg.style.color = 'var(--red,#f87171)';
+    msg.textContent = '저장 오류: ' + e.message;
+  }
+}
+
 function showConnError() {
   var el = document.getElementById('conn-error-banner');
   if (el) el.style.display = 'block';
@@ -2855,5 +3150,62 @@ document.addEventListener('click', e => {
 
 init();
 </script>
+
+<!-- ── 플로팅 BGM 위젯 ── -->
+<div id="bgm-float" style="position:fixed;bottom:20px;right:16px;z-index:9980;display:none">
+  <!-- 메인 버튼 -->
+  <button id="bgm-float-btn" onclick="toggleBgmPanel()"
+    style="width:48px;height:48px;border-radius:50%;background:var(--sur);border:1px solid var(--bdr);
+    box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:pointer;font-size:20px;display:flex;align-items:center;
+    justify-content:center;transition:all .2s;position:relative">
+    🎵
+    <!-- 재생 중 표시 점 -->
+    <div id="bgm-float-dot" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;
+      border-radius:50%;background:var(--gold);animation:bgm-bounce .8s ease-in-out infinite"></div>
+  </button>
+
+  <!-- 펼쳐지는 패널 -->
+  <div id="bgm-panel" style="display:none;position:absolute;bottom:58px;right:0;
+    background:var(--sur);border:1px solid var(--bdr);border-radius:16px;
+    padding:.875rem;width:220px;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    <!-- 헤더 -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+      <div id="bgm-visualizer" style="display:flex;align-items:flex-end;gap:2px;height:16px">
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:6px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:10px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:7px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:13px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:9px"></div>
+      </div>
+      <div style="flex:1;font-size:11px;font-weight:600;color:var(--txt)" id="bgm-now-title">선택 안 됨</div>
+      <button id="bgm-play-btn" onclick="toggleBGM()"
+        style="width:28px;height:28px;border-radius:50%;background:var(--gold);border:none;
+        cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">▶</button>
+    </div>
+    <!-- 볼륨 -->
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
+      <span style="font-size:11px">🔈</span>
+      <input type="range" id="bgm-volume" min="0" max="100" value="30"
+        oninput="setBGMVolume(this.value)"
+        style="flex:1;accent-color:var(--gold);height:3px">
+      <span style="font-size:11px">🔊</span>
+    </div>
+    <!-- 사운드 선택 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+      <button class="bgm-btn" data-type="lofi" onclick="selectBGM('lofi','☕ Lofi Beat','집중 공부용')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;
+        cursor:pointer;font-size:10px;font-weight:600;color:var(--txt);text-align:center">☕ Lofi</button>
+      <button class="bgm-btn" data-type="rain" onclick="selectBGM('rain','🌧️ 빗소리','편안한 집중')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;
+        cursor:pointer;font-size:10px;font-weight:600;color:var(--txt);text-align:center">🌧️ 비</button>
+      <button class="bgm-btn" data-type="white" onclick="selectBGM('white','🌊 백색소음','소음 차단용')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;
+        cursor:pointer;font-size:10px;font-weight:600;color:var(--txt);text-align:center">🌊 백색</button>
+      <button class="bgm-btn" data-type="nature" onclick="selectBGM('nature','🌿 자연','스트레스 해소')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;
+        cursor:pointer;font-size:10px;font-weight:600;color:var(--txt);text-align:center">🌿 자연</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
