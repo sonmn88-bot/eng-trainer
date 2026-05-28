@@ -138,6 +138,19 @@ body::before {
   max-width: 640px;
   margin: 0 auto;
   padding: 1.5rem 1rem 5rem;
+  overflow-x: hidden;
+  word-break: keep-all;
+}
+
+/* 4지선다 버튼 */
+.choice-opt {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+  min-width: 0 !important;
+  white-space: normal !important;
+  text-align: left;
 }
 
 /* ── Screens ── */
