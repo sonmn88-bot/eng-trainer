@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="English Trainer">
@@ -704,18 +705,26 @@ let state = {
 
 // ── Init ───────────────────────────────────────
 async function init() {
-  try {
-    state.settings = await DB.getSettings();
-    document.getElementById('app-title-display').textContent = state.settings.appName || 'English Trainer';
-    document.title = state.settings.appName || 'English Trainer';
-    // 앱 로고 이모지 적용
-    if (state.settings.appEmoji) {
-      document.querySelectorAll('.logo-mark').forEach(function(m){ m.textContent = state.settings.appEmoji; });
+  var _connRetry = 0;
+  async function _tryConnect() {
+    try {
+      state.settings = await DB.getSettings();
+      document.getElementById('app-title-display').textContent = state.settings.appName || 'English Trainer';
+      document.title = state.settings.appName || 'English Trainer';
+      if (state.settings.appEmoji) {
+        document.querySelectorAll('.logo-mark').forEach(function(m){ m.textContent = state.settings.appEmoji; });
+      }
+      hideConnError();
+    } catch(e) {
+      _connRetry++;
+      if (_connRetry >= 3) {
+        showConnError(); // 3회 실패 후에만 배너 표시
+      } else {
+        setTimeout(_tryConnect, 2000); // 2초 후 재시도
+      }
     }
-    hideConnError();
-  } catch(e) {
-    showConnError();
   }
+  await _tryConnect();
 
   // 첫 접속 온보딩 체크
   checkOnboarding();
@@ -1867,8 +1876,10 @@ function _createNature(ctx, gainNode) {
 
 function selectBGM(type, title, sub) {
   _bgmType = type;
-  document.getElementById('bgm-now-title').textContent = title;
-  document.getElementById('bgm-now-sub').textContent = sub;
+  var _nt = document.getElementById('bgm-now-title');
+  var _ns = document.getElementById('bgm-now-sub');
+  if (_nt) _nt.textContent = title;
+  if (_ns) _ns.textContent = sub;
   document.querySelectorAll('.bgm-btn').forEach(function(b){
     b.classList.toggle('active', b.dataset.type === type);
   });
