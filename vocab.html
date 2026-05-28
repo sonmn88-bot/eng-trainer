@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="English Trainer">
 <meta name="theme-color" content="#C9A961">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
 <title>단어 학습</title>
 <link rel="stylesheet" href="shared/theme.css">
 <style>
@@ -395,14 +396,15 @@
       <button class="tts-btn" id="hint-btn" onclick="showHint()">💡 힌트</button>
     </div>
     <div id="quiz-hint" style="display:none;background:var(--gold-bg);border:1px solid var(--gold-bdr);border-radius:var(--rs);padding:.625rem .875rem;font-size:12px;color:var(--gold);margin-bottom:.75rem;text-align:center"></div>
-    <input class="quiz-input" id="quiz-ans" type="text" placeholder="한글 뜻을 입력하세요"
+    <input class="quiz-input" id="quiz-ans" type="text" placeholder="한글 뜻을 입력하세요" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
            onkeydown="onQuizKeydown(event)">
     <div id="quiz-fb" style="display:none" class="feedback"></div>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:.5rem">
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:.5rem;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="prevWord()" id="btn-prev" style="display:none">← 이전</button>
       <button class="btn btn-gold" onclick="submitAns()" id="btn-sub">확인</button>
       <button class="btn" onclick="nextWord()" id="btn-nxt" style="display:none">다음 →</button>
+      <button class="btn btn-ghost" onclick="skipWord()" id="btn-skip" style="display:none;font-size:11px" title="스킵 패스">⏩</button>
     </div>
   </div>
   <div style="text-align:center;margin-top:.5rem">
@@ -477,7 +479,7 @@
     </div>
     <div style="font-size:11px;color:var(--txt3);text-align:center;margin-bottom:.5rem" id="blank-hint"></div>
     <div class="sentence-box" id="blank-sentence" style="font-size:15px;line-height:1.8;background:var(--sur2);border-radius:var(--rs);padding:1rem;margin-bottom:.75rem;min-height:60px"></div>
-    <input class="quiz-input" id="blank-ans" type="text" placeholder="영어 단어를 입력하세요"
+    <input class="quiz-input" id="blank-ans" type="text" placeholder="영어 단어를 입력하세요" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
            autocomplete="off" onkeydown="if(event.key==='Enter')submitBlank()">
     <div id="blank-fb" style="display:none" class="feedback"></div>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:.75rem">
@@ -502,7 +504,7 @@
     </div>
     <div id="choice-combo" style="text-align:center;font-size:13px;font-weight:700;color:var(--gold);min-height:20px;margin-bottom:.25rem"></div>
     <div class="big-word" id="choice-word" style="margin-bottom:1rem"></div>
-    <div id="choice-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+    <div id="choice-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;box-sizing:border-box"></div>
     <div id="choice-fb" style="display:none;text-align:center;padding:.5rem;border-radius:var(--rs);margin-top:.75rem;font-size:13px;font-weight:600"></div>
   </div>
   <div style="text-align:center;margin-top:.5rem">
@@ -664,12 +666,13 @@
   </div>
 </div>
 
-
+<script>
 // 저장된 테마 즉시 적용
 (function() {
   var t = localStorage.getItem('theme') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
 })();
+</script>
 <script src="data/_index.js"></script>
 <script src="data/words/mnemonics.js"></script>
 <script src="data/words/word-grades.js"></script>
@@ -1032,6 +1035,24 @@ var SUNEUNG_HIGH_FREQ = new Set([
   'sophisticated','spontaneous','transparent'
 ]);
 
+
+// ── 단어 뜻 오류 패치 ─────────────────────────
+// wm-basic.js blame 오류: '상쾌하게 하는, 신선한' → '비난하다, 탓으로 돌리다'
+// personal.js describe 오류: '묘하사다' → '묘사하다'
+var WORD_PATCHES = {
+  'blame':    '비난하다, 탓으로 돌리다',
+  'describe': '묘사하다, 기술하다, 설명하다',
+};
+
+function applyWordPatches(words) {
+  if (!words || !words.length) return words;
+  return words.map(function(w) {
+    var patch = WORD_PATCHES[w[0] && w[0].toLowerCase()];
+    if (patch) return [w[0], patch].concat(w.slice(2));
+    return w;
+  });
+}
+
 // ── App State ──────────────────────────────────
 var currentSet = null;   // WORD_CATALOG item
 var currentMode = null;  // 'random'|'week'|'weak'
@@ -1043,7 +1064,7 @@ var flash = { words: [], idx: 0 };
 var quiz  = { words: [], idx: 0, correct: 0, wrong: 0, timer: null, elapsed: 0, results: [], combo: 0, maxCombo: 0 };
 
 // ── Views ──────────────────────────────────────
-var VIEWS = ['library','set','flash','quiz','result','wrong','flip','blank','choice','speed','calendar','folders','folder-detail'];
+var VIEWS = ['library','set','flash','quiz','result','wrong','flip','blank','choice','speed','calendar','folders','folder-detail','confuse'];
 function showView(name) {
   VIEWS.forEach(v => {
     var el = document.getElementById(`view-${v}`);
@@ -1726,7 +1747,8 @@ async function loadWordFile(setInfo) {
     document.head.appendChild(sc);
   });
   _allWordsFlat = null; // 검색 인덱스 갱신
-  return window[setInfo.varName] || [];
+  var raw = window[setInfo.varName] || [];
+  return applyWordPatches(raw);
 }
 
 // ── Set Selection ──────────────────────────────
@@ -2092,7 +2114,7 @@ function flashNext() {
 }
 
 // ── Quiz ───────────────────────────────────────
-function showHint() {
+async function showHint() {
   var w = quiz.words[quiz.idx];
   var hintEl = document.getElementById('quiz-hint');
   var hintBtn = document.getElementById('hint-btn');
@@ -2103,7 +2125,29 @@ function showHint() {
     return;
   }
 
-  // 연상법 먼저, 없으면 첫 글자
+  // 일일 무료 사용 체크
+  try {
+    var freeResult = await DB.useDailyFreeItem(STU_ID, 'hint');
+    if (!freeResult.success) {
+      // 무료 소진 → 골드 구매 제안
+      var gold = await DB.getGold(STU_ID);
+      if ((gold.amount||0) < 5) {
+        showToast('💡 힌트 무료 소진. 골드 부족 (5골드 필요, 보유 ' + (gold.amount||0) + ')');
+        return;
+      }
+      var ok = confirm('힌트 무료 횟수 소진 (하루 2회)\n💰 5골드를 사용할까요? (보유 ' + (gold.amount||0) + ')');
+      if (!ok) return;
+      var spent = await DB.spendGold(STU_ID, 5);
+      if (!spent.success) { showToast('골드가 부족해요'); return; }
+      showToast('💡 골드 5 사용 (남은 골드: ' + spent.amount + ')');
+      loadGoldDisplay && loadGoldDisplay().catch(function(){});
+    } else {
+      var left = freeResult.limit - freeResult.used;
+      if (left > 0) showToast('💡 힌트 무료 ' + left + '회 남음');
+    }
+  } catch(e) {}
+
+  // 힌트 표시
   var mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
   if (mn && mn !== '') {
     hintEl.textContent = '💭 ' + mn;
@@ -2188,6 +2232,12 @@ function renderQuiz() {
   document.getElementById('quiz-ans').focus();
   // 자동 힌트 타이머 리셋 (15초 무응답 시 힌트 자동 표시)
   if (typeof resetAutoHintTimer === 'function') resetAutoHintTimer();
+  // 스킵 버튼 - skip_token 보유 시 표시
+  var skipBtn = document.getElementById('btn-skip');
+  if (skipBtn) {
+    var _os = typeof getOwnedItems === 'function' ? getOwnedItems() : {};
+    skipBtn.style.display = _os['skip_token'] ? 'inline-flex' : 'none';
+  }
 
   // 취약단어 모드: streak 졸업 진행률 표시
   var streakBar = document.getElementById('weak-streak-bar');
@@ -2231,9 +2281,31 @@ function toggleFocusMode() {
 
 // ══ XP / 배지 시스템 ══════════════════════════════
 // XP 지급 + 레벨업 체크
+
+// ── 골드 지급 ────────────────────────────────
+async function giveGold(amount, reason) {
+  if (!STU_ID || STU_ID === 'guest') return;
+  try {
+    var result = await DB.addGold(STU_ID, amount, reason);
+    if (result && result.earned > 0) {
+      // 골드 토스트 (XP 토스트와 겹치지 않게 살짝 딜레이)
+      setTimeout(function() {
+        showToast('💰 +' + result.earned + ' 골드! (보유 ' + result.amount + ')');
+      }, 600);
+      // 홈 골드 표시 업데이트
+      sessionStorage.setItem('goldUpdated', '1');
+    }
+  } catch(e) {}
+}
+
 async function giveXP(amount) {
   if (!STU_ID || STU_ID === 'guest') return;
   try {
+    // XP 2배 부스트 체크
+    var _boostExp = sessionStorage.getItem('xp_boost_exp');
+    if (_boostExp && Date.now() < parseInt(_boostExp)) {
+      amount = amount * 2;
+    }
     var result = await DB.addXP(STU_ID, amount);
     if (result.leveled) {
       var lvName = getLevelName(result.level);
@@ -2526,7 +2598,20 @@ async function submitAns() {
     }
   } else {
     quiz.wrong++;
-    quiz.combo = 0;
+    // 콤보 실드 체크 - 보유 중이고 무료 횟수 남아있으면 자동 발동
+    var _shieldApplied = false;
+    if (typeof getOwnedItems === 'function') {
+      try {
+        var _owned = getOwnedItems();
+        if (_owned['combo_shield'] && quiz.combo > 0) {
+          DB.useDailyFreeItem(STU_ID, 'shield').then(function(r) {
+            if (r && r.success) showToast('🛡️ 콤보 실드 발동! 콤보 유지 (하루 ' + r.limit + '회 무료)');
+          }).catch(function(){});
+          _shieldApplied = true;
+        }
+      } catch(e) {}
+    }
+    if (!_shieldApplied) quiz.combo = 0;
     fb.className = 'feedback fb-fail';
     // N번째 틀렸어요 메시지
     var wrongKey = w[0].toLowerCase();
@@ -2558,6 +2643,7 @@ async function submitAns() {
     }
     if (isCorrect && quiz.weakStreakMap[key] >= 5) {
       showToast('🎓 ' + w[0] + ' 졸업! 완전히 익혔어요');
+      giveGold(2, 'weak_graduate');
       fb.textContent += ' 🎓 졸업!';
     }
     // dots 즉시 시각 갱신 (정답=금색 채움, 오답=빨간 깜빡 후 초기화)
@@ -2609,6 +2695,34 @@ var _imeComposing = false;
 
 function onQuizKeydown(e) {
   if (e.key === 'Enter' && !_imeComposing) submitAns();
+}
+
+
+async function skipWord() {
+  // 스킵 패스 - 일일 무료 1회
+  try {
+    var _ownedS = typeof getOwnedItems === 'function' ? getOwnedItems() : {};
+    if (!_ownedS['skip_token']) {
+      showToast('⏩ 스킵 패스가 없어요 (상점에서 잠금해제)');
+      return;
+    }
+    var freeR = await DB.useDailyFreeItem(STU_ID, 'skip');
+    if (!freeR.success) {
+      // 무료 소진 → 골드
+      var g = await DB.getGold(STU_ID);
+      if ((g.amount||0) < 6) { showToast('⏩ 스킵 소진. 골드 부족 (6골드 필요)'); return; }
+      var ok = confirm('스킵 무료 횟수 소진\n💰 6골드 사용할까요? (보유 ' + (g.amount||0) + ')');
+      if (!ok) return;
+      var sp = await DB.spendGold(STU_ID, 6);
+      if (!sp.success) { showToast('골드 부족'); return; }
+      showToast('⏩ 스킵! (남은 골드: ' + sp.amount + ')');
+      typeof loadGoldDisplay === 'function' && loadGoldDisplay().catch(function(){});
+    } else {
+      var leftS = freeR.limit - freeR.used;
+      showToast('⏩ 스킵! (무료 ' + leftS + '회 남음)');
+    }
+  } catch(e) { showToast('⏩ 스킵'); }
+  nextWord();
 }
 
 function prevWord() {
@@ -2850,6 +2964,12 @@ function showResult(score, total, skipSave) {
     if (STU_ID && STU_ID !== 'guest') {
       var _mins = Math.max(1, Math.round((quiz.elapsed||0)/60));
       DB.addStudyTime(STU_ID, _mins).catch(function(){});
+    }
+    // 골드 지급
+    if (STU_ID && STU_ID !== 'guest' && total >= 10) {
+      var goldAmt = 2; // 퀴즈 완료 기본 2골드
+      if (score === 100) goldAmt += 5; // 100% 보너스
+      giveGold(goldAmt, 'quiz_complete');
     }
     try {
       DB.saveResult(STU_ID, {
@@ -3243,7 +3363,7 @@ function renderChoice() {
 
   document.getElementById('choice-options').innerHTML = options.map(function(opt, i) {
     // onmouseover 막기 위해 style에 직접 hover 무효화 추가
-    return '<button class="choice-opt btn" data-idx="'+i+'" style="padding:.75rem;font-size:13px;text-align:left;line-height:1.4">' + opt[1] + '</button>';
+    return '<button class="choice-opt btn" data-idx="'+i+'" style="padding:.75rem;font-size:13px;text-align:left;line-height:1.4;box-sizing:border-box;width:100%;word-break:keep-all;overflow-wrap:break-word;min-width:0">' + opt[1] + '</button>';
   }).join('');
   // 이벤트는 addEventListener로 (인라인 onclick의 hover 잔류 방지)
   document.querySelectorAll('#choice-options .choice-opt').forEach(function(btn) {
@@ -3989,6 +4109,70 @@ function showToast(msg) {
 // selectSet 완료 시 북마크 로드
 
 </script>
+
+<!-- ── 플로팅 BGM ── -->
+<div id="bgm-float" style="position:fixed;bottom:20px;right:16px;z-index:9980">
+  <button id="bgm-float-btn" onclick="toggleBgmPanel()"
+    style="width:48px;height:48px;border-radius:50%;background:var(--sur);border:1px solid var(--bdr);
+    box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:pointer;font-size:20px;display:flex;align-items:center;
+    justify-content:center">
+    🎵
+    <div id="bgm-float-dot" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;
+      border-radius:50%;background:var(--gold);animation:bgm-bounce .8s ease-in-out infinite"></div>
+  </button>
+  <div id="bgm-panel" style="display:none;position:absolute;bottom:58px;right:0;
+    background:var(--sur);border:1px solid var(--bdr);border-radius:16px;
+    padding:.875rem;width:220px;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+      <div id="bgm-visualizer" style="display:flex;align-items:flex-end;gap:2px;height:16px">
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:6px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:10px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:7px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:13px"></div>
+        <div class="bgm-bar" style="width:3px;background:var(--gold);border-radius:2px;height:9px"></div>
+      </div>
+      <div style="flex:1;font-size:11px;font-weight:600;color:var(--txt)" id="bgm-now-title">선택 안 됨</div>
+      <button id="bgm-play-btn" onclick="toggleBGM()"
+        style="width:28px;height:28px;border-radius:50%;background:var(--gold);border:none;
+        cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">▶</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
+      <span style="font-size:11px">🔈</span>
+      <input type="range" id="bgm-volume" min="0" max="100" value="30"
+        oninput="setBGMVolume(this.value)" style="flex:1;accent-color:var(--gold);height:3px">
+      <span style="font-size:11px">🔊</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+      <button class="bgm-btn" data-type="lofi" onclick="selectBGM('lofi','☕ Lofi Beat','집중 공부용')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:10px;font-weight:600;color:var(--txt)">☕ Lofi</button>
+      <button class="bgm-btn" data-type="rain" onclick="selectBGM('rain','🌧️ 빗소리','편안한 집중')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:10px;font-weight:600;color:var(--txt)">🌧️ 비</button>
+      <button class="bgm-btn" data-type="white" onclick="selectBGM('white','🌊 백색소음','소음 차단용')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:10px;font-weight:600;color:var(--txt)">🌊 백색</button>
+      <button class="bgm-btn" data-type="nature" onclick="selectBGM('nature','🌿 자연','스트레스 해소')"
+        style="padding:6px 4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:10px;font-weight:600;color:var(--txt)">🌿 자연</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── BGM (각 페이지 독립 실행) ────────────────
+var _bgmCtx=null,_bgmNodes=[],_bgmType=null,_bgmPlaying=false,_bgmVolume=0.3;
+function _initAudioCtx(){if(_bgmCtx)return _bgmCtx;_bgmCtx=new(window.AudioContext||window.webkitAudioContext)();return _bgmCtx;}
+function _stopBGM(){_bgmNodes.forEach(function(n){try{n.stop();}catch(e){}try{n.disconnect();}catch(e){}});_bgmNodes=[];}
+function _createLofi(ctx,g){var bpm=80,spb=60/bpm;function loop(t){if(!_bgmPlaying)return;function beat(t,f,d){var o=ctx.createOscillator(),gn=ctx.createGain();o.frequency.value=f;o.type='sine';gn.gain.setValueAtTime(0.4,t);gn.gain.exponentialRampToValueAtTime(0.001,t+d);o.connect(gn);gn.connect(g);o.start(t);o.stop(t+d);_bgmNodes.push(o);}beat(t,60,0.15);beat(t+spb*2,60,0.15);beat(t+spb,200,0.08);beat(t+spb*3,200,0.08);for(var i=0;i<8;i++)beat(t+i*spb*0.5,800+Math.random()*200,0.04);[220,277,330].forEach(function(f){var o=ctx.createOscillator(),g2=ctx.createGain();o.type='triangle';o.frequency.value=f;g2.gain.setValueAtTime(0.08,t);g2.gain.exponentialRampToValueAtTime(0.001,t+spb*4);o.connect(g2);g2.connect(g);o.start(t);o.stop(t+spb*4);_bgmNodes.push(o);});setTimeout(function(){loop(ctx.currentTime);},spb*4*1000-50);}loop(ctx.currentTime+0.1);}
+function _createRain(ctx,g){function d(){if(!_bgmPlaying)return;var b=ctx.createBuffer(1,ctx.sampleRate*0.05,ctx.sampleRate),data=b.getChannelData(0);for(var i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.random();var s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g2=ctx.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=1000+Math.random()*2000;f.Q.value=0.5;g2.gain.value=Math.random()*0.3;s.connect(f);f.connect(g2);g2.connect(g);s.start();_bgmNodes.push(s);setTimeout(d,20+Math.random()*80);}for(var i=0;i<3;i++)setTimeout(d,i*20);}
+function _createWhite(ctx,g){var b=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),d=b.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1;var s=ctx.createBufferSource(),f=ctx.createBiquadFilter();s.buffer=b;s.loop=true;f.type='lowpass';f.frequency.value=800;s.connect(f);f.connect(g);s.start();_bgmNodes.push(s);}
+function _createNature(ctx,g){function chirp(t){if(!_bgmPlaying)return;var f=800+Math.random()*400,d=0.1+Math.random()*0.2,o=ctx.createOscillator(),g2=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.linearRampToValueAtTime(f*1.3,t+d*0.3);o.frequency.linearRampToValueAtTime(f,t+d);g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(0.15,t+0.02);g2.gain.exponentialRampToValueAtTime(0.001,t+d);o.connect(g2);g2.connect(g);o.start(t);o.stop(t+d+0.05);_bgmNodes.push(o);setTimeout(function(){chirp(ctx.currentTime);},500+Math.random()*2000);}_createWhite(ctx,g);for(var i=0;i<2;i++)setTimeout(function(){chirp(ctx.currentTime);},i*300);}
+function selectBGM(type,title,sub){_bgmType=type;var nt=document.getElementById('bgm-now-title');if(nt)nt.textContent=title;document.querySelectorAll('.bgm-btn').forEach(function(b){b.classList.toggle('active',b.dataset.type===type);});if(_bgmPlaying){_stopAllBGM2();setTimeout(startBGM,100);}localStorage.setItem('bgm_type',type);}
+function startBGM(){if(!_bgmType)return;localStorage.setItem('bgm_playing','1');try{var ctx=_initAudioCtx();if(ctx.state==='suspended')ctx.resume();var gn=ctx.createGain();gn.gain.value=_bgmVolume;gn.connect(ctx.destination);_bgmNodes.push(gn);if(_bgmType==='lofi')_createLofi(ctx,gn);if(_bgmType==='rain')_createRain(ctx,gn);if(_bgmType==='white')_createWhite(ctx,gn);if(_bgmType==='nature')_createNature(ctx,gn);_bgmPlaying=true;var pb=document.getElementById('bgm-play-btn');if(pb)pb.textContent='⏸';var vi=document.getElementById('bgm-visualizer');if(vi)vi.classList.add('bgm-playing');var dt=document.getElementById('bgm-float-dot');if(dt)dt.style.display='block';var fb=document.getElementById('bgm-float-btn');if(fb)fb.style.borderColor='var(--gold-bdr)';}catch(e){}}
+function _stopAllBGM2(){_stopBGM();_bgmPlaying=false;localStorage.removeItem('bgm_playing');var pb=document.getElementById('bgm-play-btn');if(pb)pb.textContent='▶';var vi=document.getElementById('bgm-visualizer');if(vi)vi.classList.remove('bgm-playing');var dt=document.getElementById('bgm-float-dot');if(dt)dt.style.display='none';}
+function toggleBGM(){if(_bgmPlaying)_stopAllBGM2();else{if(!_bgmType){var t=localStorage.getItem('bgm_type')||'lofi';var titles={lofi:'☕ Lofi Beat',rain:'🌧️ 빗소리',white:'🌊 백색소음',nature:'🌿 자연 소리'};var subs={lofi:'집중 공부용',rain:'편안한 집중',white:'소음 차단용',nature:'스트레스 해소'};selectBGM(t,titles[t]||t,subs[t]||'');}startBGM();}}
+function setBGMVolume(v){_bgmVolume=v/100;_bgmNodes.filter(function(n){return n.gain;}).forEach(function(g){try{g.gain.value=_bgmVolume;}catch(e){}});}
+function toggleBgmPanel(){var p=document.getElementById('bgm-panel');if(p)p.style.display=p.style.display==='none'?'block':'none';}
+document.addEventListener('click',function(e){var f=document.getElementById('bgm-float');if(f&&!f.contains(e.target)){var p=document.getElementById('bgm-panel');if(p)p.style.display='none';}});
+// 페이지 로드 시 자동 재개
+(function(){var saved=localStorage.getItem('bgm_type');var wasPlaying=localStorage.getItem('bgm_playing')==='1';if(saved&&wasPlaying){var titles={lofi:'☕ Lofi Beat',rain:'🌧️ 빗소리',white:'🌊 백색소음',nature:'🌿 자연 소리'};var subs={lofi:'집중 공부용',rain:'편안한 집중',white:'소음 차단용',nature:'스트레스 해소'};setTimeout(function(){selectBGM(saved,titles[saved]||saved,subs[saved]||'');startBGM();},500);}})();
+</script>
 </body>
 </html>
-
