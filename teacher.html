@@ -220,9 +220,11 @@
               <tbody id="export-table-body"></tbody>
             </table>
           </div>
-          <div style="display:flex;gap:8px;margin-top:.875rem">
-            <button class="btn btn-gold btn-full" onclick="copyToExcel()">📋 엑셀에 붙여넣기 복사</button>
+          <div style="display:flex;gap:8px;margin-top:.875rem;flex-wrap:wrap">
+            <button class="btn btn-gold btn-full" onclick="copyToExcel()">📋 엑셀 복사</button>
             <button class="btn btn-full" onclick="copyWordListOnly()">단어만 복사</button>
+            <button class="btn btn-full" style="background:var(--sur2)" onclick="printExamSheet('en')">🖨️ 영→한 시험지</button>
+            <button class="btn btn-full" style="background:var(--sur2)" onclick="printExamSheet('ko')">🖨️ 한→영 시험지</button>
           </div>
           <div id="copy-msg" style="display:none;text-align:center;font-size:12px;color:var(--grn);margin-top:.5rem;font-weight:500">✓ 복사됐습니다! 엑셀에 붙여넣기 하세요.</div>
         </div>
@@ -566,6 +568,19 @@
     <button class="btn btn-gold btn-full" onclick="saveSettings()">저장</button>
   </div>
 
+  <!-- 취약단어 초기화 -->
+  <div class="card card-sm" style="margin-top:1rem">
+    <p class="sec-title" style="margin-bottom:.5rem">🗑️ 취약단어 초기화</p>
+    <p style="font-size:12px;color:var(--txt2);margin-bottom:.75rem">단어 데이터 오류 등으로 잘못 쌓인 취약단어를 초기화합니다.</p>
+    <div style="display:flex;gap:8px">
+      <select id="clear-weak-target" style="flex:1;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:6px 8px;color:var(--txt);font-size:13px">
+        <option value="all">전체 학생 초기화</option>
+      </select>
+      <button class="btn btn-danger btn-sm" onclick="clearWeakWords()">초기화</button>
+    </div>
+    <div id="clear-weak-msg" style="font-size:11px;min-height:14px;margin-top:6px;color:var(--grn,#4caf50)"></div>
+  </div>
+
   <!-- 앱 버전 -->
   <div class="card card-sm" style="margin-top:1rem">
     <div style="display:flex;align-items:center;justify-content:space-between">
@@ -793,6 +808,12 @@ function renderStudents() {
   const list = document.getElementById('stu-list');
   const arr = Object.values(students);
   document.getElementById('stu-count').textContent = arr.length;
+  // 취약단어 초기화 select 업데이트
+  var cwSel = document.getElementById('clear-weak-target');
+  if (cwSel) {
+    cwSel.innerHTML = '<option value="all">전체 학생 초기화</option>' +
+      arr.map(function(s){ return '<option value="' + s.id + '">' + s.name + '</option>'; }).join('');
+  }
   if (!arr.length) { list.innerHTML = '<div class="empty">학생이 없습니다</div>'; return; }
   list.innerHTML = arr.map(function(s) {
     var lastSeen = s.lastSeen ? new Date(s.lastSeen) : null;
@@ -1192,6 +1213,102 @@ async function openExportPanel() {
   }
 }
 
+
+function printExamSheet(direction) {
+  if (!exportWords.length) return;
+  var isEnToKo = direction === 'en'; // 영→한: 영어 보여주고 한국어 빈칸
+  var stuName = document.getElementById('detail-name') ? document.getElementById('detail-name').textContent : '';
+  var dateStr = new Date().toLocaleDateString('ko', {year:'numeric',month:'long',day:'numeric'});
+  var title = isEnToKo ? '영어 → 한국어' : '한국어 → 영어';
+
+  // 단어 목록 - 100개 제한
+  var words = exportWords.slice(0, 100);
+  var total = words.length;
+
+  // 2열 50개씩 배치 - 왼쪽 열(1~50), 오른쪽 열(51~100)
+  var half = Math.ceil(total / 2);
+  var leftCol = words.slice(0, half);
+  var rightCol = words.slice(half);
+
+  function makeRow(w, num) {
+    var question = isEnToKo ? w.word : (w.ko || '');
+    var answer = isEnToKo ? (w.ko || '') : w.word;
+    // 취약단어 표시
+    var mark = w.isWeak ? '<span style="color:#e53935;font-size:9px;margin-left:2px">★</span>' : '';
+    return '<tr>' +
+      '<td style="padding:3px 6px;font-size:11px;color:#666;text-align:right;width:24px">' + num + '</td>' +
+      '<td style="padding:3px 6px;font-size:13px;font-weight:600;font-family:Georgia,serif">' + question + mark + '</td>' +
+      '<td style="padding:3px 6px;border-bottom:1px solid #ccc;min-width:120px;font-size:11px;color:#888">' +
+        '<span class="answer-text" style="display:none">' + answer + '</span>' +
+      '</td>' +
+    '</tr>';
+  }
+
+  var leftRows = leftCol.map(function(w,i){ return makeRow(w, i+1); }).join('');
+  var rightRows = rightCol.map(function(w,i){ return makeRow(w, half+i+1); }).join('');
+
+  var html = '<!DOCTYPE html><html lang="ko"><head>' +
+    '<meta charset="UTF-8">' +
+    '<title>단어 시험지 - ' + stuName + '</title>' +
+    '<style>' +
+      'body { font-family: "Malgun Gothic", sans-serif; margin: 0; padding: 16px; font-size: 12px; color: #111; }' +
+      '.sheet { max-width: 210mm; margin: 0 auto; }' +
+      '.header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 12px; }' +
+      '.header-title { font-size: 16px; font-weight: 800; }' +
+      '.header-info { font-size: 11px; color: #555; text-align: right; line-height: 1.8; }' +
+      '.name-box { display: inline-block; border-bottom: 1px solid #111; min-width: 100px; margin-left: 4px; }' +
+      '.score-box { display: inline-block; border: 1px solid #111; padding: 2px 16px; margin-left: 8px; font-size: 13px; }' +
+      '.columns { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }' +
+      'table { width: 100%; border-collapse: collapse; }' +
+      'tr:nth-child(even) { background: #f9f9f9; }' +
+      '.legend { font-size: 10px; color: #888; margin-top: 8px; }' +
+      '.btn-bar { margin-bottom: 12px; display: flex; gap: 8px; }' +
+      'button { padding: 6px 16px; border: 1px solid #333; background: #fff; cursor: pointer; border-radius: 4px; font-size: 12px; }' +
+      'button.primary { background: #111; color: #fff; }' +
+      '@media print {' +
+      '  .btn-bar { display: none; }' +
+      '  body { padding: 8mm; }' +
+      '  .answer-text { display: none !important; }' +
+      '}' +
+    '</style></head><body>' +
+    '<div class="sheet">' +
+      '<div class="btn-bar">' +
+        '<button class="primary" onclick="window.print()">🖨️ 인쇄하기</button>' +
+        '<button onclick="toggleAnswers()">정답 보기/숨기기</button>' +
+        '<button onclick="window.close()">닫기</button>' +
+      '</div>' +
+      '<div class="header">' +
+        '<div>' +
+          '<div class="header-title">단어 시험 (' + title + ')</div>' +
+          '<div style="font-size:11px;color:#555;margin-top:4px">' + dateStr + ' &nbsp;|&nbsp; 총 ' + total + '문항' +
+          (exportWords.some(function(w){return w.isWeak;}) ? ' &nbsp;<span style="color:#e53935">★ 취약단어</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="header-info">' +
+          '이름 <span class="name-box">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>' +
+          '&nbsp;&nbsp;점수 <span class="score-box">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="columns">' +
+        '<table>' + leftRows + '</table>' +
+        '<table>' + rightRows + '</table>' +
+      '</div>' +
+      '<div class="legend">※ ★ 표시는 이전에 틀린 취약 단어입니다.</div>' +
+    '</div>' +
+    '<script>' +
+      'function toggleAnswers() {' +
+        'document.querySelectorAll(".answer-text").forEach(function(el){' +
+          'el.style.display = el.style.display === "none" ? "inline" : "none";' +
+        '});' +
+      '}' +
+    '</scr' + 'ipt>' +
+    '</body></html>';
+
+  var win = window.open('', '_blank', 'width=900,height=700');
+  win.document.write(html);
+  win.document.close();
+}
+
 function copyToExcel() {
   if (!exportWords.length) return;
   var header = 'No.	영어	한국어 뜻	구분	틀린 횟수';
@@ -1388,6 +1505,29 @@ async function renderScoreDist() {
 
 
 
+
+
+async function clearWeakWords() {
+  var sel = document.getElementById('clear-weak-target');
+  var msg = document.getElementById('clear-weak-msg');
+  var target = sel ? sel.value : 'all';
+  var label = sel ? sel.options[sel.selectedIndex].text : '전체';
+
+  if (!confirm(label + '\uC758 \uCDE8\uC57D\uB2E8\uC5B4\uB97C \uBAA8\uB450 \uC0AD\uC81C\uD560\uAE4C\uC694?')) return;
+
+
+  if (msg) msg.textContent = '초기화 중...';
+  try {
+    if (target === 'all') {
+      await DB.clearAllWeakWordsAll(students);
+      if (msg) msg.textContent = '✓ 전체 학생 취약단어 초기화 완료';
+    } else {
+      await DB.clearAllWeakWords(target);
+      if (msg) msg.textContent = '✓ ' + label + ' 취약단어 초기화 완료';
+    }
+    setTimeout(function(){ if(msg) msg.textContent=''; }, 3000);
+  } catch(e) { if(msg) msg.textContent='오류: ' + e.message; }
+}
 
 async function loadPointsRank() {
   var el = document.getElementById('points-rank-content');
