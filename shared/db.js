@@ -66,7 +66,14 @@ const DB = {
     const { db, ref, get, update } = await initDB();
     const path = `students/${stuId}/weakWords/${btoa(word).replace(/=/g,'')}`;
     const snap = await get(ref(db, path));
-    const curr = snap.exists() ? snap.val() : { word, ko: ko||'', wrong: 0, right: 0, streak: 0 };
+    // 핵심: 오답일 때만 신규 등록, 이미 등록된 단어만 정답 업데이트
+    if (!snap.exists()) {
+      if (correct) return; // 처음 보는 단어를 맞혔으면 취약단어 등록 안 함
+      // 처음 틀린 단어만 등록
+      await update(ref(db, path), { word, ko: ko||'', wrong: 1, right: 0, streak: 0, lastStudied: Date.now() });
+      return;
+    }
+    const curr = snap.val();
     if (ko && !curr.ko) curr.ko = ko;
     if (correct) { curr.right++; curr.streak++; }
     else { curr.wrong++; curr.streak = 0; }
@@ -278,6 +285,21 @@ const DB = {
     d[itemType] = (d[itemType] || 0) + 1;
     await update(ref(db, path), d);
     return { success: true, used: d[itemType], limit: limits[itemType] };
+  },
+
+
+  async clearAllWeakWords(stuId) {
+    const { db, ref, set } = await initDB();
+    await set(ref(db, `students/${stuId}/weakWords`), null);
+  },
+
+  async clearAllWeakWordsAll(students) {
+    // 전체 학생 취약단어 초기화
+    const { db, ref, set } = await initDB();
+    const promises = Object.keys(students).map(id =>
+      set(ref(db, `students/${id}/weakWords`), null)
+    );
+    await Promise.all(promises);
   },
 
   async getMnemonics() {
