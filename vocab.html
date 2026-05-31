@@ -1,3 +1,71 @@
+
+var _pickedMode = null;
+
+function pickMode(mode) {
+  _pickedMode = mode;
+  currentMode = mode;
+  window._startMode = mode;
+
+  // 모드 버튼 active
+  document.querySelectorAll('.mode-sel-btn').forEach(function(btn) {
+    var isActive = btn.dataset.mode === mode;
+    btn.style.border = isActive ? '1.5px solid var(--gold)' : '1.5px solid var(--bdr)';
+    btn.style.background = isActive ? 'var(--gold-bg)' : 'var(--sur2)';
+  });
+
+  var modeInfo = {
+    'flash':   {icon:'📖', name:'플래시카드', desc:'앞뒤 학습', hasCount:false},
+    'flip':    {icon:'🃏', name:'카드 뒤집기', desc:'탭해서 확인', hasCount:false},
+    'quiz':    {icon:'✏️', name:'타이핑 퀴즈', desc:'한글 뜻 직접 입력', hasCount:true},
+    'choice':  {icon:'🔢', name:'4지선다', desc:'4개 보기 중 선택', hasCount:true},
+    'blank':   {icon:'📝', name:'빈칸 채우기', desc:'예문에서 단어 맞추기', hasCount:true},
+    'speed':   {icon:'⚡', name:'속도 인식', desc:'알아요 / 몰라요', hasCount:false},
+    'confuse': {icon:'🔀', name:'혼동 단어쌍', desc:'헷갈리는 단어쌍 특훈', hasCount:false},
+  };
+  var info = modeInfo[mode] || {icon:'📖', name:mode, desc:'', hasCount:false};
+
+  document.getElementById('start-mode-icon').textContent = info.icon;
+  document.getElementById('start-mode-name').textContent = info.name;
+  document.getElementById('start-mode-desc').textContent = info.desc;
+
+  var countPanel = document.getElementById('quiz-count-panel');
+  if (countPanel) countPanel.style.display = info.hasCount ? 'block' : 'none';
+
+  // 개수 옵션 업데이트
+  if (info.hasCount) {
+    var words = window._selectedWords || allWords;
+    var cnt = words.length;
+    var sel = document.getElementById('quiz-count');
+    var opts = [10,20,30,50,cnt].filter(function(v,i,a){ return v<=cnt && a.indexOf(v)===i; });
+    sel.innerHTML = opts.map(function(n){ return '<option value="'+n+'">'+n+'개</option>'; }).join('');
+    if (opts.indexOf(20)>=0) sel.value = 20;
+  }
+
+  // 버튼 텍스트
+  var startBtn = document.getElementById('btn-start-quiz');
+  var labels = {flash:'📖 학습 시작', flip:'🃏 카드 시작', quiz:'✏️ 퀴즈 시작', choice:'🔢 4지선다 시작', blank:'📝 빈칸 시작', speed:'⚡ 시작', confuse:'🔀 특훈 시작'};
+  if (startBtn) {
+    startBtn.textContent = labels[mode] || '시작하기 →';
+    startBtn.onclick = function(){ startCurrentMode(); };
+  }
+
+  // STEP3 표시
+  document.getElementById('start-action-panel').style.display = 'block';
+  setTimeout(function() {
+    var el = document.getElementById('start-action-panel');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+function resetModeSelection() {
+  _pickedMode = null;
+  document.getElementById('start-action-panel').style.display = 'none';
+  document.querySelectorAll('.mode-sel-btn').forEach(function(btn) {
+    btn.style.border = '1.5px solid var(--bdr)';
+    btn.style.background = 'var(--sur2)';
+  });
+}
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -178,108 +246,153 @@
 
 <!-- ══ VIEW 2: 세트 상세 ══ -->
 <div id="view-set" style="display:none">
+  <!-- 세트 헤더 -->
   <div class="set-header" id="set-header"></div>
+
   <!-- 오늘의 복습 배너 -->
   <div id="review-banner" style="display:none;background:var(--gold-bg);border:1px solid var(--gold-bdr);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;cursor:pointer" onclick="goReviewMode()">
     <div style="font-size:13px;font-weight:700;color:var(--gold)">🔔 오늘의 복습</div>
     <div style="font-size:12px;color:var(--txt2);margin-top:2px" id="review-banner-msg"></div>
   </div>
 
-  <!-- STEP 1: 학습할 단어 선택 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.875rem">① 학습할 단어 선택</p>
-    <div style="display:flex;gap:8px;margin-bottom:.75rem">
-      <button class="btn btn-full" id="btn-range-all" onclick="selectRange('all')"
-        style="border:2px solid var(--gold);background:var(--gold-bg);color:var(--gold);font-weight:600">전체 랜덤</button>
-      <button class="btn btn-full" id="btn-range-week" onclick="selectRange('week')">주차 선택</button>
+  <!-- ── STEP 1: 단어 범위 선택 ── -->
+  <div class="card card-sm" style="margin-bottom:.75rem">
+    <div style="font-size:11px;font-weight:700;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.625rem">① 단어 범위</div>
+
+    <!-- 범위 탭 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:.625rem">
+      <button class="range-btn active" id="rb-all" onclick="selectRange('all')"
+        style="padding:.625rem .25rem;border-radius:10px;border:1.5px solid var(--gold);background:var(--gold-bg);color:var(--gold);font-size:12px;font-weight:700;cursor:pointer;text-align:center">
+        🎲<br><span style="font-size:10px">전체랜덤</span>
+      </button>
+      <button class="range-btn" id="rb-week" onclick="selectRange('week')"
+        style="padding:.625rem .25rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:12px;font-weight:700;cursor:pointer;text-align:center">
+        📅<br><span style="font-size:10px">주차선택</span>
+      </button>
+      <button class="range-btn" id="rb-bookmark" onclick="selectRange('bookmark')"
+        style="padding:.625rem .25rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:12px;font-weight:700;cursor:pointer;text-align:center">
+        ⭐<br><span style="font-size:10px;white-space:nowrap" id="rb-bm-cnt">북마크</span>
+      </button>
+      <button class="range-btn" id="rb-weak" onclick="selectRange('weak')"
+        style="padding:.625rem .25rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:12px;font-weight:700;cursor:pointer;text-align:center">
+        🔥<br><span style="font-size:10px;white-space:nowrap" id="rb-wk-cnt">취약단어</span>
+      </button>
     </div>
-    <!-- 주차 선택 패널 -->
-    <div id="week-panel" style="display:none">
+
+    <!-- 주차 그리드 (주차선택 시) -->
+    <div id="week-panel" style="display:none;margin-bottom:.5rem">
       <div class="week-grid" id="week-grid"></div>
     </div>
+
+    <!-- 폴더 선택 (북마크 선택 시) -->
+    <div id="folder-panel" style="display:none;margin-bottom:.5rem">
+      <div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">폴더 선택 (전체 또는 특정 폴더)</div>
+      <div id="folder-range-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    </div>
+
     <!-- 품사 필터 -->
-    <div id="pos-filter-panel" style="display:none;margin-top:.5rem">
-      <div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">품사 필터</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-sm pos-btn active" onclick="setPosFilter('all')" id="pos-all">전체</button>
-        <button class="btn btn-sm pos-btn" onclick="setPosFilter('verb')" id="pos-verb">동사</button>
-        <button class="btn btn-sm pos-btn" onclick="setPosFilter('noun')" id="pos-noun">명사</button>
-        <button class="btn btn-sm pos-btn" onclick="setPosFilter('adj')" id="pos-adj">형용사</button>
-        <button class="btn btn-sm pos-btn" onclick="setPosFilter('adv')" id="pos-adv">부사</button>
+    <div id="pos-filter-panel" style="display:none;padding-top:.5rem;border-top:1px solid var(--bdr);margin-top:.5rem">
+      <div style="font-size:10px;color:var(--txt3);margin-bottom:.375rem;letter-spacing:.04em">품사 필터</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="pos-btn active" onclick="setPosFilter('all')" id="pos-all"
+          style="padding:3px 10px;border-radius:99px;border:1px solid var(--gold);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:600;cursor:pointer">전체</button>
+        <button class="pos-btn" onclick="setPosFilter('verb')" id="pos-verb"
+          style="padding:3px 10px;border-radius:99px;border:1px solid var(--bdr);background:var(--sur2);color:var(--txt3);font-size:11px;cursor:pointer">동사</button>
+        <button class="pos-btn" onclick="setPosFilter('noun')" id="pos-noun"
+          style="padding:3px 10px;border-radius:99px;border:1px solid var(--bdr);background:var(--sur2);color:var(--txt3);font-size:11px;cursor:pointer">명사</button>
+        <button class="pos-btn" onclick="setPosFilter('adj')" id="pos-adj"
+          style="padding:3px 10px;border-radius:99px;border:1px solid var(--bdr);background:var(--sur2);color:var(--txt3);font-size:11px;cursor:pointer">형용사</button>
+        <button class="pos-btn" onclick="setPosFilter('adv')" id="pos-adv"
+          style="padding:3px 10px;border-radius:99px;border:1px solid var(--bdr);background:var(--sur2);color:var(--txt3);font-size:11px;cursor:pointer">부사</button>
       </div>
-      <div id="pos-count" style="font-size:11px;color:var(--txt3);margin-top:.375rem"></div>
+      <div id="pos-count" style="font-size:10px;color:var(--txt3);margin-top:.375rem"></div>
     </div>
   </div>
 
-  <!-- STEP 2: 학습 모드 선택 (단어 선택 후 표시) -->
-  <div id="mode-select-panel" style="display:none" class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.875rem">② 학습 모드 선택 <span class="badge b-gold" id="word-cnt-badge" style="vertical-align:middle"></span></p>
-    <div class="mode-grid">
-      <div class="mode-card" id="mode-random" onclick="startMode('flash')">
-        <div class="mode-icon">📖</div>
-        <div class="mode-name">플래시카드</div>
-        <div class="mode-desc">단어 앞뒤 학습</div>
-      </div>
-      <div class="mode-card" id="mode-quiz" onclick="startMode('quiz')">
-        <div class="mode-icon">✏️</div>
-        <div class="mode-name">타이핑 퀴즈</div>
-        <div class="mode-desc">뜻 직접 입력</div>
-      </div>
-      <div class="mode-card" id="mode-flip" onclick="startMode('flip')">
-        <div class="mode-icon">🃏</div>
-        <div class="mode-name">카드 연습</div>
-        <div class="mode-desc">20개씩 뒤집어보기</div>
-      </div>
-      <div class="mode-card" id="mode-choice" onclick="startMode('choice')">
-        <div class="mode-icon">🔢</div>
-        <div class="mode-name">4지선다</div>
-        <div class="mode-desc">뜻 4개 중 선택</div>
-      </div>
-      <div class="mode-card" id="mode-blank" onclick="startMode('blank')">
-        <div class="mode-icon">📝</div>
-        <div class="mode-name">빈칸 채우기</div>
-        <div class="mode-desc">예문에서 단어 맞추기</div>
-      </div>
-      <div class="mode-card" id="mode-speed" onclick="startMode('speed')">
-        <div class="mode-icon">⚡</div>
-        <div class="mode-name">속도 인식</div>
-        <div class="mode-desc">알아요/몰라요</div>
-      </div>
-      <div class="mode-card" id="mode-bookmark" onclick="startMode('bookmark')">
-        <div class="mode-icon">⭐</div>
-        <div class="mode-name">북마크</div>
-        <div class="mode-desc" id="bm-count-desc">북마크한 단어</div>
-      </div>
-      <div class="mode-card" id="mode-weak" onclick="startMode('weak')"
-           style="grid-column:span 2">
-        <div class="mode-icon">🔥</div>
-        <div class="mode-name">취약단어 집중훈련</div>
-        <div class="mode-desc">5회 연속 정답 시 졸업</div>
-      </div>
-      <div class="mode-card" id="mode-confuse" onclick="startMode('confuse')"
-           style="grid-column:span 2">
-        <div class="mode-icon">🔀</div>
-        <div class="mode-name">혼동 단어쌍 특훈</div>
-        <div class="mode-desc">헷갈리는 단어쌍 집중 학습</div>
-      </div>
+  <!-- ── STEP 2: 학습 모드 선택 ── -->
+  <div id="mode-select-panel" style="display:none" class="card card-sm" style="margin-bottom:.75rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+      <div style="font-size:11px;font-weight:700;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase">② 학습 모드</div>
+      <span class="badge b-gold" id="word-cnt-badge"></span>
     </div>
 
-    <!-- 퀴즈 수 선택 (quiz/choice/blank 모드용) -->
-    <div id="quiz-count-panel" style="display:none;margin-top:.875rem;padding-top:.875rem;border-top:1px solid var(--bdr)">
+    <!-- 모드 그리드 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:.5rem">
+      <button class="mode-sel-btn" data-mode="flash" onclick="pickMode('flash')"
+        style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
+        <div style="font-size:22px;margin-bottom:3px">📖</div>
+        <div style="font-size:11px;font-weight:700;color:var(--txt)">플래시</div>
+        <div style="font-size:9px;color:var(--txt3)">앞뒤 학습</div>
+      </button>
+      <button class="mode-sel-btn" data-mode="flip" onclick="pickMode('flip')"
+        style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
+        <div style="font-size:22px;margin-bottom:3px">🃏</div>
+        <div style="font-size:11px;font-weight:700;color:var(--txt)">카드</div>
+        <div style="font-size:9px;color:var(--txt3)">탭해서 확인</div>
+      </button>
+      <button class="mode-sel-btn" data-mode="quiz" onclick="pickMode('quiz')"
+        style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
+        <div style="font-size:22px;margin-bottom:3px">✏️</div>
+        <div style="font-size:11px;font-weight:700;color:var(--txt)">타이핑</div>
+        <div style="font-size:9px;color:var(--txt3)">뜻 입력</div>
+      </button>
+      <button class="mode-sel-btn" data-mode="choice" onclick="pickMode('choice')"
+        style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
+        <div style="font-size:22px;margin-bottom:3px">🔢</div>
+        <div style="font-size:11px;font-weight:700;color:var(--txt)">4지선다</div>
+        <div style="font-size:9px;color:var(--txt3)">선택형</div>
+      </button>
+      <button class="mode-sel-btn" data-mode="blank" onclick="pickMode('blank')"
+        style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
+        <div style="font-size:22px;margin-bottom:3px">📝</div>
+        <div style="font-size:11px;font-weight:700;color:var(--txt)">빈칸</div>
+        <div style="font-size:9px;color:var(--txt3)">예문 완성</div>
+      </button>
+      <button class="mode-sel-btn" data-mode="speed" onclick="pickMode('speed')"
+        style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
+        <div style="font-size:22px;margin-bottom:3px">⚡</div>
+        <div style="font-size:11px;font-weight:700;color:var(--txt)">속도</div>
+        <div style="font-size:9px;color:var(--txt3)">O/X 인식</div>
+      </button>
+      <button class="mode-sel-btn" data-mode="confuse" onclick="pickMode('confuse')"
+        style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;grid-column:span 3;display:flex;align-items:center;justify-content:center;gap:8px">
+        <div style="font-size:22px">🔀</div>
+        <div style="text-align:left">
+          <div style="font-size:11px;font-weight:700;color:var(--txt)">혼동 단어쌍 특훈</div>
+          <div style="font-size:9px;color:var(--txt3)">헷갈리는 단어쌍 집중 학습</div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: 개수 선택 + 시작 ── -->
+  <div id="start-action-panel" style="display:none" class="card card-sm">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem">
+      <div id="start-mode-icon" style="font-size:28px">📖</div>
+      <div style="flex:1">
+        <div id="start-mode-name" style="font-size:14px;font-weight:700;color:var(--txt)"></div>
+        <div id="start-mode-desc" style="font-size:11px;color:var(--txt3)"></div>
+      </div>
+      <button onclick="resetModeSelection()" style="background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">변경</button>
+    </div>
+    <!-- 개수 선택 (퀴즈형만) -->
+    <div id="quiz-count-panel" style="display:none">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
-        <label class="label" style="margin:0">단어 수</label>
-        <select id="quiz-count" style="flex:1"></select>
+        <span style="font-size:12px;color:var(--txt2)">문제 수</span>
+        <select id="quiz-count" style="flex:1;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:13px"></select>
       </div>
-      <div id="weak-notice" style="display:none" class="tip-card" style="margin-bottom:1rem">
-        ⚡ <span id="weak-cnt-msg"></span>
-      </div>
-      <button class="btn btn-gold btn-full" id="btn-start-quiz" onclick="goQuiz()">✏️ 시험 보기</button>
     </div>
+    <div id="weak-notice" style="display:none" class="tip-card" style="margin-bottom:.75rem">
+      ⚡ <span id="weak-cnt-msg"></span>
+    </div>
+    <button class="btn btn-gold btn-full" id="btn-start-quiz" style="font-size:14px;padding:.875rem">시작하기 →</button>
   </div>
 
-  <!-- start-panel (하위 호환용, display:none) -->
+  <!-- 하위 호환용 숨김 요소 -->
   <div id="start-panel" style="display:none"></div>
+  <div id="mode-picker-popup" style="display:none"></div>
 </div>
+
 
 <!-- ══ VIEW 3: 플래시카드 ══ -->
 <div id="view-flash" style="display:none">
@@ -325,7 +438,7 @@
       <button class="btn btn-full" onclick="flashPrev()">← 이전</button>
       <button class="tts-btn" style="flex-shrink:0;padding:10px 16px" onclick="Utils.speak(flash.words[flash.idx][0])">🔊</button>
       <button class="tts-btn" id="flash-bm-btn" style="flex-shrink:0;padding:10px 16px" onclick="toggleBookmarkCurrent()" title="북마크">☆</button>
-      <button class="tts-btn" style="flex-shrink:0;padding:10px 16px" onclick="addToFolderPopup(flash.words[flash.idx][0],flash.words[flash.idx][1])" title="폴더에 추가">📁</button>
+      
       <button class="btn btn-full" onclick="flashNext()">다음 →</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px">
@@ -338,27 +451,68 @@
 <!-- ══ VIEW CONFUSE: 혼동단어쌍 특훈 ══ -->
 <div id="view-confuse" style="display:none">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-    <p class="sec-title" style="margin:0">🔀 혼동 단어쌍 특훈</p>
+    <div>
+      <p class="sec-title" style="margin:0">🔀 혼동 단어쌍 특훈</p>
+      <div style="font-size:11px;color:var(--txt3);margin-top:2px" id="confuse-total-info"></div>
+    </div>
     <button class="btn btn-ghost btn-sm" onclick="backToSet()">← 돌아가기</button>
   </div>
-  <!-- 단어쌍 비교 카드 -->
-  <div id="confuse-pair-card" class="card" style="margin-bottom:1rem">
-    <div style="font-size:11px;color:var(--txt3);text-align:center;margin-bottom:.75rem;letter-spacing:.06em">이 두 단어, 헷갈리지 마세요!</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.875rem" id="confuse-pair-display"></div>
-    <div style="font-size:11px;color:var(--txt3);text-align:center" id="confuse-pair-count"></div>
-  </div>
-  <!-- 퀴즈 -->
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;margin-bottom:.75rem">
-      <span id="confuse-prog" style="font-size:13px;font-weight:600"></span>
-      <span id="confuse-score" style="font-size:13px;font-family:var(--font-mono)"></span>
+
+  <!-- 모드 선택 탭 -->
+  <div id="confuse-mode-select" style="display:block">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem">
+      <button onclick="startConfuseMode('learn')"
+        style="padding:1.25rem .5rem;border-radius:14px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center">
+        <div style="font-size:28px;margin-bottom:4px">📖</div>
+        <div style="font-size:13px;font-weight:700;color:var(--txt)">학습 모드</div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:2px">두 단어 나란히 보며 비교</div>
+      </button>
+      <button onclick="startConfuseMode('test')"
+        style="padding:1.25rem .5rem;border-radius:14px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center">
+        <div style="font-size:28px;margin-bottom:4px">✏️</div>
+        <div style="font-size:13px;font-weight:700;color:var(--txt)">테스트 모드</div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:2px">답 가리고 선택 퀴즈</div>
+      </button>
     </div>
-    <div id="confuse-question" style="font-size:13px;color:var(--txt2);text-align:center;margin-bottom:.75rem;line-height:1.6"></div>
+    <div style="font-size:11px;color:var(--txt3);text-align:center">총 <b id="confuse-pairs-count"></b>쌍 수록</div>
+  </div>
+
+  <!-- 학습 모드 -->
+  <div id="confuse-learn-panel" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+      <span id="confuse-learn-prog" style="font-size:12px;color:var(--txt3)"></span>
+      <button onclick="document.getElementById('confuse-mode-select').style.display='block';document.getElementById('confuse-learn-panel').style.display='none'" style="background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">모드 변경</button>
+    </div>
+    <!-- 단어쌍 카드 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.875rem" id="confuse-learn-cards"></div>
+    <!-- 설명 -->
+    <div id="confuse-learn-tip" style="display:none;background:var(--sur2);border-radius:var(--rs);padding:.625rem .875rem;font-size:11px;color:var(--txt2);margin-bottom:.75rem;border-left:3px solid var(--gold-bdr)"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-full" onclick="confuseLearnPrev()">← 이전</button>
+      <button class="btn btn-gold btn-full" onclick="confuseLearnNext()" id="confuse-learn-next-btn">다음 →</button>
+    </div>
+  </div>
+
+  <!-- 테스트 모드 -->
+  <div id="confuse-test-panel" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.625rem">
+      <span id="confuse-prog" style="font-size:13px;font-weight:600"></span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="confuse-score" style="font-size:12px;font-family:var(--font-mono)"></span>
+        <button onclick="document.getElementById('confuse-mode-select').style.display='block';document.getElementById('confuse-test-panel').style.display='none'" style="background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">모드 변경</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:.75rem">
+      <div style="font-size:11px;color:var(--txt3);margin-bottom:.5rem;text-align:center">다음 단어의 뜻은?</div>
+      <div id="confuse-question" style="font-size:28px;font-weight:800;color:var(--txt);text-align:center;font-family:var(--font-display);font-style:italic;margin-bottom:.25rem"></div>
+      <div id="confuse-question-sub" style="font-size:11px;color:var(--txt3);text-align:center"></div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem" id="confuse-choices"></div>
     <div id="confuse-feedback" style="display:none;padding:.75rem;border-radius:var(--rs);text-align:center;font-size:13px;margin-bottom:.75rem"></div>
     <button id="confuse-next-btn" class="btn btn-gold btn-full" style="display:none" onclick="nextConfuse()">다음 →</button>
   </div>
 </div>
+
 
 <!-- ══ VIEW 4: 퀴즈 ══ -->
 <div id="view-quiz" style="display:none">
@@ -483,6 +637,7 @@
            autocomplete="off" onkeydown="if(event.key==='Enter')submitBlank()">
     <div id="blank-fb" style="display:none" class="feedback"></div>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:.75rem">
+      <button class="tts-btn" id="blank-bm-btn" onclick="toggleBookmarkCurrent()" style="font-size:16px" title="북마크">☆</button>
       <button class="btn btn-gold btn-full" onclick="submitBlank()" id="blank-sub">확인</button>
       <button class="btn btn-full" onclick="nextBlank()" id="blank-nxt" style="display:none">다음 →</button>
     </div>
@@ -503,7 +658,10 @@
       <div class="prog-track"><div class="prog-fill" id="choice-fill" style="width:0%"></div></div>
     </div>
     <div id="choice-combo" style="text-align:center;font-size:13px;font-weight:700;color:var(--gold);min-height:20px;margin-bottom:.25rem"></div>
-    <div class="big-word" id="choice-word" style="margin-bottom:1rem"></div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:.25rem">
+      <button class="tts-btn" id="choice-bm-btn" onclick="toggleBookmarkCurrent()" style="font-size:16px" title="북마크">☆</button>
+    </div>
+    <div class="big-word" id="choice-word" style="margin-bottom:.5rem"></div>
     <div id="choice-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;box-sizing:border-box"></div>
     <div id="choice-fb" style="display:none;text-align:center;padding:.5rem;border-radius:var(--rs);margin-top:.75rem;font-size:13px;font-weight:600"></div>
   </div>
@@ -652,17 +810,50 @@
   </div>
 </div>
 
+
+<!-- ── 폴더 선택 팝업 ── -->
+<div id="folder-picker-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10010;align-items:flex-end;justify-content:center">
+  <div style="background:var(--sur);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:70vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem .75rem;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:var(--sur)">
+      <div>
+        <div style="font-size:14px;font-weight:700" id="fp-word-label"></div>
+        <div style="font-size:11px;color:var(--txt3)">저장할 폴더를 선택하세요</div>
+      </div>
+      <button onclick="closeFolderPicker()" style="background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
+    </div>
+    <!-- 새 폴더 만들기 -->
+    <div style="padding:.75rem 1.25rem;border-bottom:1px solid var(--bdr)">
+      <div style="display:flex;gap:6px">
+        <input id="fp-new-folder-input" type="text" placeholder="새 폴더 이름 (예: 1주차, 틀린것만...)"
+          style="flex:1;font-size:13px" maxlength="20"
+          onkeydown="if(event.key==='Enter')fpCreateAndAdd()">
+        <button class="btn btn-gold btn-sm" onclick="fpCreateAndAdd()">만들기+추가</button>
+      </div>
+    </div>
+    <!-- 기존 폴더 목록 -->
+    <div id="fp-folder-list" style="padding:.5rem 1.25rem 1.5rem"></div>
+  </div>
+</div>
 </div><!-- .app -->
 
 <!-- 폴더 선택 바텀시트 -->
 <div id="folder-picker" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9995;align-items:flex-end;justify-content:center">
   <div style="background:var(--sur);border-radius:20px 20px 0 0;padding:1.25rem;width:100%;max-width:480px">
-    <div style="text-align:center;margin-bottom:.875rem">
-      <div style="width:36px;height:4px;background:var(--bdr);border-radius:2px;margin:0 auto .875rem"></div>
-      <p class="sec-title" style="margin:0">📁 폴더 선택</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <div>
+        <p class="sec-title" style="margin:0">📁 폴더에 추가</p>
+        <div style="font-size:11px;color:var(--txt3);margin-top:2px" id="fp-curr-word"></div>
+      </div>
+      <button onclick="closeFolderPicker()" style="background:none;border:none;font-size:20px;color:var(--txt3);cursor:pointer">×</button>
     </div>
-    <div id="folder-picker-list" style="max-height:240px;overflow-y:auto;margin-bottom:.75rem"></div>
-    <button class="btn btn-full" onclick="closeFolderPicker()">취소</button>
+    <!-- 새 폴더 만들기 -->
+    <div style="display:flex;gap:6px;margin-bottom:.75rem">
+      <input id="fp-new-name" type="text" placeholder="새 폴더 이름 (예: 1주차)" style="flex:1;font-size:13px" maxlength="20"
+        onkeydown="if(event.key==='Enter')fpQuickCreate()">
+      <button class="btn btn-gold btn-sm" onclick="fpQuickCreate()">+ 만들기</button>
+    </div>
+    <div id="folder-picker-list" style="max-height:200px;overflow-y:auto;margin-bottom:.75rem"></div>
+    <button class="btn btn-full" onclick="closeFolderPicker()">취소 (북마크만 저장)</button>
   </div>
 </div>
 
@@ -677,6 +868,7 @@
 <script src="data/words/mnemonics.js"></script>
 <script src="data/words/word-grades.js"></script>
 <script src="data/words/badge_data.js"></script>
+<script src="data/words/confuse-pairs.js"></script>
 <!-- merged into main script -->
 <script src="data/words/examples.js"></script>
 <script src="shared/utils.js"></script>
@@ -748,13 +940,20 @@ function renderFlipCards() {
       ? '<div>' + w[1] + '</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">' + mn + '</div>'
       : w[1];
     var isChecked = window._flipChecked[flipSetIdx + '_' + i];
+    var isBm = isBookmarked(w[0]);
     var wrapClass = 'flip-card-wrap' + (isChecked ? ' flipped checked' : '');
-    return '<div class="' + wrapClass + '" id="fc-flip-' + i + '">' +
+    return '<div style="position:relative"><div class="' + wrapClass + '" id="fc-flip-' + i + '">' +
       '<div class="flip-check-btn' + (isChecked ? ' checked' : '') + '" id="fc-check-' + i + '" onclick="event.stopPropagation();checkFlipCard(' + i + ')" title="알았어요!">' + (isChecked ? '✓' : '') + '</div>' +
       '<div class="flip-card-inner" onclick="toggleFlipCard(' + i + ')">' +
         '<div class="flip-card-front">' + w[0] + '</div>' +
         '<div class="flip-card-back">' + backContent + '</div>' +
-      '</div></div>';
+      '</div></div>' +
+      '<button id="fc-bm-' + i + '" data-w="' + w[0].replace(/"/g,'') + '" data-k="' + (w[1]||'').replace(/"/g,'') + '" ' +
+        'onclick="event.stopPropagation();doFlipBookmark(this)" ' +
+        'style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.3);border:none;border-radius:50%;' +
+        'width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;' +
+        'color:' + (isBm?'#C9A961':'rgba(255,255,255,.5)') + '">' + (isBm?'⭐':'☆') +
+      '</button></div>';
   }).join('');
   updateFlipProgress();
 }
@@ -849,7 +1048,8 @@ function goBlankQuiz() {
 
   // 최대 20개
   Utils.shuffle(withEx);
-  var _bCnt = parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
+  var _bCnt = window._pickerCount || parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
+  window._pickerCount = null;
   blank.words = withEx.slice(0, Math.min(_bCnt, withEx.length));
   blank.idx = 0;
   blank.correct = 0;
@@ -1238,31 +1438,131 @@ function backToSet() {
 }
 
 // ── Library ────────────────────────────────────
-async function selectRange(type) {
-  var btnAll = document.getElementById('btn-range-all');
-  var btnWeek = document.getElementById('btn-range-week');
-  var weekPanel = document.getElementById('week-panel');
-  var modePanel = document.getElementById('mode-select-panel');
+async function selectRange(range) {
+  // 탭 버튼 active 처리
+  ['all','week','bookmark','weak'].forEach(function(r) {
+    var btn = document.getElementById('rb-' + r);
+    if (!btn) return;
+    var isActive = r === range;
+    btn.style.border = isActive ? '1.5px solid var(--gold)' : '1.5px solid var(--bdr)';
+    btn.style.background = isActive ? 'var(--gold-bg)' : 'var(--sur2)';
+    btn.style.color = isActive ? 'var(--gold)' : 'var(--txt2)';
+  });
 
-  if (type === 'all') {
-    if (btnAll) { btnAll.style.borderColor='var(--gold)'; btnAll.style.background='var(--gold-bg)'; btnAll.style.color='var(--gold)'; btnAll.style.fontWeight='600'; }
-    if (btnWeek) { btnWeek.style.borderColor=''; btnWeek.style.background=''; btnWeek.style.color=''; btnWeek.style.fontWeight=''; }
-    if (weekPanel) weekPanel.style.display = 'none';
+  // 패널 초기화
+  document.getElementById('week-panel').style.display = 'none';
+  document.getElementById('folder-panel').style.display = 'none';
+  document.getElementById('mode-select-panel').style.display = 'none';
+  document.getElementById('start-action-panel').style.display = 'none';
+  document.getElementById('pos-filter-panel').style.display = 'none';
+
+  if (range === 'all') {
     window._selectedWords = allWords;
-    window._selectedWeek = null;
-    currentMode = 'random';
+    window._baseWords = allWords;
+    document.getElementById('pos-filter-panel').style.display = 'block';
     showModePanel(allWords);
-  } else {
-    if (btnWeek) { btnWeek.style.borderColor='var(--gold)'; btnWeek.style.background='var(--gold-bg)'; btnWeek.style.color='var(--gold)'; btnWeek.style.fontWeight='600'; }
-    if (btnAll) { btnAll.style.borderColor=''; btnAll.style.background=''; btnAll.style.color=''; btnAll.style.fontWeight=''; }
-    if (weekPanel) weekPanel.style.display = 'block';
-    if (modePanel) modePanel.style.display = 'none';
-    // 주차 선택 후 스크롤
-    setTimeout(function(){
-      if (weekPanel) weekPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+  } else if (range === 'week') {
+    document.getElementById('week-panel').style.display = 'block';
+    // 주차 선택 후 showModePanel 호출
+  } else if (range === 'bookmark') {
+    document.getElementById('folder-panel').style.display = 'block';
+    loadFolderRangeList();
+  } else if (range === 'weak') {
+    loadWeakRange();
   }
 }
+
+function showModePanel(words) {
+  if (!words || !words.length) return;
+  var cnt = words.length;
+  document.getElementById('word-cnt-badge').textContent = cnt + '개 단어';
+  document.getElementById('mode-select-panel').style.display = 'block';
+  document.getElementById('start-action-panel').style.display = 'none';
+  // 스크롤
+  setTimeout(function() {
+    var el = document.getElementById('mode-select-panel');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+async function loadWeakRange() {
+  try {
+    var weakList = await DB.getWeakWords(STU_ID);
+    var weakSet = new Set(weakList.map(function(w){ return w.word.toLowerCase(); }));
+    var words = allWords.filter(function(w){ return weakSet.has(w[0].toLowerCase()); });
+    if (!words.length) { showToast('취약 단어가 없어요 🎉'); return; }
+    var el = document.getElementById('rb-wk-cnt');
+    if (el) el.textContent = words.length + '개';
+    window._selectedWords = words;
+    window._baseWords = words;
+    // 취약단어 안내
+    var notice = document.getElementById('weak-notice');
+    var msg = document.getElementById('weak-cnt-msg');
+    if (notice) notice.style.display = 'block';
+    if (msg) msg.textContent = '취약 단어 ' + words.length + '개 집중훈련 · 5회 연속 정답 시 졸업';
+    showModePanel(words);
+  } catch(e) {}
+}
+
+async function loadFolderRangeList() {
+  var listEl = document.getElementById('folder-range-list');
+  if (!listEl) return;
+  try {
+    foldersCache = await DB.getFolders(STU_ID);
+    var entries = Object.entries(foldersCache || {});
+    var html = '<button class="folder-range-btn active" onclick="selectFolderRange(null)" ' +
+      'style="padding:4px 12px;border-radius:99px;border:1.5px solid var(--gold);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:600;cursor:pointer">⭐ 전체 북마크</button>';
+    html += entries.map(function(e) {
+      var fid = e[0], f = e[1];
+      var wc = f.words ? Object.keys(f.words).length : 0;
+      return '<button class="folder-range-btn" data-fid="' + fid + '" onclick="selectFolderRange(this.dataset.fid)" ' +
+        'style="padding:4px 12px;border-radius:99px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:11px;font-weight:600;cursor:pointer">' +
+        (f.emoji||'📁') + ' ' + (f.name||'폴더') + ' ' + wc + '</button>';
+    }).join('');
+    listEl.innerHTML = html;
+    selectFolderRange(null); // 기본: 전체 북마크
+  } catch(e) { listEl.innerHTML = '<div style="color:var(--txt3);font-size:12px">폴더 없음</div>'; }
+}
+
+async function selectFolderRange(folderId) {
+  // 버튼 active
+  document.querySelectorAll('.folder-range-btn').forEach(function(btn) {
+    var isActive = folderId ? btn.dataset.fid === folderId : !btn.dataset.fid;
+    btn.style.border = isActive ? '1.5px solid var(--gold)' : '1.5px solid var(--bdr)';
+    btn.style.background = isActive ? 'var(--gold-bg)' : 'var(--sur2)';
+    btn.style.color = isActive ? 'var(--gold)' : 'var(--txt2)';
+  });
+
+  var words = [];
+  if (folderId) {
+    var folder = foldersCache[folderId];
+    if (folder && folder.words) {
+      var wordMap = {};
+      allWords.forEach(function(w){ wordMap[w[0].toLowerCase()] = w; });
+      Object.values(folder.words).forEach(function(fw) {
+        var w = wordMap[fw.word && fw.word.toLowerCase()];
+        if (w) words.push(w); else words.push([fw.word, fw.ko || '']);
+      });
+    }
+  } else {
+    var bmKeys = Object.keys(bookmarks || {});
+    var wordMap2 = {};
+    allWords.forEach(function(w){ wordMap2[w[0].toLowerCase()] = w; });
+    bmKeys.forEach(function(k){
+      var w = wordMap2[k];
+      if (w) words.push(w);
+      else if (bookmarks[k]) words.push([bookmarks[k].word || k, bookmarks[k].ko || '']);
+    });
+  }
+
+  if (!words.length) { showToast('단어가 없어요'); return; }
+  window._selectedWords = words;
+  window._baseWords = words;
+  document.getElementById('rb-bm-cnt').textContent = words.length + '개';
+  document.getElementById('pos-filter-panel').style.display = 'block';
+  showModePanel(words);
+}
+
 
 function showModePanel(words) {
   var panel = document.getElementById('mode-select-panel');
@@ -1324,6 +1624,82 @@ function startMode(mode) {
   }
 }
 
+
+// ── 학습 모드 선택 팝업 ─────────────────────────
+var _pickerMode = null;
+
+function openModePicker(title, subtitle) {
+  var popup = document.getElementById('mode-picker-popup');
+  if (!popup) return;
+  document.getElementById('picker-title').textContent = title;
+  document.getElementById('picker-subtitle').textContent = subtitle || '';
+  // 단어 수 패널 숨기기
+  var cw = document.getElementById('picker-count-wrap');
+  if (cw) cw.style.display = 'none';
+  _pickerMode = null;
+  // 버튼 선택 초기화
+  document.querySelectorAll('.picker-mode-btn').forEach(function(b) {
+    b.style.borderColor = 'var(--bdr)';
+    b.style.background = 'var(--sur2)';
+  });
+  popup.style.display = 'flex';
+}
+
+function startFromPicker(mode) {
+  _pickerMode = mode;
+  // 버튼 active 표시
+  document.querySelectorAll('.picker-mode-btn').forEach(function(b) {
+    b.style.borderColor = 'var(--bdr)';
+    b.style.background = 'var(--sur2)';
+  });
+  event.currentTarget.style.borderColor = 'var(--gold)';
+  event.currentTarget.style.background = 'var(--gold-bg)';
+
+  var needCount = ['quiz','choice','blank'].includes(mode);
+  var cw = document.getElementById('picker-count-wrap');
+  var sb = document.getElementById('picker-start-btn');
+  var labels = { quiz:'✏️ 시험 시작', choice:'🎯 4지선다 시작', blank:'📝 빈칸 채우기 시작' };
+
+  if (needCount) {
+    // 단어 수 옵션 채우기
+    var words = window._selectedWords || [];
+    var cnt = words.length;
+    var opts = [10, 20, 30, 50, cnt].filter(function(v,i,a){ return v<=cnt && a.indexOf(v)===i; });
+    var sel = document.getElementById('picker-quiz-count');
+    if (sel) {
+      sel.innerHTML = opts.map(function(n){ return '<option value="'+n+'">'+n+'개</option>'; }).join('');
+      if (opts.includes(20)) sel.value = 20;
+    }
+    if (sb) sb.textContent = labels[mode] || '시작하기';
+    if (cw) cw.style.display = 'block';
+  } else {
+    // 바로 시작
+    document.getElementById('mode-picker-popup').style.display = 'none';
+    if (mode === 'flash') goFlash();
+    else if (mode === 'flip') {
+      flipSourceWords = window._selectedWords || allWords;
+      flipSetIdx = 0;
+      showView('flip');
+      renderFlipSetButtons();
+      loadFlipSet(0);
+    }
+    else if (mode === 'speed') goSpeedMode();
+  }
+}
+
+function confirmStartFromPicker() {
+  var cnt = parseInt(document.getElementById('picker-quiz-count').value) || 20;
+  document.getElementById('mode-picker-popup').style.display = 'none';
+  // quiz-count 값 동기화
+  var qc = document.getElementById('quiz-count');
+  if (qc) qc.value = cnt;
+  window._pickerCount = cnt;
+
+  if (_pickerMode === 'quiz') goQuiz();
+  else if (_pickerMode === 'choice') goChoiceQuiz();
+  else if (_pickerMode === 'blank') goBlankQuiz();
+}
+
 // ── 기존 selectSet 수정 - 새 UI 초기화 ──────────
 function initSetView() {
   // 전체 버튼 기본 선택 상태로
@@ -1376,98 +1752,124 @@ async function loadWordCount(setInfo, studiedCount) {
 
 
 // ── 혼동 단어쌍 특훈 ─────────────────────────
-var CONFUSE_PAIRS = [
-  ['affect','영향을 미치다','effect','효과, 결과'],
-  ['principal','주요한, 교장','principle','원칙, 원리'],
-  ['accept','받아들이다','except','~을 제외하고'],
-  ['adapt','적응하다','adopt','채택하다'],
-  ['assure','확신시키다','ensure','확실히 하다'],
-  ['complement','보완하다','compliment','칭찬하다'],
-  ['conscious','의식하는','conscience','양심'],
-  ['continual','반복적인','continuous','중단없는'],
-  ['deduce','추론하다','deduct','공제하다'],
-  ['discreet','신중한','discrete','별개의'],
-  ['economic','경제의','economical','절약하는'],
-  ['elicit','이끌어내다','illicit','불법의'],
-  ['emigrate','이민 가다','immigrate','이민 오다'],
-  ['eminent','저명한','imminent','임박한'],
-  ['historic','역사적으로 중요한','historical','역사에 관한'],
-  ['imply','암시하다','infer','추론하다'],
-  ['incredible','믿기 힘든','incredulous','의심하는'],
-  ['moral','도덕적인','morale','사기, 의욕'],
-  ['precede','앞서다','proceed','진행하다'],
-  ['sensible','분별 있는','sensitive','예민한'],
-  ['stationary','고정된','stationery','문구류'],
-  ['beside','~옆에','besides','~외에도'],
-  ['lend','빌려주다','borrow','빌리다'],
-  ['lie','눕다','lay','놓다, 눕히다'],
-  ['fewer','더 적은(가산)','less','더 적은(불가산)'],
-  ['rise','오르다(자동사)','raise','올리다(타동사)'],
-  ['find','발견하다','found','설립하다'],
-  ['lose','잃다','loose','느슨한'],
-  ['quite','꽤, 완전히','quiet','조용한'],
-];
-
-// 혼동단어쌍 상태
-var confuse = { pairs:[], pairIdx:0, qIdx:0, questions:[], correct:0, wrong:0 };
+var confuse = { pairs:[], learnIdx:0, questions:[], qIdx:0, correct:0, wrong:0 };
 
 function goConfuseMode() {
-  Utils.shuffle(CONFUSE_PAIRS);
-  confuse.pairs = CONFUSE_PAIRS.slice(0, 10); // 10쌍
-  confuse.pairIdx = 0;
-  confuse.qIdx = 0;
-  confuse.correct = 0;
-  confuse.wrong = 0;
-  confuse.questions = [];
+  var pairs = window.CONFUSE_PAIRS || [];
+  // 개수 표시
+  var countEl = document.getElementById('confuse-pairs-count');
+  if (countEl) countEl.textContent = pairs.length;
+  var infoEl = document.getElementById('confuse-total-info');
+  if (infoEl) infoEl.textContent = '수능 빈출 혼동 단어쌍 ' + pairs.length + '개';
 
-  // 각 쌍에서 2문제씩 생성 (양쪽 다 나옴)
-  confuse.pairs.forEach(function(pair) {
-    confuse.questions.push({ word: pair[0], ko: pair[1], pair: pair, answerIdx: 0 });
-    confuse.questions.push({ word: pair[2], ko: pair[3], pair: pair, answerIdx: 2 });
-  });
-  Utils.shuffle(confuse.questions);
-
+  // 모드 선택 화면
+  document.getElementById('confuse-mode-select').style.display = 'block';
+  document.getElementById('confuse-learn-panel').style.display = 'none';
+  document.getElementById('confuse-test-panel').style.display = 'none';
   showView('confuse');
-  renderConfusePair();
-  renderConfuseQuestion();
-  showToast('🔀 두 단어를 비교하며 학습해요!');
 }
 
-function renderConfusePair() {
-  var q = confuse.questions[confuse.qIdx];
-  if (!q) return;
-  var pair = q.pair;
-  var display = document.getElementById('confuse-pair-display');
-  var count = document.getElementById('confuse-pair-count');
-  if (!display) return;
+function startConfuseMode(mode) {
+  var pairs = window.CONFUSE_PAIRS || [];
+  if (!pairs.length) { showToast('데이터 없음'); return; }
 
-  // 현재 문제의 단어쌍을 나란히 표시
-  display.innerHTML =
-    '<div style="background:var(--sur2);border:2px solid rgba(201,169,97,.3);border-radius:12px;padding:.875rem;text-align:center">' +
-      '<div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--txt);margin-bottom:4px">' + pair[0] + '</div>' +
-      '<div style="font-size:11px;color:var(--gold);font-weight:600">' + pair[1] + '</div>' +
-    '</div>' +
-    '<div style="background:var(--sur2);border:2px solid rgba(96,165,250,.3);border-radius:12px;padding:.875rem;text-align:center">' +
-      '<div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--txt);margin-bottom:4px">' + pair[2] + '</div>' +
-      '<div style="font-size:11px;color:#60A5FA;font-weight:600">' + pair[3] + '</div>' +
-    '</div>';
+  document.getElementById('confuse-mode-select').style.display = 'none';
 
-  if (count) count.textContent = (confuse.qIdx+1) + ' / ' + confuse.questions.length + '번째 문제';
+  if (mode === 'learn') {
+    // 학습 모드 - 나란히 보기
+    confuse.pairs = pairs.slice();
+    confuse.learnIdx = 0;
+    document.getElementById('confuse-learn-panel').style.display = 'block';
+    renderConfuseLearn();
+  } else {
+    // 테스트 모드 - 선택 퀴즈
+    confuse.pairs = Utils.shuffle(pairs.slice()).slice(0, Math.min(20, pairs.length));
+    confuse.questions = [];
+    confuse.qIdx = 0; confuse.correct = 0; confuse.wrong = 0;
+    // 각 쌍에서 2문제 생성
+    confuse.pairs.forEach(function(pair) {
+      confuse.questions.push({ word:pair[0], ko:pair[1], pair:pair, answerIdx:0 });
+      confuse.questions.push({ word:pair[2], ko:pair[3], pair:pair, answerIdx:2 });
+    });
+    Utils.shuffle(confuse.questions);
+    document.getElementById('confuse-test-panel').style.display = 'block';
+    renderConfuseTest();
+  }
 }
 
-function renderConfuseQuestion() {
+// ── 학습 모드 ──
+function renderConfuseLearn() {
+  var pair = confuse.pairs[confuse.learnIdx];
+  if (!pair) return;
+  var total = confuse.pairs.length;
+  var prog = document.getElementById('confuse-learn-prog');
+  if (prog) prog.textContent = (confuse.learnIdx+1) + ' / ' + total;
+
+  var cards = document.getElementById('confuse-learn-cards');
+  if (cards) {
+    cards.innerHTML =
+      '<div style="background:rgba(201,169,97,.08);border:2px solid rgba(201,169,97,.3);border-radius:14px;padding:1rem;text-align:center">' +
+        '<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.08em;margin-bottom:.5rem">단어 A</div>' +
+        '<div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:.5rem;font-style:italic">' + pair[0] + '</div>' +
+        '<div style="font-size:13px;color:var(--gold);font-weight:600">' + pair[1] + '</div>' +
+        '<button data-w="' + pair[0] + '" onclick="Utils.speak(this.dataset.w)" style="margin-top:.5rem;background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">🔊</button>' +
+      '</div>' +
+      '<div style="background:rgba(96,165,250,.08);border:2px solid rgba(96,165,250,.3);border-radius:14px;padding:1rem;text-align:center">' +
+        '<div style="font-size:10px;font-weight:700;color:#60A5FA;letter-spacing:.08em;margin-bottom:.5rem">단어 B</div>' +
+        '<div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:.5rem;font-style:italic">' + pair[2] + '</div>' +
+        '<div style="font-size:13px;color:#60A5FA;font-weight:600">' + pair[3] + '</div>' +
+        '<button data-w2="' + pair[2] + '" onclick="Utils.speak(this.dataset.w2)" style="margin-top:.5rem;background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">🔊</button>' +
+      '</div>';
+  }
+
+  // 설명 (있으면)
+  var tipEl = document.getElementById('confuse-learn-tip');
+  if (tipEl) {
+    if (pair[4]) {
+      tipEl.textContent = '💡 ' + pair[4];
+      tipEl.style.display = 'block';
+    } else {
+      tipEl.style.display = 'none';
+    }
+  }
+
+  // 마지막 카드면 버튼 텍스트 변경
+  var nextBtn = document.getElementById('confuse-learn-next-btn');
+  if (nextBtn) nextBtn.textContent = confuse.learnIdx === total-1 ? '테스트 해보기 →' : '다음 →';
+}
+
+function confuseLearnPrev() {
+  if (confuse.learnIdx > 0) { confuse.learnIdx--; renderConfuseLearn(); }
+}
+
+function confuseLearnNext() {
+  if (confuse.learnIdx < confuse.pairs.length - 1) {
+    confuse.learnIdx++;
+    renderConfuseLearn();
+  } else {
+    // 학습 완료 → 테스트 모드로
+    if (confirm('학습 완료! 테스트 모드로 넘어갈까요?')) {
+      startConfuseMode('test');
+    }
+  }
+}
+
+// ── 테스트 모드 ──
+function renderConfuseTest() {
   var q = confuse.questions[confuse.qIdx];
   if (!q) { finishConfuse(); return; }
-  var pair = q.pair;
+  var total = confuse.questions.length;
 
-  document.getElementById('confuse-prog').textContent = (confuse.qIdx+1) + ' / ' + confuse.questions.length;
+  document.getElementById('confuse-prog').textContent = (confuse.qIdx+1) + ' / ' + total;
   document.getElementById('confuse-score').textContent = '✓' + confuse.correct + ' ✗' + confuse.wrong;
 
-  // 질문: "_____ 는 어떤 뜻인가요?"
   var qEl = document.getElementById('confuse-question');
-  if (qEl) qEl.innerHTML = '<span style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--gold)">' + q.word + '</span> 의 뜻은?';
+  if (qEl) qEl.textContent = q.word;
+  var subEl = document.getElementById('confuse-question-sub');
+  if (subEl) subEl.textContent = '이 단어의 뜻은?';
 
-  // 선택지: 두 단어의 뜻 중 하나 + 가끔 랜덤 오답
+  // 2지선다 - 같은 쌍의 두 뜻
+  var pair = q.pair;
   var choices = [
     { text: pair[1], correct: q.answerIdx === 0 },
     { text: pair[3], correct: q.answerIdx === 2 },
@@ -1477,9 +1879,10 @@ function renderConfuseQuestion() {
   var choicesEl = document.getElementById('confuse-choices');
   if (choicesEl) {
     choicesEl.innerHTML = choices.map(function(ch, i) {
-      return '<button onclick="answerConfuse(' + i + ')" data-correct="' + ch.correct + '" ' +
-        'style="padding:.875rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;cursor:pointer;font-size:13px;color:var(--txt);text-align:left;line-height:1.4;min-height:48px">' +
-        ch.text + '</button>';
+      return '<button data-correct="' + ch.correct + '" onclick="answerConfuse(' + i + ')" ' +
+        'style="padding:.875rem .75rem;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:12px;' +
+        'cursor:pointer;font-size:13px;color:var(--txt);text-align:left;line-height:1.5;min-height:52px;' +
+        'word-break:keep-all;box-sizing:border-box;width:100%">' + ch.text + '</button>';
     }).join('');
   }
 
@@ -1491,25 +1894,24 @@ function renderConfuseQuestion() {
 
 function answerConfuse(idx) {
   var q = confuse.questions[confuse.qIdx];
-  var choicesEl = document.getElementById('confuse-choices');
-  var btns = choicesEl ? choicesEl.querySelectorAll('button') : [];
+  var btns = document.getElementById('confuse-choices').querySelectorAll('button');
   var selected = btns[idx];
-  if (!selected) return;
+  if (!selected || selected.disabled) return;
 
   var isCorrect = selected.dataset.correct === 'true';
   if (isCorrect) confuse.correct++; else confuse.wrong++;
 
-  // 버튼 색상 표시
   btns.forEach(function(btn) {
     btn.disabled = true;
     if (btn.dataset.correct === 'true') {
       btn.style.background = 'rgba(74,222,128,.15)';
-      btn.style.borderColor = 'var(--grn,#4ade80)';
-      btn.style.color = 'var(--grn,#4ade80)';
-    } else if (btn === selected && !isCorrect) {
+      btn.style.borderColor = '#4ade80';
+      btn.style.color = '#4ade80';
+      btn.style.fontWeight = '700';
+    } else if (btn === selected) {
       btn.style.background = 'rgba(248,113,113,.15)';
-      btn.style.borderColor = 'var(--red,#f87171)';
-      btn.style.color = 'var(--red,#f87171)';
+      btn.style.borderColor = '#f87171';
+      btn.style.color = '#f87171';
     }
   });
 
@@ -1517,9 +1919,17 @@ function answerConfuse(idx) {
   if (fb) {
     fb.style.display = 'block';
     fb.style.background = isCorrect ? 'rgba(74,222,128,.1)' : 'rgba(248,113,113,.1)';
-    fb.style.border = '1px solid ' + (isCorrect?'rgba(74,222,128,.3)':'rgba(248,113,113,.3)');
-    fb.style.color = isCorrect ? 'var(--grn,#4ade80)' : 'var(--red,#f87171)';
-    fb.textContent = isCorrect ? '✓ 정확해요!' : '✗ ' + q.word + ' = ' + q.ko;
+    fb.style.borderRadius = '10px';
+    fb.style.border = '1px solid ' + (isCorrect ? 'rgba(74,222,128,.3)' : 'rgba(248,113,113,.3)');
+    fb.style.color = isCorrect ? '#4ade80' : '#f87171';
+    if (isCorrect) {
+      fb.innerHTML = '✓ 정확해요!';
+    } else {
+      fb.innerHTML = '✗ <b>' + q.word + '</b> = ' + q.ko +
+        '<div style="font-size:11px;margin-top:4px;opacity:.8">cf. <b>' +
+        (q.answerIdx===0 ? q.pair[2] : q.pair[0]) + '</b> = ' +
+        (q.answerIdx===0 ? q.pair[3] : q.pair[1]) + '</div>';
+    }
   }
 
   document.getElementById('confuse-next-btn').style.display = 'block';
@@ -1531,14 +1941,14 @@ function answerConfuse(idx) {
 function nextConfuse() {
   confuse.qIdx++;
   if (confuse.qIdx >= confuse.questions.length) { finishConfuse(); return; }
-  renderConfusePair();
-  renderConfuseQuestion();
+  renderConfuseTest();
 }
 
 function finishConfuse() {
-  var score = Math.round(confuse.correct / confuse.questions.length * 100);
+  var total = confuse.questions.length;
+  var score = total ? Math.round(confuse.correct / total * 100) : 0;
   backToSet();
-  showToast('🔀 혼동단어 특훈 완료! ' + score + '% 정답');
+  showToast('🔀 혼동단어 테스트 완료! ' + confuse.correct + '/' + total + ' (' + score + '%)');
   giveXP(Math.round(score / 10) * 5);
 }
 
@@ -1792,7 +2202,7 @@ async function selectSet(setId) {
 
   // 전체 랜덤 기본 선택
   window._selectedWords = allWords;
-  showModePanel(allWords);
+  setTimeout(function(){ selectRange('all'); }, 50);
 }
 
 function buildWeekGrid() {
@@ -1832,7 +2242,8 @@ function selectWeek(wk) {
   selectedDay = '__week__' + wk;
   window._selectedWords = words;
   window._selectedWeek = wk;
-  // 모드 선택 패널 표시
+  window._baseWords = words;
+  document.getElementById('pos-filter-panel').style.display = 'block';
   showModePanel(words);
 }
 
@@ -2184,7 +2595,8 @@ async function showHint() {
 
 function goQuiz() {
   clearInterval(quiz.timer);
-  var cnt = parseInt(document.getElementById('quiz-count').value) || 20;
+  var cnt = window._pickerCount || parseInt(document.getElementById('quiz-count').value) || 20;
+  window._pickerCount = null;
   var words = Utils.shuffle([...window._selectedWords]).slice(0, cnt);
   quiz.words = words;
   quiz.idx = 0; quiz.correct = 0; quiz.wrong = 0;
@@ -3310,16 +3722,12 @@ async function selectMode(mode) {
     });
 
     window._selectedWords = weakWords.length ? weakWords : allWords;
-    var notice = document.getElementById('weak-notice');
-    var msg = document.getElementById('weak-cnt-msg');
-    if (notice) notice.style.display = 'block';
-    if (msg) {
-      var freqCnt = weakWords.filter(function(w){ return FREQ_SET.has(w[0].toLowerCase()); }).length;
-      msg.textContent = weakWords.length
-        ? '취약 단어 ' + weakWords.length + '개' + (freqCnt ? ' (빈출 ' + freqCnt + '개 우선)' : '')
-        : '취약 단어가 없어서 전체 단어로 진행합니다';
-    }
-    showStartPanel(window._selectedWords);
+    var freqCnt = weakWords.filter(function(w){ return FREQ_SET.has(w[0].toLowerCase()); }).length;
+    var subtitle = weakWords.length
+      ? '취약 단어 ' + weakWords.length + '개' + (freqCnt ? ' · 빈출 ' + freqCnt + '개 우선' : '')
+      : '취약 단어 없음 - 전체 단어로 진행';
+    // 모드 선택 팝업 열기
+    openModePicker('🔥 취약단어 집중훈련', subtitle);
   }
 }
 
@@ -3329,7 +3737,8 @@ async function selectMode(mode) {
 var choice = { words: [], idx: 0, correct: 0, wrong: 0, combo: 0, maxCombo: 0, results: [] };
 
 function goChoiceQuiz() {
-  var _cnt = parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
+  var _cnt = window._pickerCount || parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
+  window._pickerCount = null; // 사용 후 초기화
   choice.words = Utils.shuffle((window._selectedWords || allWords).slice()).slice(0, _cnt);
   choice.idx = 0; choice.correct = 0; choice.wrong = 0; choice.combo = 0; choice.maxCombo = 0; choice.results = [];
   showView('choice');
@@ -3344,6 +3753,9 @@ function renderChoice() {
   document.getElementById('choice-fill').style.width = (choice.idx/total*100) + '%';
   document.getElementById('choice-word').textContent = w[0];
   document.getElementById('choice-fb').style.display = 'none';
+  // 북마크 버튼 상태 업데이트
+  var bmBtn = document.getElementById('choice-bm-btn');
+  if (bmBtn) bmBtn.textContent = isBookmarked(w[0]) ? '⭐' : '☆';
 
   var comboEl = document.getElementById('choice-combo');
   comboEl.textContent = choice.combo >= 3 ? '🔥 ' + choice.combo + ' 연속 정답!' : '';
@@ -3848,6 +4260,26 @@ function startFolderMode(mode) {
   }
 }
 
+
+async function fpQuickCreate() {
+  var inp = document.getElementById('fp-new-name');
+  var name = inp ? inp.value.trim() : '';
+  if (!name) { if(inp) inp.focus(); return; }
+  var word = window._folderPickerWord, ko = window._folderPickerKo;
+  try {
+    var fid = 'folder_' + Date.now();
+    var emojis = ['📚','📖','✏️','🎯','⭐','📌','🗂️','📝','💡','🔥'];
+    var emoji = emojis[Math.floor(Math.random()*emojis.length)];
+    await DB.saveFolder(STU_ID, fid, { name, emoji, createdAt: Date.now() });
+    foldersCache[fid] = { name, emoji, createdAt: Date.now() };
+    if (word) await DB.addWordToFolder(STU_ID, fid, word, ko);
+    if (inp) inp.value = '';
+    document.getElementById('folder-picker').style.display = 'none';
+    showToast('📁 "' + name + '" 폴더 생성 및 추가 완료!');
+    if (typeof renderFolderList === 'function') renderFolderList();
+  } catch(e) { showToast('오류: ' + e.message); }
+}
+
 async function removeFromFolder(word, fid) {
   try {
     await DB.removeWordFromFolder(STU_ID, fid, word);
@@ -3874,14 +4306,17 @@ async function deleteCurrentFolder() {
 // 플래시카드에서 폴더에 단어 추가 팝업
 async function addToFolderPopup(word, ko) {
   try { foldersCache = await DB.getFolders(STU_ID); } catch(e) { foldersCache = {}; }
-  var entries = Object.entries(foldersCache);
-  if (!entries.length) {
-    showToast('폴더를 먼저 만들어주세요 (📁 내 폴더)');
-    return;
-  }
   // 바텀시트 표시
   window._folderPickerWord = word;
   window._folderPickerKo = ko;
+  // 현재 단어 표시
+  var cwEl = document.getElementById('fp-curr-word');
+  if (cwEl) cwEl.innerHTML = '<b style="color:var(--gold)">' + word + '</b> · ' + ko;
+  // 입력창 초기화
+  var inp = document.getElementById('fp-new-name');
+  if (inp) inp.value = '';
+
+  var entries = Object.entries(foldersCache);
   var listEl = document.getElementById('folder-picker-list');
   listEl.innerHTML = entries.map(function(e) {
     var fid = e[0], f = e[1];
@@ -4037,36 +4472,68 @@ function isBookmarked(word) {
 }
 
 function updateBookmarkBtn(word) {
-  ['flash-bm-btn','quiz-bm-btn'].forEach(function(id) {
+  ['flash-bm-btn','quiz-bm-btn','choice-bm-btn','blank-bm-btn'].forEach(function(id) {
     var btn = document.getElementById(id);
     if (btn) btn.textContent = isBookmarked(word) ? '⭐' : '☆';
   });
 }
 
+
+function doFlipBookmark(btn) {
+  var word = btn.dataset.w;
+  var ko   = btn.dataset.k;
+  if (!word) return;
+  toggleBookmarkWord(word, ko, function(added) {
+    btn.textContent = added ? '⭐' : '☆';
+    btn.style.color = added ? '#C9A961' : 'rgba(255,255,255,.5)';
+  });
+}
+
+async function toggleBookmarkWord(word, ko, callback) {
+  if (!word) return;
+  await loadBookmarks();
+  var key = word.toLowerCase();
+  var added;
+  if (bookmarks[key]) {
+    delete bookmarks[key];
+    await DB.removeBookmark(STU_ID, word).catch(function(){});
+    added = false;
+  } else {
+    bookmarks[key] = { word: word, ko: ko||'' };
+    await DB.saveBookmark(STU_ID, word, ko||'').catch(function(){});
+    added = true;
+  }
+  updateBookmarkCount();
+  if (callback) callback(added);
+  showToast(added ? '⭐ 북마크 추가' : '☆ 북마크 제거');
+}
+
 async function toggleBookmarkCurrent() {
-  // 현재 보고 있는 단어 파악
   var word = null, ko = null;
   if (document.getElementById('view-flash').style.display !== 'none') {
-    var w = flash.words[flash.idx];
-    if (w) { word = w[0]; ko = w[1]; }
+    var w = flash.words[flash.idx]; if (w) { word = w[0]; ko = w[1]; }
   } else if (document.getElementById('view-quiz').style.display !== 'none') {
-    var w2 = quiz.words[quiz.idx];
-    if (w2) { word = w2[0]; ko = w2[1]; }
+    var w2 = quiz.words[quiz.idx]; if (w2) { word = w2[0]; ko = w2[1]; }
   }
   if (!word) return;
-
   try {
     var added = await DB.toggleBookmark(STU_ID, word, ko);
     if (added) {
       bookmarks[word.toLowerCase()] = { word, ko, addedAt: Date.now() };
+      updateBookmarkBtn(word);
+      updateBookmarkCount();
+      // 폴더 선택 팝업 (기존 addToFolderPopup 활용)
+      setTimeout(function(){ addToFolderPopup(word, ko); }, 100);
     } else {
       delete bookmarks[word.toLowerCase()];
+      updateBookmarkBtn(word);
+      updateBookmarkCount();
+      showToast('☆ 북마크에서 제거됐어요');
+      if (currentMode === 'bookmark') {
+        var nextBtn = document.getElementById('btn-nxt');
+        if (nextBtn && nextBtn.style.display === 'none') setTimeout(function(){ nextWord(); }, 400);
+      }
     }
-    updateBookmarkBtn(word);
-    updateBookmarkCount();
-
-    // 토스트 메시지
-    showToast(added ? '⭐ 북마크에 추가됐어요' : '☆ 북마크에서 제거됐어요');
   } catch(e) {}
 }
 
@@ -4080,21 +4547,8 @@ async function goBookmarkMode() {
   Utils.shuffle(bmWords);
   window._selectedWords = bmWords;
   currentMode = 'bookmark';
-  // 모드 선택 - start-panel 표시
-  showStartPanel(bmWords);
-  // 카드 연습 버튼 추가
-  var sp = document.getElementById('start-panel');
-  var old = document.getElementById('btn-bm-flip');
-  if (old) old.remove();
-  if (sp) {
-    var flipBtn = document.createElement('button');
-    flipBtn.id = 'btn-bm-flip';
-    flipBtn.className = 'btn btn-full';
-    flipBtn.style.marginTop = '8px';
-    flipBtn.textContent = '🃏 카드로 연습하기';
-    flipBtn.onclick = function() { goFlipMode(); };
-    sp.appendChild(flipBtn);
-  }
+  // 모드 선택 팝업 열기
+  openModePicker('⭐ 북마크 단어 ' + bmWords.length + '개', '어떤 방식으로 학습할까요?');
 }
 
 function showComboToast(count) {
