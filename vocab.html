@@ -71,7 +71,7 @@
 .flip-set-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1rem; }
 .flip-set-btn { background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.625rem .5rem;text-align:center;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s; }
 .flip-set-btn:hover,.flip-set-btn.active { background:var(--gold-bg);border-color:var(--gold-bdr);color:var(--gold); }
-.flip-cards-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1rem; }
+.flip-cards-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem; }
 .flip-card-wrap { perspective:600px;cursor:pointer;min-height:90px;position:relative; }
 .flip-card-inner { position:relative;width:100%;min-height:90px;transform-style:preserve-3d;transition:transform .4s cubic-bezier(.4,0,.2,1); }
 .flip-card-wrap.flipped .flip-card-inner { transform:rotateY(180deg); }
@@ -80,7 +80,7 @@
 .flip-check-btn { position:absolute;top:6px;right:6px;z-index:10;width:22px;height:22px;border-radius:50%;background:var(--sur2);border:1.5px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;transition:all .15s;color:var(--txt3); }
 .flip-check-btn.checked { background:var(--grn,#4caf50);border-color:var(--grn,#4caf50);color:#fff; }
 .flip-card-front,.flip-card-back { position:absolute;width:100%;min-height:90px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;padding:.75rem;text-align:center;box-sizing:border-box; }
-.flip-card-front { background:var(--sur);border:1px solid var(--bdr);font-family:var(--font-display);font-style:italic;font-size:15px;font-weight:600;color:var(--txt); }
+.flip-card-front { background:var(--sur);border:1px solid var(--bdr);font-family:var(--font-display);font-style:italic;font-size:15px;font-weight:600;color:var(--txt);padding-bottom:28px !important; }
 .flip-card-back { background:var(--gold-bg);border:1px solid var(--gold-bdr);transform:rotateY(180deg);font-size:13px;color:var(--txt);line-height:1.5; }
 .flip-progress { font-size:11px;color:var(--txt3);text-align:center;margin-bottom:.75rem; }
 /* 4지선다 버튼 - hover 노란테두리 방지 */
@@ -870,26 +870,43 @@ function renderFlipCards() {
   grid.innerHTML = flipWords.map(function(w, i) {
     var mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
     var backContent = mn
-      ? '<div>' + w[1] + '</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">' + mn + '</div>'
-      : w[1];
+      ? '<div style="font-size:13px;font-weight:600;margin-bottom:4px">' + w[1] + '</div><div style="font-size:10px;color:rgba(255,255,255,.6);line-height:1.4">' + mn + '</div>'
+      : '<div style="font-size:14px;font-weight:600">' + w[1] + '</div>';
     var isChecked = window._flipChecked[flipSetIdx + '_' + i];
     var isBm = isBookmarked(w[0]);
-    var wrapClass = 'flip-card-wrap' + (isChecked ? ' flipped checked' : '');
-    return '<div style="position:relative"><div class="' + wrapClass + '" id="fc-flip-' + i + '">' +
-      '<div class="flip-check-btn' + (isChecked ? ' checked' : '') + '" id="fc-check-' + i + '" onclick="event.stopPropagation();checkFlipCard(' + i + ')" title="알았어요!">' + (isChecked ? '✓' : '') + '</div>' +
-      '<div class="flip-card-inner" onclick="toggleFlipCard(' + i + ')">' +
-        '<div class="flip-card-front">' + w[0] + '</div>' +
-        '<div class="flip-card-back">' + backContent + '</div>' +
-      '</div></div>' +
-      '<button id="fc-bm-' + i + '" data-w="' + w[0].replace(/"/g,'') + '" data-k="' + (w[1]||'').replace(/"/g,'') + '" ' +
-        'onclick="event.stopPropagation();doFlipBookmark(this)" ' +
-        'style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.3);border:none;border-radius:50%;' +
-        'width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;' +
-        'color:' + (isBm?'#C9A961':'rgba(255,255,255,.5)') + '">' + (isBm?'⭐':'☆') +
-      '</button></div>';
+
+    return '<div style="position:relative">' +
+      // 카드 래퍼
+      '<div class="flip-card-wrap' + (isChecked ? ' flipped checked' : '') + '" id="fc-flip-' + i + '" onclick="toggleFlipCard(' + i + ')" ' +
+        'style="cursor:pointer;min-height:100px">' +
+        '<div class="flip-card-inner">' +
+          '<div class="flip-card-front" style="font-size:15px;padding-bottom:28px">' + w[0] + '</div>' +
+          '<div class="flip-card-back" style="padding-bottom:28px;justify-content:flex-start;padding-top:1rem;text-align:center">' + backContent + '</div>' +
+        '</div>' +
+      '</div>' +
+      // 하단 버튼 바
+      '<div style="display:flex;gap:4px;padding:4px 4px 0;position:absolute;bottom:0;left:0;right:0;z-index:5">' +
+        // 체크 버튼 (알았어요)
+        '<button onclick="event.stopPropagation();checkFlipCard(' + i + ')" id="fc-check-' + i + '" ' +
+          'style="flex:1;padding:4px 0;border-radius:0 0 0 var(--rs);border:none;font-size:11px;font-weight:700;cursor:pointer;' +
+          (isChecked
+            ? 'background:rgba(74,222,128,.25);color:#4ade80;'
+            : 'background:rgba(0,0,0,.35);color:rgba(255,255,255,.6);') +
+          '">' + (isChecked ? '✓ 알았어요' : '알았어요') + '</button>' +
+        // 북마크 버튼
+        '<button id="fc-bm-' + i + '" data-w="' + w[0].replace(/"/g,'') + '" data-k="' + (w[1]||'').replace(/"/g,'') + '" ' +
+          'onclick="event.stopPropagation();doFlipBookmark(this)" ' +
+          'style="flex:0 0 36px;border-radius:0 0 var(--rs) 0;border:none;font-size:14px;cursor:pointer;' +
+          (isBm
+            ? 'background:rgba(201,169,97,.25);color:#C9A961;'
+            : 'background:rgba(0,0,0,.35);color:rgba(255,255,255,.4);') +
+          '">' + (isBm ? '⭐' : '☆') + '</button>' +
+      '</div>' +
+    '</div>';
   }).join('');
   updateFlipProgress();
 }
+
 
 function checkFlipCard(i) {
   var key = flipSetIdx + '_' + i;
@@ -898,15 +915,19 @@ function checkFlipCard(i) {
   var btn = document.getElementById('fc-check-' + i);
   if (!el || !btn) return;
   if (window._flipChecked[key]) {
+    // 체크 해제
     delete window._flipChecked[key];
-    el.classList.remove('checked');
-    btn.classList.remove('checked');
-    btn.textContent = '';
+    el.classList.remove('checked', 'flipped');
+    btn.textContent = '알았어요';
+    btn.style.background = 'rgba(0,0,0,.35)';
+    btn.style.color = 'rgba(255,255,255,.6)';
   } else {
+    // 체크
     window._flipChecked[key] = true;
     el.classList.add('checked', 'flipped');
-    btn.classList.add('checked');
-    btn.textContent = '✓';
+    btn.textContent = '✓ 알았어요';
+    btn.style.background = 'rgba(74,222,128,.25)';
+    btn.style.color = '#4ade80';
   }
   updateFlipProgress();
 }
