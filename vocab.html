@@ -1702,15 +1702,20 @@ function confirmStartFromPicker() {
 
 // ── 기존 selectSet 수정 - 새 UI 초기화 ──────────
 function initSetView() {
-  // 전체 버튼 기본 선택 상태로
-  var btnAll = document.getElementById('btn-range-all');
-  if (btnAll) { btnAll.style.borderColor='var(--gold)'; btnAll.style.background='var(--gold-bg)'; btnAll.style.color='var(--gold)'; btnAll.style.fontWeight='600'; }
-  var btnWeek = document.getElementById('btn-range-week');
-  if (btnWeek) { btnWeek.style.borderColor=''; btnWeek.style.background=''; btnWeek.style.color=''; btnWeek.style.fontWeight=''; }
-  document.getElementById('week-panel').style.display = 'none';
-  document.getElementById('mode-select-panel').style.display = 'none';
-  document.getElementById('quiz-count-panel').style.display = 'none';
+  // 패널 초기화
+  var wp = document.getElementById('week-panel');
+  var mp = document.getElementById('mode-select-panel');
+  var sp = document.getElementById('start-action-panel');
+  var fp = document.getElementById('folder-panel');
+  var pp = document.getElementById('pos-filter-panel');
+  if (wp) wp.style.display = 'none';
+  if (mp) mp.style.display = 'none';
+  if (sp) sp.style.display = 'none';
+  if (fp) fp.style.display = 'none';
+  if (pp) pp.style.display = 'none';
   window._selectedWeek = null;
+  window._startMode = null;
+  _pickedMode = null;
 }
 
 async function loadWordCount(setInfo, studiedCount) {
