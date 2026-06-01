@@ -984,19 +984,17 @@ async function showMain() {
     window._cachedWeakWords = await DB.getWeakWords(state.stuId);
   } catch(e) { window._cachedResults = []; window._cachedWeakWords = []; }
 
-  // 비밀번호 미설정 학생이면 강제 설정 팝업 (오늘 1회만)
-  var _stuData = state.students[state.stuId];
-  var _today = new Date().toISOString().slice(0,10);
-  var _pwShownKey = 'pw_set_' + state.stuId + '_' + _today;
-  var _pwShown = localStorage.getItem(_pwShownKey);
-  if (!_pwShown && (!_stuData || !_stuData.password)) {
-    localStorage.setItem(_pwShownKey, '1');
-    setTimeout(function() {
-      // 최신 학생 데이터 재확인 (Firebase에서 이미 설정했을 수 있음)
-      DB.getStudent(state.stuId).then(function(stu) {
-        if (!stu || !stu.password) openPasswordSetting(true);
-      }).catch(function() { openPasswordSetting(true); });
-    }, 1000);
+  // 비밀번호 미설정 학생이면 강제 설정 팝업
+  // sessionStorage: 탭 단위 세션 동안만 유지 (페이지 이동/뒤로가기 후에도 유지)
+  var _pwDoneKey = 'pw_done_' + state.stuId;
+  if (!sessionStorage.getItem(_pwDoneKey)) {
+    // Firebase에서 최신 데이터 확인
+    DB.getStudent(state.stuId).then(function(freshStu) {
+      if (!freshStu || !freshStu.password) {
+        sessionStorage.setItem(_pwDoneKey, '1');
+        setTimeout(function() { openPasswordSetting(true); }, 800);
+      }
+    }).catch(function(){});
   }
 
   // 링크에 stuId 파라미터 전달
@@ -3109,9 +3107,8 @@ async function savePwSetting() {
     msg.style.color = 'var(--grn,#4ade80)';
     msg.textContent = newPw ? '✓ 비밀번호가 설정됐어요!' : '✓ 비밀번호가 삭제됐어요';
     _pwForced = false;
-    // 오늘 이미 처리됨 표시 (뒤로가기 시 재표시 방지)
-    var _td = new Date().toISOString().slice(0,10);
-    localStorage.setItem('pw_set_' + state.stuId + '_' + _td, '1');
+    // 이 탭에서 다시 안 뜨게 마킹
+    sessionStorage.setItem('pw_done_' + state.stuId, '1');
     if (state.students[state.stuId]) state.students[state.stuId].password = newPw;
     setTimeout(closePwSetting, 1200);
   } catch(e) {
