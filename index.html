@@ -348,7 +348,7 @@
     <!-- 오늘의 미션 -->
     <div id="daily-mission-card" style="display:none;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rx);padding:.875rem 1rem;margin-bottom:1rem">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-        <div style="font-size:13px;font-weight:700">⚡ 오늘의 미션</div>
+        <div style="font-size:13px;font-weight:700" id="mission-header">⚡ 오늘의 미션</div>
         <span id="mission-xp-badge" class="badge b-gold" style="font-size:10px"></span>
       </div>
       <div id="mission-list" style="display:flex;flex-direction:column;gap:6px"></div>
@@ -733,6 +733,8 @@ async function init() {
   if (saved) {
     state.stuId = saved;
     state.stuName = sessionStorage.getItem('stuName') || '';
+    // 접속 시마다 lastSeen 업데이트
+    try { DB.saveStudent(saved, { lastSeen: new Date().toISOString() }); } catch(e) {}
     await showMain();
   }
 
@@ -966,6 +968,7 @@ async function doStuLogin() {
   // 마지막 접속일 업데이트
   try { DB.saveStudent(id, { lastSeen: new Date().toISOString() }); } catch(e) {}
   showMain();
+  // sessionStorage 복원도 lastSeen 업데이트
 }
 
 async function showMain() {
@@ -981,11 +984,13 @@ async function showMain() {
     window._cachedWeakWords = await DB.getWeakWords(state.stuId);
   } catch(e) { window._cachedResults = []; window._cachedWeakWords = []; }
 
-  // 비밀번호 미설정 학생이면 강제 설정 팝업
+  // 비밀번호 미설정 학생이면 강제 설정 팝업 (세션당 1회만)
   var _stuData = state.students[state.stuId];
-  if (!_stuData || !_stuData.password) {
+  var _pwShown = sessionStorage.getItem('pw_set_' + state.stuId);
+  if (!_pwShown && (!_stuData || !_stuData.password)) {
+    sessionStorage.setItem('pw_set_' + state.stuId, '1');
     setTimeout(function() {
-      openPasswordSetting(true); // true = 강제 설정 모드
+      openPasswordSetting(true);
     }, 800);
   }
 
@@ -1537,59 +1542,151 @@ async function loadDailyMission() {
   var saved = null;
   try { saved = JSON.parse(sessionStorage.getItem(mKey)); } catch(e) {}
 
-  // 미션 정의
-  var missions = [
-    { id:'quiz20',     icon:'✏️', text:'퀴즈 20개 풀기',    xp:100, done:false },
-    { id:'weak5',      icon:'⚡', text:'취약단어 5개 맞추기', xp:80,  done:false },
-    { id:'flash10',    icon:'📖', text:'플래시카드 10개 학습', xp:50,  done:false },
+  // 날짜 기반 미션 세트 (7가지 세트 로테이션)
+  var dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+  var setIdx = dayOfYear % 7;
+
+  var MISSION_SETS = [
+    // 세트 0: 기본 학습
+    [
+      { id:'quiz10',   icon:'✏️', title:'오늘의 퀴즈',     desc:'타이핑 퀴즈 10개 맞히기',    target:10,  xp:30, type:'quiz_correct' },
+      { id:'flash15',  icon:'📖', title:'플래시카드',      desc:'플래시카드 15장 넘기기',      target:15,  xp:20, type:'flash_count' },
+      { id:'streak1',  icon:'🔥', title:'출석 체크',       desc:'오늘 학습 시작',              target:1,   xp:10, type:'daily_login' },
+    ],
+    // 세트 1: 퀴즈 집중
+    [
+      { id:'quiz20',   icon:'🎯', title:'퀴즈 20연타',    desc:'퀴즈 20문제 완료하기',        target:20,  xp:40, type:'quiz_total' },
+      { id:'perfect1', icon:'💫', title:'퍼펙트 도전',    desc:'퀴즈 100% 달성 1회',         target:1,   xp:30, type:'perfect' },
+      { id:'tts3',     icon:'🔊', title:'발음 연습',      desc:'TTS 발음 3번 듣기',           target:3,   xp:10, type:'tts' },
+    ],
+    // 세트 2: 취약단어
+    [
+      { id:'weak3',    icon:'⚡', title:'취약 집중훈련',  desc:'취약단어 3개 정답 맞히기',    target:3,   xp:35, type:'weak_correct' },
+      { id:'quiz15',   icon:'✏️', title:'퀴즈 15문제',   desc:'오늘 퀴즈 15문제 완료',       target:15,  xp:25, type:'quiz_total' },
+      { id:'streak1',  icon:'📅', title:'연속 출석',      desc:'오늘도 빠짐없이!',            target:1,   xp:10, type:'daily_login' },
+    ],
+    // 세트 3: 다양한 모드
+    [
+      { id:'choice10', icon:'🔢', title:'4지선다',       desc:'4지선다 10문제 완료',          target:10,  xp:25, type:'quiz_total' },
+      { id:'blank5',   icon:'📝', title:'빈칸 채우기',   desc:'빈칸 채우기 5문제 정답',       target:5,   xp:25, type:'blank_correct' },
+      { id:'flip20',   icon:'🃏', title:'카드 연습',     desc:'카드 뒤집기 20장',            target:20,  xp:20, type:'flash_count' },
+    ],
+    // 세트 4: 스피드
+    [
+      { id:'speed1',   icon:'⚡', title:'스피드 모드',   desc:'스피드 모드 1회 완료',        target:1,   xp:30, type:'speed_complete' },
+      { id:'combo5',   icon:'🌪️', title:'5콤보',        desc:'퀴즈 5연속 정답',             target:5,   xp:30, type:'combo' },
+      { id:'quiz10',   icon:'✏️', title:'미니 퀴즈',    desc:'퀴즈 10문제 완료',            target:10,  xp:20, type:'quiz_total' },
+    ],
+    // 세트 5: 리스닝
+    [
+      { id:'listen1',  icon:'🎧', title:'리스닝 학습',   desc:'리스닝 문항 1개 완료',        target:1,   xp:35, type:'listening' },
+      { id:'quiz10',   icon:'✏️', title:'단어 퀴즈',    desc:'퀴즈 10문제 완료',            target:10,  xp:25, type:'quiz_total' },
+      { id:'flash10',  icon:'📖', title:'플래시',       desc:'플래시카드 10장',             target:10,  xp:10, type:'flash_count' },
+    ],
+    // 세트 6: 도전
+    [
+      { id:'quiz30',   icon:'🏆', title:'퀴즈 챌린지',  desc:'퀴즈 30문제 완료 도전!',      target:30,  xp:50, type:'quiz_total' },
+      { id:'weak5',    icon:'🔥', title:'취약단어 5개', desc:'취약단어 5개 정답',           target:5,   xp:25, type:'weak_correct' },
+    ],
   ];
 
-  // 오늘 결과에서 달성 여부 확인
+  var missions = MISSION_SETS[setIdx];
+
+  // 진행 상황 불러오기
+  if (!saved) {
+    saved = {};
+    missions.forEach(function(m){ saved[m.id] = 0; });
+  }
+
+  // 실제 진행 측정
   try {
     var results = window._cachedResults || await DB.getResults(state.stuId);
-    var todayResults = (results||[]).filter(function(r){ return r.date && r.date.startsWith(today); });
-    var todayCorrect = todayResults.reduce(function(s,r){ return s+(r.correct||0); }, 0);
-    // sessionStorage 즉시 카운터 (vocab에서 방금 한 것도 반영)
-    var sessionQuiz = parseInt(sessionStorage.getItem('mission_quiz_' + today) || '0');
-    var effectiveQuiz = Math.max(todayCorrect, sessionQuiz);
-    var todayFlash = parseInt(sessionStorage.getItem('flash_count_' + today) || '0');
+    var todayResults = (results||[]).filter(function(r){
+      return r.date && r.date.slice(0,10) === today;
+    });
 
-    missions[0].done = effectiveQuiz >= 20;
-    missions[2].done = todayFlash >= 10;
+    // 오늘 퀴즈 정답 수
+    var todayCorrect = todayResults.reduce(function(s,r){ return s+(r.correct||0); },0);
+    // 오늘 퀴즈 총 문제 수
+    var todayTotal = todayResults.reduce(function(s,r){ return s+(r.total||0); },0);
+    // 오늘 퍼펙트
+    var todayPerfect = todayResults.filter(function(r){ return r.score===100; }).length;
 
-    // 취약단어는 weakWordsToday 카운터
-    var weakToday = parseInt(sessionStorage.getItem('weak_correct_' + today) || '0');
-    missions[1].done = weakToday >= 5;
+    missions.forEach(function(m) {
+      if (m.type === 'quiz_correct') saved[m.id] = Math.min(m.target, todayCorrect);
+      if (m.type === 'quiz_total')   saved[m.id] = Math.min(m.target, todayTotal);
+      if (m.type === 'perfect')      saved[m.id] = Math.min(m.target, todayPerfect);
+      if (m.type === 'daily_login')  saved[m.id] = 1;
+      if (m.type === 'flash_count') {
+        var fc = parseInt(sessionStorage.getItem('flash_count_' + today) || '0');
+        saved[m.id] = Math.min(m.target, fc);
+      }
+      if (m.type === 'weak_correct') {
+        var wc = parseInt(sessionStorage.getItem('weak_correct_' + today) || '0');
+        saved[m.id] = Math.min(m.target, wc);
+      }
+      if (m.type === 'combo') {
+        var maxCombo = parseInt(sessionStorage.getItem('max_combo_' + today) || '0');
+        saved[m.id] = Math.min(m.target, maxCombo);
+      }
+      if (m.type === 'speed_complete') {
+        var sc = parseInt(sessionStorage.getItem('speed_done_' + today) || '0');
+        saved[m.id] = Math.min(m.target, sc);
+      }
+    });
   } catch(e) {}
 
-  var totalXP = missions.reduce(function(s,m){ return s + m.xp; }, 0);
-  var doneAll = missions.every(function(m){ return m.done; });
-  var doneCount = missions.filter(function(m){ return m.done; }).length;
+  sessionStorage.setItem(mKey, JSON.stringify(saved));
 
-  document.getElementById('mission-xp-badge').textContent = '+' + totalXP + ' XP';
-  document.getElementById('mission-list').innerHTML = missions.map(function(m) {
-    return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0">' +
-      '<span style="font-size:16px">' + (m.done ? '✅' : '⬜') + '</span>' +
-      '<span style="font-size:12px;color:' + (m.done ? 'var(--grn,#4caf50)' : 'var(--txt)') + ';' + (m.done ? 'text-decoration:line-through;opacity:.6' : '') + '">' +
-        m.icon + ' ' + m.text +
-      '</span>' +
-      '<span style="margin-left:auto;font-size:10px;color:var(--gold)">+' + m.xp + ' XP</span>' +
-    '</div>';
-  }).join('');
+  // 렌더링
+  var allDone = missions.every(function(m){ return (saved[m.id]||0) >= m.target; });
+  var totalXP = missions.reduce(function(s,m){ return s+m.xp; }, 0);
 
-  // 전부 완료 시 완료 메시지 + 보너스 XP (하루 1회)
-  var bonusKey = 'mission_bonus_' + today + '_' + state.stuId;
-  if (doneAll && !sessionStorage.getItem(bonusKey)) {
-    document.getElementById('mission-complete-msg').style.display = 'block';
-    sessionStorage.setItem(bonusKey, '1');
-    try { await DB.addXP(state.stuId, 200); } catch(e) {} // 미션 완료 보너스
+  // 완료 보상
+  var rewardKey = 'mission_reward_' + today + '_' + state.stuId;
+  if (allDone && !sessionStorage.getItem(rewardKey)) {
+    sessionStorage.setItem(rewardKey, '1');
+    try {
+      DB.addXP(state.stuId, Math.round(totalXP * 0.3)).catch(function(){}); // 완료 보너스 30%
+    } catch(e) {}
   }
 
   card.style.display = 'block';
+  var mList = document.getElementById('mission-list');
+  if (!mList) return;
+
+  mList.innerHTML = missions.map(function(m) {
+    var prog = Math.min(m.target, saved[m.id] || 0);
+    var done = prog >= m.target;
+    var pct = Math.round(prog / m.target * 100);
+    return '<div style="display:flex;align-items:center;gap:10px;padding:.5rem 0;' + (done?'opacity:.7':'') + '">' +
+      '<span style="font-size:20px;flex-shrink:0">' + (done ? '✅' : m.icon) + '</span>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">' +
+          '<span style="font-weight:600;color:' + (done?'var(--grn,#4ade80)':'var(--txt)') + '">' + m.title + '</span>' +
+          '<span style="color:var(--gold);font-weight:700;font-size:11px">+' + m.xp + 'XP</span>' +
+        '</div>' +
+        '<div style="font-size:10px;color:var(--txt3);margin-bottom:3px">' + m.desc + '</div>' +
+        '<div style="height:4px;background:var(--sur2);border-radius:2px;overflow:hidden">' +
+          '<div style="height:100%;width:' + pct + '%;background:' + (done?'var(--grn,#4ade80)':'var(--gold)') + ';border-radius:2px;transition:width .4s"></div>' +
+        '</div>' +
+        '<div style="font-size:9px;color:var(--txt3);margin-top:2px">' + prog + ' / ' + m.target + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // 전체 진행률
+  var doneCnt = missions.filter(function(m){ return (saved[m.id]||0) >= m.target; }).length;
+  var headerEl = document.getElementById('mission-header');
+  if (headerEl) {
+    var dayNames = ['월','화','수','목','금','토','일'];
+    var dow = new Date().getDay();
+    var dayName = dayNames[dow === 0 ? 6 : dow-1];
+    headerEl.innerHTML = '☀️ ' + dayName + '요일 미션 <span class="badge b-gold" style="margin-left:4px">' + doneCnt + '/' + missions.length + '</span>' +
+      (allDone ? ' <span style="color:var(--grn,#4ade80);font-size:11px">완료! 🎉</span>' : '');
+  }
 }
 
-
-// ── 주간 목표 달성률 ──────────────────────────
 async function loadWeeklyGoal() {
   if (!state.stuId) return;
   var card = document.getElementById('weekly-goal-card');
@@ -3221,4 +3318,3 @@ init();
 </div>
 </body>
 </html>
-
