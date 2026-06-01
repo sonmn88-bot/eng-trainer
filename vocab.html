@@ -1,71 +1,3 @@
-
-var _pickedMode = null;
-
-function pickMode(mode) {
-  _pickedMode = mode;
-  currentMode = mode;
-  window._startMode = mode;
-
-  // 모드 버튼 active
-  document.querySelectorAll('.mode-sel-btn').forEach(function(btn) {
-    var isActive = btn.dataset.mode === mode;
-    btn.style.border = isActive ? '1.5px solid var(--gold)' : '1.5px solid var(--bdr)';
-    btn.style.background = isActive ? 'var(--gold-bg)' : 'var(--sur2)';
-  });
-
-  var modeInfo = {
-    'flash':   {icon:'📖', name:'플래시카드', desc:'앞뒤 학습', hasCount:false},
-    'flip':    {icon:'🃏', name:'카드 뒤집기', desc:'탭해서 확인', hasCount:false},
-    'quiz':    {icon:'✏️', name:'타이핑 퀴즈', desc:'한글 뜻 직접 입력', hasCount:true},
-    'choice':  {icon:'🔢', name:'4지선다', desc:'4개 보기 중 선택', hasCount:true},
-    'blank':   {icon:'📝', name:'빈칸 채우기', desc:'예문에서 단어 맞추기', hasCount:true},
-    'speed':   {icon:'⚡', name:'속도 인식', desc:'알아요 / 몰라요', hasCount:false},
-    'confuse': {icon:'🔀', name:'혼동 단어쌍', desc:'헷갈리는 단어쌍 특훈', hasCount:false},
-  };
-  var info = modeInfo[mode] || {icon:'📖', name:mode, desc:'', hasCount:false};
-
-  document.getElementById('start-mode-icon').textContent = info.icon;
-  document.getElementById('start-mode-name').textContent = info.name;
-  document.getElementById('start-mode-desc').textContent = info.desc;
-
-  var countPanel = document.getElementById('quiz-count-panel');
-  if (countPanel) countPanel.style.display = info.hasCount ? 'block' : 'none';
-
-  // 개수 옵션 업데이트
-  if (info.hasCount) {
-    var words = window._selectedWords || allWords;
-    var cnt = words.length;
-    var sel = document.getElementById('quiz-count');
-    var opts = [10,20,30,50,cnt].filter(function(v,i,a){ return v<=cnt && a.indexOf(v)===i; });
-    sel.innerHTML = opts.map(function(n){ return '<option value="'+n+'">'+n+'개</option>'; }).join('');
-    if (opts.indexOf(20)>=0) sel.value = 20;
-  }
-
-  // 버튼 텍스트
-  var startBtn = document.getElementById('btn-start-quiz');
-  var labels = {flash:'📖 학습 시작', flip:'🃏 카드 시작', quiz:'✏️ 퀴즈 시작', choice:'🔢 4지선다 시작', blank:'📝 빈칸 시작', speed:'⚡ 시작', confuse:'🔀 특훈 시작'};
-  if (startBtn) {
-    startBtn.textContent = labels[mode] || '시작하기 →';
-    startBtn.onclick = function(){ startCurrentMode(); };
-  }
-
-  // STEP3 표시
-  document.getElementById('start-action-panel').style.display = 'block';
-  setTimeout(function() {
-    var el = document.getElementById('start-action-panel');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, 100);
-}
-
-function resetModeSelection() {
-  _pickedMode = null;
-  document.getElementById('start-action-panel').style.display = 'none';
-  document.querySelectorAll('.mode-sel-btn').forEach(function(btn) {
-    btn.style.border = '1.5px solid var(--bdr)';
-    btn.style.background = 'var(--sur2)';
-  });
-}
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -4657,6 +4589,75 @@ function toggleBgmPanel(){var p=document.getElementById('bgm-panel');if(p)p.styl
 document.addEventListener('click',function(e){var f=document.getElementById('bgm-float');if(f&&!f.contains(e.target)){var p=document.getElementById('bgm-panel');if(p)p.style.display='none';}});
 // 페이지 로드 시 자동 재개
 (function(){var saved=localStorage.getItem('bgm_type');var wasPlaying=localStorage.getItem('bgm_playing')==='1';if(saved&&wasPlaying){var titles={lofi:'☕ Lofi Beat',rain:'🌧️ 빗소리',white:'🌊 백색소음',nature:'🌿 자연 소리'};var subs={lofi:'집중 공부용',rain:'편안한 집중',white:'소음 차단용',nature:'스트레스 해소'};setTimeout(function(){selectBGM(saved,titles[saved]||saved,subs[saved]||'');startBGM();},500);}})();
+
+
+var _pickedMode = null;
+
+function pickMode(mode) {
+  _pickedMode = mode;
+  currentMode = mode;
+  window._startMode = mode;
+
+  // 모드 버튼 active
+  document.querySelectorAll('.mode-sel-btn').forEach(function(btn) {
+    var isActive = btn.dataset.mode === mode;
+    btn.style.border = isActive ? '1.5px solid var(--gold)' : '1.5px solid var(--bdr)';
+    btn.style.background = isActive ? 'var(--gold-bg)' : 'var(--sur2)';
+  });
+
+  var modeInfo = {
+    'flash':   {icon:'📖', name:'플래시카드', desc:'앞뒤 학습', hasCount:false},
+    'flip':    {icon:'🃏', name:'카드 뒤집기', desc:'탭해서 확인', hasCount:false},
+    'quiz':    {icon:'✏️', name:'타이핑 퀴즈', desc:'한글 뜻 직접 입력', hasCount:true},
+    'choice':  {icon:'🔢', name:'4지선다', desc:'4개 보기 중 선택', hasCount:true},
+    'blank':   {icon:'📝', name:'빈칸 채우기', desc:'예문에서 단어 맞추기', hasCount:true},
+    'speed':   {icon:'⚡', name:'속도 인식', desc:'알아요 / 몰라요', hasCount:false},
+    'confuse': {icon:'🔀', name:'혼동 단어쌍', desc:'헷갈리는 단어쌍 특훈', hasCount:false},
+  };
+  var info = modeInfo[mode] || {icon:'📖', name:mode, desc:'', hasCount:false};
+
+  document.getElementById('start-mode-icon').textContent = info.icon;
+  document.getElementById('start-mode-name').textContent = info.name;
+  document.getElementById('start-mode-desc').textContent = info.desc;
+
+  var countPanel = document.getElementById('quiz-count-panel');
+  if (countPanel) countPanel.style.display = info.hasCount ? 'block' : 'none';
+
+  // 개수 옵션 업데이트
+  if (info.hasCount) {
+    var words = window._selectedWords || allWords;
+    var cnt = words.length;
+    var sel = document.getElementById('quiz-count');
+    var opts = [10,20,30,50,cnt].filter(function(v,i,a){ return v<=cnt && a.indexOf(v)===i; });
+    sel.innerHTML = opts.map(function(n){ return '<option value="'+n+'">'+n+'개</option>'; }).join('');
+    if (opts.indexOf(20)>=0) sel.value = 20;
+  }
+
+  // 버튼 텍스트
+  var startBtn = document.getElementById('btn-start-quiz');
+  var labels = {flash:'📖 학습 시작', flip:'🃏 카드 시작', quiz:'✏️ 퀴즈 시작', choice:'🔢 4지선다 시작', blank:'📝 빈칸 시작', speed:'⚡ 시작', confuse:'🔀 특훈 시작'};
+  if (startBtn) {
+    startBtn.textContent = labels[mode] || '시작하기 →';
+    startBtn.onclick = function(){ startCurrentMode(); };
+  }
+
+  // STEP3 표시
+  document.getElementById('start-action-panel').style.display = 'block';
+  setTimeout(function() {
+    var el = document.getElementById('start-action-panel');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+function resetModeSelection() {
+  _pickedMode = null;
+  document.getElementById('start-action-panel').style.display = 'none';
+  document.querySelectorAll('.mode-sel-btn').forEach(function(btn) {
+    btn.style.border = '1.5px solid var(--bdr)';
+    btn.style.background = 'var(--sur2)';
+  });
+}
+
 </script>
 </body>
 </html>
