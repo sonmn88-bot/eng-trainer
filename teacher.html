@@ -3056,31 +3056,30 @@ async function saveMemo() {
 async function generateExamPaper(direction) {
   var setId = document.getElementById('exam-set-select').value;
   var week  = document.getElementById('exam-week-select').value;
-  var _WC2 = (typeof WORD_CATALOG !== 'undefined' ? WORD_CATALOG : null) || window.WORD_CATALOG;
+  var _WC2 = window.WORD_CATALOG;
 
   if (!setId || !week) {
-    alert('단어장과 주차를 먼저 선택하고 저장해주세요.');
+    alert('단어장과 주차를 먼저 선택해주세요.');
     return;
   }
 
   var setInfo = _WC2 && _WC2.find(function(s){ return s.id === setId; });
   if (!setInfo) { alert('단어장을 찾을 수 없습니다.'); return; }
 
-  // 단어 파일 로드
   var words = window[setInfo.varName];
   if (!words) {
-    try {
-      await new Promise(function(res, rej) {
-        var sc = document.createElement('script');
-        sc.src = 'data/words/' + setInfo.file;
-        sc.onload = res; sc.onerror = rej;
-        document.head.appendChild(sc);
-      });
-      words = window[setInfo.varName];
-    } catch(e) { alert('단어 파일을 불러올 수 없습니다.'); return; }
+    var sc = document.createElement('script');
+    sc.src = 'data/words/' + setInfo.file;
+    sc.onload = function() { _buildExamPaper(direction, setInfo, week); };
+    sc.onerror = function() { alert('단어 파일을 불러올 수 없습니다.'); };
+    document.head.appendChild(sc);
+    return;
   }
+  _buildExamPaper(direction, setInfo, week);
+}
 
-  // 주차 단어 추출 (100개 단위)
+function _buildExamPaper(direction, setInfo, week) {
+  var words = window[setInfo.varName] || [];
   var wkNum = parseInt(week);
   var start = (wkNum - 1) * 100;
   var weekWords = words.slice(start, start + 100);
@@ -3088,83 +3087,78 @@ async function generateExamPaper(direction) {
 
   // 랜덤 섞기
   var shuffled = weekWords.slice().sort(function(){ return Math.random() - 0.5; });
+  var total = shuffled.length;
+  var half = Math.ceil(total / 2);
+  var leftCol = shuffled.slice(0, half);
+  var rightCol = shuffled.slice(half);
 
-  // HTML 시험지 생성
-  var title = setInfo.name + ' ' + week + '주차 단어 시험';
-  var dateStr = new Date().toLocaleDateString('ko');
-  var isKoToEn = direction === 'ko';
+  var isEnToKo = direction === 'en';
+  var title = setInfo.name + ' ' + week + '주차';
+  var dateStr = new Date().toLocaleDateString('ko', {year:'numeric',month:'long',day:'numeric'});
+  var dirLabel = isEnToKo ? '영어 → 한국어' : '한국어 → 영어';
 
-  var rows = shuffled.map(function(w, i) {
-    var q = isKoToEn ? w[1].split(',')[0].trim() : w[0];
-    var lineStyle = 'display:inline-block;min-width:200px;border-bottom:1px solid #333;margin-left:8px;';
-    return '<tr style="height:32px;">' +
-      '<td style="width:36px;text-align:center;color:#888;font-size:12px;">' + (i+1) + '</td>' +
-      '<td style="font-size:14px;padding:4px 8px;">' + q + '</td>' +
-      '<td style="width:220px;"></td>' +
+  function makeRows(wordList, startNum, showAnswer) {
+    return wordList.map(function(w, i) {
+      var q = isEnToKo ? w[0] : (w[1]||'').split(',')[0].trim();
+      var ans = isEnToKo ? ((w[1]||'').split(',')[0].trim()) : w[0];
+      return '<tr style="' + (i%2===1?'background:#f7f7f7':'') + '">' +
+        '<td style="width:22px;text-align:center;font-size:10px;color:#999;border-right:1px solid #eee">' + (startNum+i) + '</td>' +
+        '<td style="padding:3px 5px;font-size:' + (isEnToKo?'13px':'12px') + ';font-weight:' + (isEnToKo?'600':'400') +
+          ';font-family:' + (isEnToKo?'Georgia,serif':'inherit') + '">' + q + '</td>' +
+        '<td style="padding:3px 5px;' + (showAnswer
+          ? 'font-size:12px;color:#333;font-weight:' + (isEnToKo?'400':'600') + ';font-family:' + (isEnToKo?'inherit':'Georgia,serif')
+          : 'border-bottom:1px solid #aaa;min-width:90px') + '">' +
+          (showAnswer ? ans : '') + '</td>' +
       '</tr>';
-  }).join('');
+    }).join('');
+  }
+
+  function makePage(showAnswer, pageLabel) {
+    return '<div class="page">' +
+      '<div class="hdr">' +
+        '<div><div class="ttl">단어 시험 · ' + title + ' <span style="font-size:12px;font-weight:400;color:#666">(' + dirLabel + ') ' + pageLabel + '</span></div>' +
+        '<div class="sub">' + dateStr + ' &nbsp;|&nbsp; 총 ' + total + '문항</div></div>' +
+        '<div style="font-size:12px">이름 <span style="display:inline-block;border-bottom:1px solid #111;width:80px">&nbsp;</span> &nbsp; 점수 <span style="display:inline-block;border:1px solid #111;padding:1px 14px">&nbsp;</span></div>' +
+      '</div>' +
+      '<div class="cols">' +
+        '<table><tbody>' + makeRows(leftCol, 1, showAnswer) + '</tbody></table>' +
+        '<table><tbody>' + makeRows(rightCol, half+1, showAnswer) + '</tbody></table>' +
+      '</div>' +
+      (!showAnswer ? '<div style="font-size:10px;color:#aaa;margin-top:6px">※ 랜덤 출제 · 정답은 별도 정답지 참고</div>' : '') +
+    '</div>';
+  }
 
   var html = '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">' +
-    '<title>' + title + '</title>' +
-    '<style>body{font-family:"Malgun Gothic",sans-serif;max-width:800px;margin:0 auto;padding:20px;}' +
-    'h2{text-align:center;margin-bottom:4px;font-size:18px;}' +
-    '.meta{text-align:center;font-size:12px;color:#666;margin-bottom:16px;}' +
-    'table{width:100%;border-collapse:collapse;}' +
-    'tr:nth-child(even){background:#f9f9f9;}' +
-    '@media print{button{display:none!important;}}' +
+    '<title>' + title + ' 단어 시험지</title>' +
+    '<style>' +
+    '*{margin:0;padding:0;box-sizing:border-box}' +
+    'body{font-family:"Malgun Gothic",sans-serif}' +
+    '.no-print{padding:10px 14px;display:flex;gap:8px;align-items:center;background:#f5f5f5;border-bottom:1px solid #ddd}' +
+    'button{padding:7px 18px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600}' +
+    '.pri{background:#111;color:#fff} .grn{background:#2e7d32;color:#fff}' +
+    '.page{width:210mm;min-height:297mm;padding:10mm 12mm;page-break-after:always}' +
+    '.hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:8px}' +
+    '.ttl{font-size:16px;font-weight:800} .sub{font-size:10px;color:#666;margin-top:3px}' +
+    '.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}' +
+    'table{width:100%;border-collapse:collapse}' +
+    'tr{height:26px}' +
+    '@media print{.no-print{display:none!important}.page{padding:8mm 10mm}}' +
     '</style></head><body>' +
-    '<h2>📝 ' + title + '</h2>' +
-    '<div class="meta">날짜: ' + dateStr + ' &nbsp;|&nbsp; 이름: _________________ &nbsp;|&nbsp; 점수: _______/100</div>' +
-    '<div style="text-align:center;margin-bottom:12px;font-size:12px;color:#888;">' +
-      (isKoToEn ? '※ 한국어 뜻을 보고 영어 단어를 쓰세요' : '※ 영어 단어를 보고 한국어 뜻을 쓰세요') +
+    '<div class="no-print">' +
+      '<button class="pri" onclick="window.print()">🖨️ 인쇄 (2페이지)</button>' +
+      '<button class="grn" onclick="window.close()">닫기</button>' +
+      '<span style="font-size:12px;color:#666">1p: 시험지 (빈칸) &nbsp;|&nbsp; 2p: 정답지</span>' +
     '</div>' +
-    '<button onclick="window.print()" style="margin-bottom:12px;padding:8px 20px;background:#C9A961;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ 인쇄하기</button>' +
-    '<table>' +
-    '<thead><tr style="background:#1F4E79;color:#fff;">' +
-      '<th style="width:36px;padding:6px;">No.</th>' +
-      '<th style="padding:6px;text-align:left;">' + (isKoToEn ? '한국어 뜻' : '영어 단어') + '</th>' +
-      '<th style="width:220px;padding:6px;text-align:left;">정답</th>' +
-    '</tr></thead>' +
-    '<tbody>' + rows + '</tbody></table>' +
-    '<div style="margin-top:24px;font-size:11px;color:#999;text-align:center">총 ' + shuffled.length + '문항 · ' + title + '</div>' +
+    makePage(false, '시험지') +
+    makePage(true, '정답지') +
     '</body></html>';
 
-  // 정답지 생성
-  var answerRows = shuffled.map(function(w, i) {
-    var ans = isKoToEn ? w[0] : w[1].split(',')[0].trim();
-    return '<tr style="height:28px;">' +
-      '<td style="width:36px;text-align:center;color:#888;font-size:12px;">' + (i+1) + '</td>' +
-      '<td style="font-size:13px;padding:4px 8px;color:#333;">' + ans + '</td>' +
-    '</tr>';
-  }).join('');
-
-  var ansHtml = '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>정답지 - ' + title + '</title>' +
-    '<style>body{font-family:"Malgun Gothic",sans-serif;max-width:800px;margin:0 auto;padding:20px;}' +
-    'h2{text-align:center;margin-bottom:4px;font-size:16px;}' +
-    '.meta{text-align:center;font-size:11px;color:#666;margin-bottom:12px;}' +
-    'table{width:100%;border-collapse:collapse;}' +
-    'tr:nth-child(even){background:#f9f9f9;}' +
-    '@media print{button{display:none!important;}}' +
-    '</style></head><body>' +
-    '<h2>✅ 정답지 - ' + title + '</h2>' +
-    '<div class="meta">' + dateStr + ' · ' + (isKoToEn?'한→영':'영→한') + '</div>' +
-    '<button onclick="window.print()" style="margin-bottom:12px;padding:8px 20px;background:#4caf50;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ 인쇄하기</button>' +
-    '<table><thead><tr style="background:#2e7d32;color:#fff;">' +
-      '<th style="width:36px;padding:6px;">No.</th>' +
-      '<th style="padding:6px;text-align:left;">정답</th>' +
-    '</tr></thead><tbody>' + answerRows + '</tbody></table>' +
-    '<div style="margin-top:16px;font-size:11px;color:#999;text-align:center">정답지 · ' + title + '</div>' +
-    '</body></html>';
-
-  // 시험지 + 정답지 새 창
-  var w2 = window.open('', '_blank');
-  if (w2) { w2.document.write(html); w2.document.close(); }
-  else { alert('팝업이 차단됐습니다. 팝업 허용 후 다시 시도하세요.'); return; }
-  setTimeout(function() {
-    var w3 = window.open('', '_blank');
-    if (w3) { w3.document.write(ansHtml); w3.document.close(); }
-  }, 300);
+  var win = window.open('', '_blank', 'width=920,height=750');
+  if (!win) { alert('팝업이 차단됐어요. 팝업 허용 후 다시 시도하세요.'); return; }
+  win.document.write(html);
+  win.document.close();
 }
+
 
 // ── 시험지 자동 생성 ────────────────────────────
 async function generateTestSheet() {
