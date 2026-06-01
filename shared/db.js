@@ -145,6 +145,17 @@ const DB = {
     return snap.val();
   },
 
+
+  async saveBookmark(stuId, word, ko) {
+    const { db, ref, set } = await initDB();
+    await set(ref(db, `bookmarks/${stuId}/${word}`), { word, ko: ko||'', addedAt: Date.now() });
+  },
+
+  async removeBookmark(stuId, word) {
+    const { db, ref, remove } = await initDB();
+    await remove(ref(db, `bookmarks/${stuId}/${word}`));
+  },
+
   async toggleBookmark(stuId, word, ko) {
     const { db, ref, get, set, remove } = await initDB();
     const r = ref(db, `bookmarks/${stuId}/${word}`);
