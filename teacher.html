@@ -223,8 +223,8 @@
           <div style="display:flex;gap:8px;margin-top:.875rem;flex-wrap:wrap">
             <button class="btn btn-gold btn-full" onclick="copyToExcel()">📋 엑셀 복사</button>
             <button class="btn btn-full" onclick="copyWordListOnly()">단어만 복사</button>
-            <button class="btn btn-full" style="background:var(--sur2)" onclick="printExamSheet('en')">🖨️ 영→한 시험지</button>
-            <button class="btn btn-full" style="background:var(--sur2)" onclick="printExamSheet('ko')">🖨️ 한→영 시험지</button>
+            <button class="btn btn-full" onclick="printExamSheet()">🖨️ 시험지 인쇄</button>
+            <button class="btn btn-full" onclick="downloadExamExcel()">📥 시험지 엑셀</button>
           </div>
           <div id="copy-msg" style="display:none;text-align:center;font-size:12px;color:var(--grn);margin-top:.5rem;font-weight:500">✓ 복사됐습니다! 엑셀에 붙여넣기 하세요.</div>
         </div>
@@ -817,7 +817,11 @@ function renderStudents() {
   if (!arr.length) { list.innerHTML = '<div class="empty">학생이 없습니다</div>'; return; }
   list.innerHTML = arr.map(function(s) {
     var lastSeen = s.lastSeen ? new Date(s.lastSeen) : null;
-    var daysSince = lastSeen ? Math.floor((Date.now() - lastSeen) / 86400000) : 999;
+    // 오늘 날짜 기준으로 비교 (시간 무시)
+    var today = new Date(); today.setHours(0,0,0,0);
+    var lastDay = lastSeen ? new Date(lastSeen) : null;
+    if (lastDay) lastDay.setHours(0,0,0,0);
+    var daysSince = lastDay ? Math.round((today - lastDay) / 86400000) : 999;
     var alertBadge = daysSince >= 3 ? '<span style="font-size:10px;color:var(--red,#e53935);font-weight:700;margin-left:4px">⚠️ ' + (daysSince >= 7 ? '7일+' : daysSince + '일') + ' 미접속</span>' : '';
     var metaText = lastSeen ? '최근: ' + lastSeen.toLocaleDateString('ko') : '등록: ' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '-');
     var memoText = s.memo ? '<div style="font-size:10px;color:var(--txt3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">📝 ' + s.memo + '</div>' : '';
@@ -1214,100 +1218,108 @@ async function openExportPanel() {
 }
 
 
-function printExamSheet(direction) {
+function printExamSheet() {
   if (!exportWords.length) return;
-  var isEnToKo = direction === 'en'; // 영→한: 영어 보여주고 한국어 빈칸
   var stuName = document.getElementById('detail-name') ? document.getElementById('detail-name').textContent : '';
   var dateStr = new Date().toLocaleDateString('ko', {year:'numeric',month:'long',day:'numeric'});
-  var title = isEnToKo ? '영어 → 한국어' : '한국어 → 영어';
-
-  // 단어 목록 - 100개 제한
   var words = exportWords.slice(0, 100);
   var total = words.length;
-
-  // 2열 50개씩 배치 - 왼쪽 열(1~50), 오른쪽 열(51~100)
   var half = Math.ceil(total / 2);
   var leftCol = words.slice(0, half);
   var rightCol = words.slice(half);
 
-  function makeRow(w, num) {
-    var question = isEnToKo ? w.word : (w.ko || '');
-    var answer = isEnToKo ? (w.ko || '') : w.word;
-    // 취약단어 표시
-    var mark = w.isWeak ? '<span style="color:#e53935;font-size:9px;margin-left:2px">★</span>' : '';
-    return '<tr>' +
-      '<td style="padding:3px 6px;font-size:11px;color:#666;text-align:right;width:24px">' + num + '</td>' +
-      '<td style="padding:3px 6px;font-size:13px;font-weight:600;font-family:Georgia,serif">' + question + mark + '</td>' +
-      '<td style="padding:3px 6px;border-bottom:1px solid #ccc;min-width:120px;font-size:11px;color:#888">' +
-        '<span class="answer-text" style="display:none">' + answer + '</span>' +
-      '</td>' +
-    '</tr>';
+  function makeRows(wordList, startNum, showAnswer) {
+    return wordList.map(function(w, i) {
+      var mark = w.isWeak ? '<span style="color:#e53935">★</span>' : '';
+      var ans = showAnswer ? (w.ko || '-') : '';
+      var ansStyle = showAnswer
+        ? 'font-size:12px;color:#333;'
+        : 'border-bottom:1px solid #aaa;min-width:120px;display:inline-block;width:110px;';
+      return '<tr style="' + (i%2===1?'background:#f7f7f7':'') + '">' +
+        '<td style="padding:3px 4px;font-size:10px;color:#999;text-align:right;width:20px;border-right:1px solid #eee">' + (startNum+i) + '</td>' +
+        '<td style="padding:3px 6px;font-size:13px;font-weight:600;font-family:Georgia,serif;white-space:nowrap">' + w.word + mark + '</td>' +
+        '<td style="padding:3px 6px;' + ansStyle + '">' + ans + '</td>' +
+      '</tr>';
+    }).join('');
   }
 
-  var leftRows = leftCol.map(function(w,i){ return makeRow(w, i+1); }).join('');
-  var rightRows = rightCol.map(function(w,i){ return makeRow(w, half+i+1); }).join('');
-
-  var html = '<!DOCTYPE html><html lang="ko"><head>' +
-    '<meta charset="UTF-8">' +
-    '<title>단어 시험지 - ' + stuName + '</title>' +
-    '<style>' +
-      'body { font-family: "Malgun Gothic", sans-serif; margin: 0; padding: 16px; font-size: 12px; color: #111; }' +
-      '.sheet { max-width: 210mm; margin: 0 auto; }' +
-      '.header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 12px; }' +
-      '.header-title { font-size: 16px; font-weight: 800; }' +
-      '.header-info { font-size: 11px; color: #555; text-align: right; line-height: 1.8; }' +
-      '.name-box { display: inline-block; border-bottom: 1px solid #111; min-width: 100px; margin-left: 4px; }' +
-      '.score-box { display: inline-block; border: 1px solid #111; padding: 2px 16px; margin-left: 8px; font-size: 13px; }' +
-      '.columns { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }' +
-      'table { width: 100%; border-collapse: collapse; }' +
-      'tr:nth-child(even) { background: #f9f9f9; }' +
-      '.legend { font-size: 10px; color: #888; margin-top: 8px; }' +
-      '.btn-bar { margin-bottom: 12px; display: flex; gap: 8px; }' +
-      'button { padding: 6px 16px; border: 1px solid #333; background: #fff; cursor: pointer; border-radius: 4px; font-size: 12px; }' +
-      'button.primary { background: #111; color: #fff; }' +
-      '@media print {' +
-      '  .btn-bar { display: none; }' +
-      '  body { padding: 8mm; }' +
-      '  .answer-text { display: none !important; }' +
-      '}' +
-    '</style></head><body>' +
-    '<div class="sheet">' +
-      '<div class="btn-bar">' +
-        '<button class="primary" onclick="window.print()">🖨️ 인쇄하기</button>' +
-        '<button onclick="toggleAnswers()">정답 보기/숨기기</button>' +
-        '<button onclick="window.close()">닫기</button>' +
-      '</div>' +
+  function makePage(showAnswer, pageTitle) {
+    return '<div class="page">' +
       '<div class="header">' +
         '<div>' +
-          '<div class="header-title">단어 시험 (' + title + ')</div>' +
-          '<div style="font-size:11px;color:#555;margin-top:4px">' + dateStr + ' &nbsp;|&nbsp; 총 ' + total + '문항' +
-          (exportWords.some(function(w){return w.isWeak;}) ? ' &nbsp;<span style="color:#e53935">★ 취약단어</span>' : '') +
-          '</div>' +
+          '<div class="title">단어 시험 &nbsp;<span style="font-size:12px;font-weight:400;color:#666">' + pageTitle + '</span></div>' +
+          '<div class="sub">' + dateStr + ' &nbsp;|&nbsp; 총 ' + total + '문항' +
+          (words.some(function(w){return w.isWeak;}) ? ' &nbsp;<span style="color:#e53935">★ 취약단어</span>' : '') + '</div>' +
         '</div>' +
-        '<div class="header-info">' +
-          '이름 <span class="name-box">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>' +
-          '&nbsp;&nbsp;점수 <span class="score-box">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>' +
-        '</div>' +
+        '<div class="name-area">이름 <span class="name-box"></span> &nbsp; 점수 <span class="score-box"></span></div>' +
       '</div>' +
       '<div class="columns">' +
-        '<table>' + leftRows + '</table>' +
-        '<table>' + rightRows + '</table>' +
+        '<table><tbody>' + makeRows(leftCol, 1, showAnswer) + '</tbody></table>' +
+        '<table><tbody>' + makeRows(rightCol, half+1, showAnswer) + '</tbody></table>' +
       '</div>' +
-      '<div class="legend">※ ★ 표시는 이전에 틀린 취약 단어입니다.</div>' +
-    '</div>' +
-    '<script>' +
-      'function toggleAnswers() {' +
-        'document.querySelectorAll(".answer-text").forEach(function(el){' +
-          'el.style.display = el.style.display === "none" ? "inline" : "none";' +
-        '});' +
+      (showAnswer ? '' : '<div class="legend">★ 이전에 틀린 취약 단어</div>') +
+    '</div>';
+  }
+
+  var html = '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">' +
+    '<title>단어 시험지 - ' + stuName + '</title>' +
+    '<style>' +
+      '* { margin:0; padding:0; box-sizing:border-box; }' +
+      'body { font-family:"Malgun Gothic",sans-serif; font-size:12px; }' +
+      '.no-print { margin:12px; display:flex; gap:8px; }' +
+      'button { padding:7px 18px; border:1px solid #333; background:#fff; cursor:pointer; border-radius:4px; font-size:13px; }' +
+      'button.pri { background:#111; color:#fff; border-color:#111; }' +
+      '.page { width:210mm; min-height:297mm; padding:12mm 14mm; page-break-after:always; }' +
+      '.header { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #111; padding-bottom:7px; margin-bottom:10px; }' +
+      '.title { font-size:17px; font-weight:800; }' +
+      '.sub { font-size:10px; color:#666; margin-top:3px; }' +
+      '.name-area { font-size:12px; text-align:right; }' +
+      '.name-box { display:inline-block; border-bottom:1px solid #111; width:90px; }' +
+      '.score-box { display:inline-block; border:1px solid #111; padding:1px 14px; }' +
+      '.columns { display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }' +
+      'table { width:100%; border-collapse:collapse; }' +
+      '.legend { font-size:10px; color:#999; margin-top:8px; }' +
+      '@media print {' +
+      '  .no-print { display:none !important; }' +
+      '  .page { padding:8mm 10mm; }' +
       '}' +
-    '</scr' + 'ipt>' +
+    '</style></head><body>' +
+    '<div class="no-print">' +
+      '<button class="pri" onclick="window.print()">🖨️ 인쇄 (2페이지)</button>' +
+      '<button onclick="window.close()">닫기</button>' +
+      '<span style="font-size:12px;color:#666;align-self:center">1p: 시험지(빈칸) &nbsp; 2p: 정답지</span>' +
+    '</div>' +
+    makePage(false, '시험지') +
+    makePage(true,  '정답지') +
     '</body></html>';
 
-  var win = window.open('', '_blank', 'width=900,height=700');
+  var win = window.open('', '_blank', 'width=900,height=750');
+  if (!win) { alert('팝업이 차단됐어요. 팝업 허용 후 다시 시도해주세요.'); return; }
   win.document.write(html);
   win.document.close();
 }
+
+function downloadExamExcel() {
+  if (!exportWords.length) return;
+  var stuName = document.getElementById('detail-name') ? document.getElementById('detail-name').textContent : '학생';
+  var dateStr = new Date().toISOString().slice(0,10);
+  // 탭 구분 시험지: 번호 / 영어 / 뜻(빈칸) / 정답
+  var header = 'No.	영어	뜻 (빈칸)	정답	구분';
+  var rows = exportWords.map(function(w, i) {
+    return (i+1) + '	' + w.word + '		' + (w.ko||'') + '	' + (w.isWeak?'취약':'학습');
+  });
+  var text = [header].concat(rows).join('\n');
+
+  var blob = new Blob(['﻿'+text], {type:'text/plain;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '시험지_' + stuName + '_' + dateStr + '.txt';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  showToast('✓ 시험지 파일 다운로드! 엑셀에서 열어보세요.');
+}
+
 
 function copyToExcel() {
   if (!exportWords.length) return;
