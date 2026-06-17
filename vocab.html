@@ -150,7 +150,7 @@
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
     <p class="sec-title" style="margin:0">단어장 선택</p>
     <div style="display:flex;gap:6px">
-      <button class="btn btn-ghost btn-sm" onclick="showView('folders');loadFolders()" id="my-folder-btn" style="display:none">📁 내 폴더</button>
+      
       <button class="btn btn-ghost btn-sm" onclick="showCalendar()" id="my-record-btn" style="display:none">📅 내 기록</button>
     </div>
   </div>
@@ -218,7 +218,10 @@
 
     <!-- 폴더 선택 (북마크 선택 시) -->
     <div id="folder-panel" style="display:none;margin-bottom:.5rem">
-      <div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">폴더 선택 (전체 또는 특정 폴더)</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.375rem">
+        <div style="font-size:11px;color:var(--txt3)">폴더 선택 (전체 또는 특정 폴더)</div>
+        <button onclick="showView('folders');loadFolders();" style="background:none;border:none;font-size:11px;color:var(--gold);cursor:pointer;font-weight:600">📁 폴더 관리 →</button>
+      </div>
       <div id="folder-range-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
     </div>
 
@@ -704,26 +707,33 @@
 <!-- ══ VIEW 12: 즐겨찾기 폴더 ══ -->
 <div id="view-folders" style="display:none">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem">
-    <p class="sec-title" style="margin:0">📁 내 단어 폴더</p>
+    <div>
+      <p class="sec-title" style="margin:0">⭐ 북마크 & 폴더</p>
+      <div style="font-size:11px;color:var(--txt3);margin-top:2px" id="bm-total-count"></div>
+    </div>
     <button class="btn btn-ghost btn-sm" onclick="goBack()">← 뒤로</button>
   </div>
+
   <!-- 폴더 목록 -->
-  <div id="folder-list" style="margin-bottom:1rem"></div>
+  <div id="folder-list" style="margin-bottom:.75rem"></div>
+
   <!-- 새 폴더 만들기 -->
   <div class="card card-sm">
-    <p class="sec-title" style="margin-bottom:.5rem">새 폴더 만들기</p>
+    <p class="sec-title" style="margin-bottom:.5rem">+ 새 폴더 만들기</p>
     <div style="display:flex;gap:8px">
-      <input id="folder-name-input" type="text" placeholder="폴더 이름 (예: 헷갈리는 단어)" style="flex:1;font-size:13px">
+      <input id="folder-name-input" type="text" placeholder="폴더 이름 (예: 1주차 틀린것)" style="flex:1;font-size:13px" maxlength="20"
+        onkeydown="if(event.key==='Enter')createFolder()">
       <button class="btn btn-gold" onclick="createFolder()">만들기</button>
     </div>
     <div id="folder-create-msg" style="font-size:11px;min-height:14px;margin-top:.25rem;color:var(--grn,#4caf50)"></div>
   </div>
 </div>
 
+
 <!-- ══ VIEW 13: 폴더 상세 ══ -->
 <div id="view-folder-detail" style="display:none">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:.875rem">
-    <button class="btn btn-ghost btn-sm" onclick="showView('folders');loadFolders()">← 폴더</button>
+    <button class="btn btn-ghost btn-sm" onclick="if(currentFolderId==='__all__'){showView('folders');loadFolders();}else{showView('folders');loadFolders();}">← 북마크</button>
     <p class="sec-title" style="margin:0" id="folder-detail-title"></p>
   </div>
   <div id="folder-detail-list"></div>
@@ -1363,8 +1373,8 @@ function goBack() {
     showView('folders');
     loadFolders();
   } else if (visible === 'folders') {
-    showView('library');
-    document.getElementById('back-btn').textContent = '← 홈';
+    showView('set');
+    document.getElementById('back-btn').textContent = '← 목록';
   } else {
     backToSet();
   }
@@ -4085,30 +4095,106 @@ async function loadFolders() {
   try {
     foldersCache = await DB.getFolders(STU_ID);
   } catch(e) { foldersCache = {}; }
+  // 북마크도 같이 최신화
+  try { bookmarks = await DB.getBookmarks(STU_ID) || {}; } catch(e) {}
   renderFolderList();
+  updateBookmarkCount();
 }
 
 function renderFolderList() {
   var listEl = document.getElementById('folder-list');
   var entries = Object.entries(foldersCache);
+
+  // 전체 북마크 카드
+  var bmCount = Object.keys(bookmarks || {}).length;
+  var totalEl = document.getElementById('bm-total-count');
+  if (totalEl) totalEl.textContent = '총 ' + bmCount + '개 북마크';
+
+  var allBmHtml = '<div class="card card-sm" style="margin-bottom:.625rem;cursor:pointer" onclick="openAllBookmarks()">' +
+    '<div style="display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:24px">⭐</span>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:14px;font-weight:700">전체 북마크</div>' +
+        '<div style="font-size:11px;color:var(--txt3)">' + bmCount + '개 단어</div>' +
+      '</div>' +
+      '<span style="color:var(--txt3)">›</span>' +
+    '</div>' +
+  '</div>';
+
   if (!entries.length) {
-    listEl.innerHTML = '<div class="empty" style="padding:1rem 0">폴더가 없어요. 아래에서 만들어보세요!</div>';
+    listEl.innerHTML = allBmHtml +
+      '<div style="font-size:12px;color:var(--txt3);text-align:center;padding:.75rem">아직 폴더가 없어요. 아래에서 만들어보세요!</div>';
     return;
   }
-  listEl.innerHTML = entries.map(function(e) {
+
+  var folderHtml = entries.map(function(e) {
     var fid = e[0], f = e[1];
     var wordCount = f.words ? Object.keys(f.words).length : 0;
-    var safeFid = fid.replace(/'/g,"\\'");
-    return '<div class="card card-sm" style="margin-bottom:.5rem;display:flex;align-items:center;gap:10px">' +
-      '<span style="font-size:22px;cursor:pointer" onclick="openFolder(\'' + safeFid + '\')">' + (f.emoji || '📁') + '</span>' +
-      '<div style="flex:1;cursor:pointer" onclick="openFolder(\'' + safeFid + '\')">' +
-        '<div id="folder-name-' + fid + '" style="font-size:14px;font-weight:600">' + (f.name||'폴더') + '</div>' +
-        '<div style="font-size:11px;color:var(--txt3)">' + wordCount + '개 단어</div>' +
+    var safeFid = fid.replace(/'/g,"\'");
+    return '<div class="card card-sm" style="margin-bottom:.5rem">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:22px;cursor:pointer" onclick="openFolder(\'' + safeFid + '\')">' + (f.emoji||'📁') + '</span>' +
+        '<div style="flex:1;cursor:pointer" onclick="openFolder(\'' + safeFid + '\')">' +
+          '<div style="font-size:14px;font-weight:600">' + (f.name||'폴더') + '</div>' +
+          '<div style="font-size:11px;color:var(--txt3)">' + wordCount + '개 단어</div>' +
+        '</div>' +
+        '<button onclick="startFolderRename(\'' + safeFid + '\')" style="background:none;border:none;font-size:13px;color:var(--txt3);cursor:pointer;padding:4px" title="이름 변경">✏️</button>' +
+        '<span style="color:var(--txt3);cursor:pointer;padding:4px" onclick="openFolder(\'' + safeFid + '\')">›</span>' +
       '</div>' +
-      '<button onclick="startFolderRename(\'' + safeFid + '\')" style="background:none;border:none;font-size:13px;color:var(--txt3);cursor:pointer;padding:4px" title="이름 변경">✏️</button>' +
-      '<span style="color:var(--txt3);cursor:pointer" onclick="openFolder(\'' + safeFid + '\')">›</span>' +
     '</div>';
   }).join('');
+
+  listEl.innerHTML = allBmHtml + folderHtml;
+}
+
+// 전체 북마크 뷰
+function openAllBookmarks() {
+  currentFolderId = '__all__';
+  showView('folder-detail');
+  var bmCount = Object.keys(bookmarks || {}).length;
+  document.getElementById('folder-detail-title').textContent = '⭐ 전체 북마크 (' + bmCount + '개)';
+  // 북마크 단어 목록
+  var words = Object.values(bookmarks || {}).map(function(b){ return { word: b.word, ko: b.ko }; });
+  renderBookmarkDetail(words);
+}
+
+function renderBookmarkDetail(words) {
+  var listEl = document.getElementById('folder-detail-list');
+  var studyBtns = document.getElementById('folder-study-btns');
+
+  if (!words.length) {
+    listEl.innerHTML = '<div class="empty" style="padding:1rem 0">북마크한 단어가 없어요.<br>학습 중 ☆ 버튼으로 추가하세요!</div>';
+    if (studyBtns) studyBtns.style.display = 'none';
+    return;
+  }
+
+  listEl.innerHTML = words.map(function(w) {
+    var safeWord = (w.word||'').replace(/'/g,"\'");
+    return '<div class="list-item" style="justify-content:space-between">' +
+      '<div>' +
+        '<span style="font-family:var(--font-display);font-style:italic;font-weight:600">' + (w.word||'') + '</span>' +
+        '<span style="color:var(--txt3);font-size:12px;margin-left:8px">' + (w.ko||'') + '</span>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px">' +
+        '<button class="tts-btn" style="font-size:10px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
+        '<button class="tts-btn" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="removeBookmark(\'' + safeWord + '\')">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  if (studyBtns) studyBtns.style.display = 'block';
+  window._folderStudyWords = words.map(function(w){ return [w.word, w.ko||'']; });
+}
+
+async function removeBookmark(word) {
+  try {
+    await DB.toggleBookmark(STU_ID, word, ''); // false 반환 (삭제)
+    delete bookmarks[word.toLowerCase()];
+    updateBookmarkCount();
+    showToast('☆ 북마크 제거됐어요');
+    // 현재 뷰 다시 렌더
+    if (currentFolderId === '__all__') openAllBookmarks();
+  } catch(e) {}
 }
 
 function startFolderRename(fid) {
@@ -4143,8 +4229,10 @@ async function createFolder() {
 }
 
 function openFolder(fid) {
+  if (fid === '__all__') { openAllBookmarks(); return; }
   currentFolderId = fid;
   var f = foldersCache[fid];
+  if (!f) return;
   showView('folder-detail');
   document.getElementById('folder-detail-title').textContent = (f.emoji||'📁') + ' ' + (f.name||'폴더');
   renderFolderDetail(fid);
