@@ -3085,7 +3085,6 @@ function _buildExamPaper(direction, setInfo, week) {
   var weekWords = words.slice(start, start + 100);
   if (!weekWords.length) { alert('해당 주차에 단어가 없습니다.'); return; }
 
-  // 랜덤 섞기
   var shuffled = weekWords.slice().sort(function(){ return Math.random() - 0.5; });
   var total = shuffled.length;
   var half = Math.ceil(total / 2);
@@ -3094,314 +3093,64 @@ function _buildExamPaper(direction, setInfo, week) {
 
   var isEnToKo = direction === 'en';
   var title = setInfo.name + ' ' + week + '주차';
-  var dateStr = new Date().toLocaleDateString('ko', {year:'numeric',month:'long',day:'numeric'});
-  var dirLabel = isEnToKo ? '영어 → 한국어' : '한국어 → 영어';
 
   function makeRows(wordList, startNum, showAnswer) {
     return wordList.map(function(w, i) {
       var q = isEnToKo ? w[0] : (w[1]||'').split(',')[0].trim();
-      var ans = isEnToKo ? ((w[1]||'').split(',')[0].trim()) : w[0];
-      return '<tr style="' + (i%2===1?'background:#f7f7f7':'') + '">' +
-        '<td style="width:18px;text-align:center;font-size:9px;color:#bbb;border-right:1px solid #eee;padding:0 2px">' + (startNum+i) + '</td>' +
-        '<td style="padding:1px 3px;font-size:' + (isEnToKo?'11px':'10px') + ';font-weight:' + (isEnToKo?'600':'400') +
-          ';font-family:' + (isEnToKo?'Georgia,serif':'inherit') + ';white-space:nowrap">' + q + '</td>' +
-        '<td style="padding:1px 3px;' + (showAnswer
-          ? 'font-size:10px;color:#333;font-weight:' + (isEnToKo?'400':'600') + ';font-family:' + (isEnToKo?'inherit':'Georgia,serif')
-          : 'border-bottom:1px solid #bbb;min-width:80px') + '">' +
-          (showAnswer ? ans : '') + '</td>' +
+      var ans = isEnToKo ? (w[1]||'').split(',')[0].trim() : w[0];
+      var bg = i%2===1 ? 'background:#f9f9f9;' : '';
+      return '<tr style="' + bg + '">' +
+        '<td style="width:16px;text-align:right;color:#ccc;font-size:8px;padding:0 2px 0 0;border-right:1px solid #eee">' + (startNum+i) + '</td>' +
+        '<td style="padding:0 4px;font-size:10px;font-weight:' + (isEnToKo?'600':'400') + ';font-family:' + (isEnToKo?'Georgia,serif':'inherit') + ';white-space:nowrap;max-width:120px;overflow:hidden">' + q + '</td>' +
+        '<td style="' + (showAnswer ? 'padding:0 4px;font-size:10px;color:#333' : 'border-bottom:1px solid #ccc;min-width:80px') + '">' +
+        (showAnswer ? ans : '') + '</td>' +
       '</tr>';
     }).join('');
   }
 
-  function makePage(showAnswer, pageLabel) {
+  function makePage(showAnswer, label) {
     return '<div class="page">' +
       '<div class="hdr">' +
-        '<div><div class="ttl">단어 시험 · ' + title + ' <span style="font-size:12px;font-weight:400;color:#666">(' + dirLabel + ') ' + pageLabel + '</span></div>' +
-        '<div class="sub">' + dateStr + ' &nbsp;|&nbsp; 총 ' + total + '문항</div></div>' +
-        '<div style="font-size:10px">이름 <span style="display:inline-block;border-bottom:1px solid #111;width:70px">&nbsp;</span> &nbsp; 점수 <span style="display:inline-block;border:1px solid #111;padding:1px 10px">&nbsp;</span></div>' +
+        '<span class="ttl">' + title + (isEnToKo?' 영→한':' 한→영') + ' ' + label + '</span>' +
+        '<span style="font-size:9px;color:#aaa">이름_________&nbsp;&nbsp;점수______</span>' +
       '</div>' +
       '<div class="cols">' +
         '<table><tbody>' + makeRows(leftCol, 1, showAnswer) + '</tbody></table>' +
         '<table><tbody>' + makeRows(rightCol, half+1, showAnswer) + '</tbody></table>' +
       '</div>' +
-      (!showAnswer ? '<div style="font-size:10px;color:#aaa;margin-top:6px">※ 랜덤 출제 · 정답은 별도 정답지 참고</div>' : '') +
     '</div>';
   }
 
   var html = '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">' +
-    '<title>' + title + ' 단어 시험지</title>' +
+    '<title>' + title + '</title>' +
     '<style>' +
     '*{margin:0;padding:0;box-sizing:border-box}' +
-    'body{font-family:"Malgun Gothic",sans-serif;font-size:11px}' +
-    '.no-print{padding:8px 12px;display:flex;gap:8px;align-items:center;background:#f5f5f5;border-bottom:1px solid #ddd}' +
-    'button{padding:6px 14px;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600}' +
-    '.pri{background:#111;color:#fff} .grn{background:#2e7d32;color:#fff}' +
-    '.page{width:210mm;padding:7mm 9mm;page-break-after:always;box-sizing:border-box}' +
-    '.hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #111;padding-bottom:5px;margin-bottom:6px}' +
-    '.ttl{font-size:14px;font-weight:800} .sub{font-size:9px;color:#666;margin-top:2px}' +
-    '.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}' +
+    'html,body{width:210mm}' +
+    'body{font-family:"Malgun Gothic",sans-serif}' +
+    '.no-print{padding:8px 12px;display:flex;gap:8px;background:#f0f0f0;border-bottom:1px solid #ddd}' +
+    'button{padding:5px 14px;border:none;border-radius:3px;cursor:pointer;font-size:12px;font-weight:600}' +
+    '.pri{background:#111;color:#fff}.grn{background:#2e7d32;color:#fff}' +
+    '.page{width:210mm;height:297mm;padding:5mm 7mm;overflow:hidden;page-break-after:always;display:flex;flex-direction:column}' +
+    '.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid #111;padding-bottom:4px;margin-bottom:5px;flex-shrink:0}' +
+    '.ttl{font-size:13px;font-weight:800}' +
+    '.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 10px;flex:1}' +
     'table{width:100%;border-collapse:collapse}' +
-    'td{font-size:11px;padding:1px 3px;vertical-align:middle}' +
-    'tr{height:22px}' +
-    '.legend{font-size:9px;color:#bbb;margin-top:4px}' +
-    '@media print{.no-print{display:none!important}.page{padding:6mm 8mm}html,body{margin:0;padding:0}}' +
+    'tr{height:19px}' +
+    '@media print{.no-print{display:none!important}@page{margin:5mm 6mm;size:A4}}' +
     '</style></head><body>' +
     '<div class="no-print">' +
       '<button class="pri" onclick="window.print()">🖨️ 인쇄 (2페이지)</button>' +
       '<button class="grn" onclick="window.close()">닫기</button>' +
-      '<span style="font-size:12px;color:#666">1p: 시험지 (빈칸) &nbsp;|&nbsp; 2p: 정답지</span>' +
+      '<span style="font-size:11px;color:#666">1p 시험지 · 2p 정답지 · 총 ' + total + '문항</span>' +
     '</div>' +
     makePage(false, '시험지') +
     makePage(true, '정답지') +
     '</body></html>';
 
-  var win = window.open('', '_blank', 'width=920,height=750');
+  var win = window.open('', '_blank', 'width=900,height=750');
   if (!win) { alert('팝업이 차단됐어요. 팝업 허용 후 다시 시도하세요.'); return; }
   win.document.write(html);
   win.document.close();
 }
 
 
-// ── 시험지 자동 생성 ────────────────────────────
-async function generateTestSheet() {
-  // 주차 선택 다이얼로그
-  var wk = prompt('몇 주차 시험지를 만들까요? (숫자 입력)');
-  if (!wk || isNaN(wk)) return;
-  wk = parseInt(wk);
-
-  // 전체 학생 취약단어 집계
-  var weakMap = {};
-  var stuList = Object.values(students);
-  for (var i = 0; i < stuList.length; i++) {
-    try {
-      var weak = await DB.getWeakWords(stuList[i].id);
-      (weak || []).forEach(function(w) {
-        if (!weakMap[w.word]) weakMap[w.word] = { word: w.word, ko: w.ko, count: 0 };
-        weakMap[w.word].count++;
-      });
-    } catch(e) {}
-  }
-
-  // 시험지 HTML 생성
-  var weakTop = Object.values(weakMap).sort(function(a,b){ return b.count - a.count; }).slice(0, 15);
-  var date = new Date().toLocaleDateString('ko');
-
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-    '<style>body{font-family:Arial,sans-serif;max-width:800px;margin:0 auto;padding:20px}' +
-    'h1{text-align:center;font-size:18px;margin-bottom:4px}' +
-    '.info{text-align:center;font-size:12px;color:#666;margin-bottom:20px}' +
-    'table{width:100%;border-collapse:collapse}' +
-    'th{background:#f5f5f5;padding:8px;border:1px solid #ddd;font-size:13px}' +
-    'td{padding:8px;border:1px solid #ddd;font-size:13px;height:32px}' +
-    '.ans-col{width:200px}' +
-    '@media print{.no-print{display:none}}' +
-    '</style></head><body>' +
-    '<h1>' + wk + '주차 영어 단어 시험</h1>' +
-    '<div class="info">날짜: ' + date + ' &nbsp;|&nbsp; 이름: _______________&nbsp;|&nbsp; 점수: _______</div>' +
-    '<table>' +
-    '<tr><th style="width:30px">No.</th><th>단어</th><th class="ans-col">뜻 (한글)</th><th style="width:60px">점수</th></tr>';
-
-  // 취약단어 우선 + 일반 단어 채우기
-  var rows = weakTop.map(function(w, i) {
-    return '<tr><td style="text-align:center">' + (i+1) + '</td><td>' + w.word + '</td><td></td><td></td></tr>';
-  });
-
-  // 부족하면 빈 행 추가 (총 20개)
-  for (var j = rows.length; j < 20; j++) {
-    rows.push('<tr><td style="text-align:center">' + (j+1) + '</td><td></td><td></td><td></td></tr>');
-  }
-
-  html += rows.join('') + '</table>' +
-    '<div class="no-print" style="text-align:center;margin-top:20px">' +
-    '<button onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer">🖨️ 인쇄</button>' +
-    '</div></body></html>';
-
-  var w2 = window.open('', '_blank');
-  w2.document.write(html);
-  w2.document.close();
-}
-
-
-// ── 성장 그래프 (Canvas) ────────────────────────
-function drawScoreChart(results) {
-  var canvas = document.getElementById('score-chart');
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-  var W = canvas.offsetWidth || 300;
-  var H = 80;
-  canvas.width = W;
-  canvas.height = H;
-  ctx.clearRect(0, 0, W, H);
-
-  var scores = results.map(function(r) { return r.score || 0; });
-  var n = scores.length;
-  if (n < 2) return;
-
-  var padL = 28, padR = 8, padT = 8, padB = 20;
-  var gW = W - padL - padR;
-  var gH = H - padT - padB;
-
-  // 그리드 라인 (25, 50, 75, 100)
-  ctx.strokeStyle = 'rgba(128,128,128,0.15)';
-  ctx.lineWidth = 1;
-  [25, 50, 75, 100].forEach(function(v) {
-    var y = padT + gH - (v / 100) * gH;
-    ctx.beginPath();
-    ctx.moveTo(padL, y);
-    ctx.lineTo(W - padR, y);
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(128,128,128,0.5)';
-    ctx.font = '9px sans-serif';
-    ctx.fillText(v, 0, y + 3);
-  });
-
-  // 점수 선
-  ctx.strokeStyle = '#F59E0B';
-  ctx.lineWidth = 2;
-  ctx.lineJoin = 'round';
-  ctx.beginPath();
-  scores.forEach(function(s, i) {
-    var x = padL + (i / (n - 1)) * gW;
-    var y = padT + gH - (s / 100) * gH;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-
-  // 점 + 값
-  scores.forEach(function(s, i) {
-    var x = padL + (i / (n - 1)) * gW;
-    var y = padT + gH - (s / 100) * gH;
-    ctx.fillStyle = s >= 70 ? '#4caf50' : s >= 50 ? '#F59E0B' : '#ef4444';
-    ctx.beginPath();
-    ctx.arc(x, y, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    // 날짜 라벨
-    if (i === 0 || i === n - 1) {
-      var label = results[i].date ? results[i].date.slice(5, 10) : '';
-      ctx.fillStyle = 'rgba(128,128,128,0.7)';
-      ctx.font = '9px sans-serif';
-      ctx.fillText(label, x - 12, H - 4);
-    }
-  });
-}
-
-async function sendSticker(emoji, message) {
-  if (!selectedStuId) return;
-  var msgEl = document.getElementById('sticker-sent-msg');
-  try {
-    await DB.sendSticker(selectedStuId, emoji, message);
-    msgEl.style.color = 'var(--grn,#4caf50)';
-    msgEl.textContent = emoji + ' 전송됐어요!';
-    setTimeout(function(){ msgEl.textContent = ''; }, 2500);
-
-    // 마지막 메시지 UI 즉시 업데이트
-    var wrap = document.getElementById('last-msg-wrap');
-    if (wrap) {
-      document.getElementById('last-msg-emoji').textContent = emoji;
-      document.getElementById('last-msg-text').textContent = message;
-      document.getElementById('last-msg-read').textContent = '● 안읽음';
-      document.getElementById('last-msg-read').style.color = 'var(--red,#e53935)';
-      wrap.style.borderLeftColor = 'var(--red,#e53935)';
-      document.getElementById('last-msg-time').textContent = '방금';
-      wrap.style.display = 'block';
-    }
-
-    // 학생 목록에서 해당 학생 카드에 미읽음 뱃지 표시
-    updateStuCardBadge(selectedStuId, false);
-  } catch(e) {
-    msgEl.style.color = 'var(--red)';
-    msgEl.textContent = '오류: ' + e.message;
-  }
-}
-
-async function sendStickerCustom() {
-  var msgInput = document.getElementById('sticker-msg').value.trim();
-  if (!msgInput) return;
-  await sendSticker('💌', msgInput);
-  document.getElementById('sticker-msg').value = '';
-}
-
-async function requestClassAI() {
-  var btn = document.getElementById('class-ai-btn');
-  var contentEl = document.getElementById('class-ai-content');
-  var stuList = Object.values(students);
-  if (!stuList.length) { alert('학생 데이터가 없습니다.'); return; }
-
-  btn.textContent = '분석 중...';
-  btn.disabled = true;
-  contentEl.style.display = 'block';
-  contentEl.textContent = '🤖 AI가 반 전체 데이터를 분석하고 있어요...';
-
-  try {
-    var now = Date.now();
-    var DAY = 86400000;
-    var weakMap = {};
-    var activeCount = 0;
-    var totalScores = [];
-    var recentScores = [];
-
-    for (var i = 0; i < stuList.length; i++) {
-      try {
-        var weak2 = await DB.getWeakWords(stuList[i].id);
-        var res2 = await DB.getResults(stuList[i].id);
-        (weak2 || []).forEach(function(w) {
-          if (!weakMap[w.word]) weakMap[w.word] = { word:w.word, ko:w.ko||'', count:0, wrong:0 };
-          weakMap[w.word].count++;
-          weakMap[w.word].wrong += (w.wrong||0);
-        });
-        (res2||[]).forEach(function(r){ totalScores.push(r.score||0); });
-        var recent = (res2||[]).filter(function(r){ return r.date && (now-new Date(r.date))<=7*DAY; });
-        if (recent.length) { activeCount++; recent.forEach(function(r){ recentScores.push(r.score||0); }); }
-      } catch(e) {}
-    }
-
-    var topWeak = Object.values(weakMap)
-      .sort(function(a,b){ return b.count - a.count; })
-      .slice(0, 15)
-      .map(function(w){ return w.word+'('+w.ko+','+w.count+'명)'; })
-      .join(', ');
-
-    var classAvg2 = totalScores.length ? Math.round(totalScores.reduce(function(a,b){return a+b;},0)/totalScores.length) : 0;
-    var recentAvg2 = recentScores.length ? Math.round(recentScores.reduce(function(a,b){return a+b;},0)/recentScores.length) : 0;
-
-    var prompt = '수능 영어 전문 과외 선생님을 돕는 AI야.\n\n반 데이터:\n학생 수: ' + stuList.length + '명 (이번주 활동: ' + activeCount + '명)\n전체 평균: ' + classAvg2 + '% / 이번주 평균: ' + recentAvg2 + '%\n공통 취약단어 TOP15: ' + topWeak + '\n\n선생님에게 실용적인 조언을 해줘 (한국어, 총 5문장 이내):\n1. 반 실력 수준 진단\n2. 취약단어 패턴 분석\n3. 이번주 수업 우선순위\n4. 구체적 학습법 제안';
-
-    var fetchRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 500,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    var data2 = await fetchRes.json();
-    var text2 = (data2.content && data2.content[0] && data2.content[0].text) || '분석 결과를 가져올 수 없습니다.';
-    contentEl.style.whiteSpace = 'pre-line';
-    contentEl.textContent = text2;
-    btn.textContent = '✓ 분석 완료';
-  } catch(e) {
-    contentEl.textContent = 'AI 분석 중 오류: ' + e.message;
-    btn.textContent = '다시 시도';
-    btn.disabled = false;
-  }
-}
-
-async function saveMnemonic() {
-  var resultEl = document.getElementById('mn-result');
-  var word = (resultEl && resultEl.dataset.word) || (document.getElementById('mn-search')||{value:''}).value.trim().toLowerCase();
-  var mn = document.getElementById('mn-new').value.trim();
-  var msg = document.getElementById('mn-msg');
-  if (!word || !mn) { if(msg) msg.textContent = '단어와 연상법을 입력하세요'; return; }
-  try {
-    await DB.saveMnemonic(word, mn);
-    allMnemonics[word] = mn;
-    renderMnemonicList();
-    document.getElementById('mn-current').textContent = mn;
-    if(msg) { msg.textContent = '✓ 저장되었습니다!'; setTimeout(function(){ msg.textContent=''; }, 2000); }
-  } catch(e) { if(msg) msg.textContent = '오류: '+e.message; }
-}
-</script>
-</body>
-</html>
