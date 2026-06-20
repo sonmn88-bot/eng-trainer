@@ -3102,12 +3102,12 @@ function _buildExamPaper(direction, setInfo, week) {
       var q = isEnToKo ? w[0] : (w[1]||'').split(',')[0].trim();
       var ans = isEnToKo ? ((w[1]||'').split(',')[0].trim()) : w[0];
       return '<tr style="' + (i%2===1?'background:#f7f7f7':'') + '">' +
-        '<td style="width:22px;text-align:center;font-size:10px;color:#999;border-right:1px solid #eee">' + (startNum+i) + '</td>' +
-        '<td style="padding:3px 5px;font-size:' + (isEnToKo?'13px':'12px') + ';font-weight:' + (isEnToKo?'600':'400') +
-          ';font-family:' + (isEnToKo?'Georgia,serif':'inherit') + '">' + q + '</td>' +
-        '<td style="padding:3px 5px;' + (showAnswer
-          ? 'font-size:12px;color:#333;font-weight:' + (isEnToKo?'400':'600') + ';font-family:' + (isEnToKo?'inherit':'Georgia,serif')
-          : 'border-bottom:1px solid #aaa;min-width:90px') + '">' +
+        '<td style="width:18px;text-align:center;font-size:9px;color:#bbb;border-right:1px solid #eee;padding:0 2px">' + (startNum+i) + '</td>' +
+        '<td style="padding:1px 3px;font-size:' + (isEnToKo?'11px':'10px') + ';font-weight:' + (isEnToKo?'600':'400') +
+          ';font-family:' + (isEnToKo?'Georgia,serif':'inherit') + ';white-space:nowrap">' + q + '</td>' +
+        '<td style="padding:1px 3px;' + (showAnswer
+          ? 'font-size:10px;color:#333;font-weight:' + (isEnToKo?'400':'600') + ';font-family:' + (isEnToKo?'inherit':'Georgia,serif')
+          : 'border-bottom:1px solid #bbb;min-width:80px') + '">' +
           (showAnswer ? ans : '') + '</td>' +
       '</tr>';
     }).join('');
@@ -3118,7 +3118,7 @@ function _buildExamPaper(direction, setInfo, week) {
       '<div class="hdr">' +
         '<div><div class="ttl">단어 시험 · ' + title + ' <span style="font-size:12px;font-weight:400;color:#666">(' + dirLabel + ') ' + pageLabel + '</span></div>' +
         '<div class="sub">' + dateStr + ' &nbsp;|&nbsp; 총 ' + total + '문항</div></div>' +
-        '<div style="font-size:12px">이름 <span style="display:inline-block;border-bottom:1px solid #111;width:80px">&nbsp;</span> &nbsp; 점수 <span style="display:inline-block;border:1px solid #111;padding:1px 14px">&nbsp;</span></div>' +
+        '<div style="font-size:10px">이름 <span style="display:inline-block;border-bottom:1px solid #111;width:70px">&nbsp;</span> &nbsp; 점수 <span style="display:inline-block;border:1px solid #111;padding:1px 10px">&nbsp;</span></div>' +
       '</div>' +
       '<div class="cols">' +
         '<table><tbody>' + makeRows(leftCol, 1, showAnswer) + '</tbody></table>' +
@@ -3132,17 +3132,19 @@ function _buildExamPaper(direction, setInfo, week) {
     '<title>' + title + ' 단어 시험지</title>' +
     '<style>' +
     '*{margin:0;padding:0;box-sizing:border-box}' +
-    'body{font-family:"Malgun Gothic",sans-serif}' +
-    '.no-print{padding:10px 14px;display:flex;gap:8px;align-items:center;background:#f5f5f5;border-bottom:1px solid #ddd}' +
-    'button{padding:7px 18px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600}' +
+    'body{font-family:"Malgun Gothic",sans-serif;font-size:11px}' +
+    '.no-print{padding:8px 12px;display:flex;gap:8px;align-items:center;background:#f5f5f5;border-bottom:1px solid #ddd}' +
+    'button{padding:6px 14px;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600}' +
     '.pri{background:#111;color:#fff} .grn{background:#2e7d32;color:#fff}' +
-    '.page{width:210mm;min-height:297mm;padding:10mm 12mm;page-break-after:always}' +
-    '.hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:8px}' +
-    '.ttl{font-size:16px;font-weight:800} .sub{font-size:10px;color:#666;margin-top:3px}' +
-    '.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}' +
+    '.page{width:210mm;padding:7mm 9mm;page-break-after:always;box-sizing:border-box}' +
+    '.hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #111;padding-bottom:5px;margin-bottom:6px}' +
+    '.ttl{font-size:14px;font-weight:800} .sub{font-size:9px;color:#666;margin-top:2px}' +
+    '.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}' +
     'table{width:100%;border-collapse:collapse}' +
-    'tr{height:26px}' +
-    '@media print{.no-print{display:none!important}.page{padding:8mm 10mm}}' +
+    'td{font-size:11px;padding:1px 3px;vertical-align:middle}' +
+    'tr{height:22px}' +
+    '.legend{font-size:9px;color:#bbb;margin-top:4px}' +
+    '@media print{.no-print{display:none!important}.page{padding:6mm 8mm}html,body{margin:0;padding:0}}' +
     '</style></head><body>' +
     '<div class="no-print">' +
       '<button class="pri" onclick="window.print()">🖨️ 인쇄 (2페이지)</button>' +
