@@ -736,28 +736,30 @@ function _fillWeekOptions(weekSelect, totalWords, selectedWeek, setId) {
   var catalog = window.WORD_CATALOG;
   var setInfo = catalog && setId ? catalog.find(function(s){ return s.id === setId; }) : null;
   var words = setInfo ? window[setInfo.varName] : null;
-  // Day 태그가 없어도 wordsPerWeek 설정 확인
   var wordsPerWeek = (setInfo && setInfo.wordsPerWeek) ? setInfo.wordsPerWeek : 100;
+
+  // Day 태그 기반 (단어 파일 로드됐을 때)
   if (words && words.length && words[0][2] && words[0][2].startsWith('Day ')) {
-    // Day 태그 기반
     var dayGroups = {};
     words.forEach(function(w) {
       var d = parseInt((w[2]||'').replace('Day ','')) || 1;
-      if (!dayGroups[d]) dayGroups[d] = { start: w, count: 0 };
+      if (!dayGroups[d]) dayGroups[d] = { count: 0 };
       dayGroups[d].count++;
     });
     var days = Object.keys(dayGroups).map(Number).sort(function(a,b){return a-b;});
+    var cumulative = 0;
     days.forEach(function(d) {
-      var g = dayGroups[d];
-      var startIdx = days.slice(0,days.indexOf(d)).reduce(function(s,dd){return s+dayGroups[dd].count;},0)+1;
-      var endIdx = startIdx + g.count - 1;
+      var cnt = dayGroups[d].count;
+      var startIdx = cumulative + 1;
+      var endIdx = cumulative + cnt;
+      cumulative += cnt;
       var opt = document.createElement('option');
       opt.value = d;
-      opt.textContent = d + '주차 (' + startIdx + '~' + endIdx + '번, ' + g.count + '개)';
+      opt.textContent = d + '주차 (' + startIdx + '~' + endIdx + '번, ' + cnt + '개)';
       weekSelect.appendChild(opt);
     });
   } else {
-    // wordsPerWeek 설정 기반
+    // wordsPerWeek 기반 (단어 파일 미로드 시)
     var perWeek = wordsPerWeek;
     var totalWeeks = Math.ceil(totalWords / perWeek);
     for (var i = 1; i <= totalWeeks; i++) {
@@ -3164,26 +3166,34 @@ async function saveMemo() {
 async function generateExamPaper(direction) {
   var setId = document.getElementById('exam-set-select').value;
   var week  = document.getElementById('exam-week-select').value;
-  var _WC2 = window.WORD_CATALOG;
 
   if (!setId || !week) {
     alert('단어장과 주차를 먼저 선택해주세요.');
     return;
   }
 
-  var setInfo = _WC2 && _WC2.find(function(s){ return s.id === setId; });
-  if (!setInfo) { alert('단어장을 찾을 수 없습니다.'); return; }
-
-  var words = window[setInfo.varName];
-  if (!words) {
-    var sc = document.createElement('script');
-    sc.src = 'data/words/' + setInfo.file;
-    sc.onload = function() { _buildExamPaper(direction, setInfo, week); };
-    sc.onerror = function() { alert('단어 파일을 불러올 수 없습니다.'); };
-    document.head.appendChild(sc);
-    return;
+  // WORD_CATALOG 재시도
+  function tryGenerate(attempt) {
+    var _WC2 = window.WORD_CATALOG;
+    var setInfo = _WC2 && _WC2.find(function(s){ return s.id === setId; });
+    if (!setInfo) {
+      if (attempt < 5) { setTimeout(function(){ tryGenerate(attempt+1); }, 300); return; }
+      alert('단어장을 찾을 수 없습니다. (WORD_CATALOG 로드 확인 필요)');
+      return;
+    }
+    var words = window[setInfo.varName];
+    if (!words) {
+      // 단어 파일 동적 로드
+      var sc = document.createElement('script');
+      sc.src = 'data/words/' + setInfo.file;
+      sc.onload = function() { _buildExamPaper(direction, setInfo, week); };
+      sc.onerror = function() { alert('단어 파일 로드 실패: ' + setInfo.file); };
+      document.head.appendChild(sc);
+    } else {
+      _buildExamPaper(direction, setInfo, week);
+    }
   }
-  _buildExamPaper(direction, setInfo, week);
+  tryGenerate(0);
 }
 
 function _buildExamPaper(direction, setInfo, week) {
