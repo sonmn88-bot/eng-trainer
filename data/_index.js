@@ -1,6 +1,6 @@
 // ── 단어 세트 카탈로그 ──────────────────────────
 // 새 단어장 추가 시 여기에만 항목 추가하면 됨
-var WORD_CATALOG = window.WORD_CATALOG = [
+const WORD_CATALOG = [
   {
     id:       'personal',
     name:     '전체본',
@@ -61,29 +61,29 @@ var WORD_CATALOG = window.WORD_CATALOG = [
     tagColor: '#FBBF24',
     desc:     '수능 빈출 2000 완전정복',
   },
-  {
-    id:       'phrases',
-    name:     '핵심 구동사/숙어',
-    subname:  '수험생 필수 표현',
-    icon:     '🔗',
-    file:     'phrases.js',
-    varName:  'PHRASES',
-    color:    '#A78BFA',
-    tag:      'PHRASES',
-    tagColor: '#A78BFA',
-    desc:     '전치사구·구동사·관용표현 382개',
-  },
   // ── 여기에 새 단어장 추가 ──
   // {
   //   id: 'wm-xxx', name: '워드마스터 XXX', subname: 'Word Master',
   //   icon: '📕', file: 'wm-xxx.js', varName: 'WM_XXX',
   //   color: '#A78BFA', tag: 'NEW', tagColor: '#A78BFA', desc: '설명',
   // },
+  {
+    id:       'wm-edu',
+    name:     '교육부 기본어휘',
+    subname:  '교육부 공식 선정',
+    icon:     '📚',
+    file:     'wm-edu.js',
+    varName:  'WM_EDU',
+    color:    '#34D399',
+    tag:      '교육부',
+    desc:     '교육부 선정 필수 기본어휘 2,974개',
+    totalWords: 2974,
+  },
 ];
 
 // ── 리스닝 세트 카탈로그 ─────────────────────────
 // 새 회차 추가 시 여기에만 항목 추가
-var LISTENING_CATALOG = window.LISTENING_CATALOG = [
+const LISTENING_CATALOG = [
   {
     id:       '2026-suneung',
     name:     '2026학년도 수능',
@@ -122,4 +122,3 @@ var LISTENING_CATALOG = window.LISTENING_CATALOG = [
   },
   // ── 여기에 새 회차 추가 ──
 ];
-
