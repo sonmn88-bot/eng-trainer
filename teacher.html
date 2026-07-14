@@ -732,9 +732,12 @@ function _fillWeekOptions(weekSelect, totalWords, selectedWeek, setId) {
   weekSelect.innerHTML = '<option value="">-- 주차 선택 --</option>';
   if (!totalWords) return;
   // 실제 단어 파일의 Day 태그 기반으로 주차 계산
+  // 이미 로드된 단어 찾기 (varName 직접 조회)
   var catalog = window.WORD_CATALOG;
   var setInfo = catalog && setId ? catalog.find(function(s){ return s.id === setId; }) : null;
   var words = setInfo ? window[setInfo.varName] : null;
+  // Day 태그가 없어도 wordsPerWeek 설정 확인
+  var wordsPerWeek = (setInfo && setInfo.wordsPerWeek) ? setInfo.wordsPerWeek : 100;
   if (words && words.length && words[0][2] && words[0][2].startsWith('Day ')) {
     // Day 태그 기반
     var dayGroups = {};
@@ -754,8 +757,8 @@ function _fillWeekOptions(weekSelect, totalWords, selectedWeek, setId) {
       weekSelect.appendChild(opt);
     });
   } else {
-    // 기본 100개씩
-    var perWeek = 100;
+    // wordsPerWeek 설정 기반
+    var perWeek = wordsPerWeek;
     var totalWeeks = Math.ceil(totalWords / perWeek);
     for (var i = 1; i <= totalWeeks; i++) {
       var start = (i-1)*perWeek+1;
