@@ -16,14 +16,16 @@ const WORD_CATALOG = [
   {
     id:       'core',
     name:     '수능 핵심 필수',
-    subname:  'AI 자동 추출',
+    subname:  'AI + 교육부 선정',
     icon:     '🎯',
     file:     'core-essential.js',
     varName:  'WM_CORE',
     color:    '#F87171',
     tag:      'AI PICK',
     tagColor: '#F87171',
-    desc:     '3개 단어장 교집합 핵심어',
+    desc:     '수능 빈출 핵심어 + 교육부 선정 2,284개',
+    totalWords: 2284,
+    wordsPerWeek: 150,
   },
   {
     id:       'wm-basic',
