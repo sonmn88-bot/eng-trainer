@@ -82,6 +82,7 @@ const WORD_CATALOG = [
     totalWords: 2974,
   },
 ];
+window.WORD_CATALOG = WORD_CATALOG; // teacher.html 등 window 참조용
 
 // ── 리스닝 세트 카탈로그 ─────────────────────────
 // 새 회차 추가 시 여기에만 항목 추가
@@ -124,3 +125,4 @@ const LISTENING_CATALOG = [
   },
   // ── 여기에 새 회차 추가 ──
 ];
+window.LISTENING_CATALOG = LISTENING_CATALOG;
