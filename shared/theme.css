@@ -317,6 +317,19 @@ input, select, textarea {
   outline: none;
   appearance: none;
 }
+input[type="checkbox"], input[type="radio"] {
+  appearance: auto;
+  -webkit-appearance: auto;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
 input:focus, select:focus, textarea:focus {
   border-color: var(--gold-bdr);
   box-shadow: 0 0 0 3px rgba(201,169,97,.08);
