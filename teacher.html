@@ -65,7 +65,10 @@
     </div>
   </div>
   <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px" title="테마 전환">🌙</button>
-        <button class="btn btn-ghost" onclick="logout()">나가기 ›</button>
+        <div style="display:flex;gap:8px;align-items:center">
+    <button class="btn btn-ghost btn-sm" onclick="previewStudentMode()" title="학생 모드로 전환">👤 학생 모드</button>
+    <button class="btn btn-ghost" onclick="logout()">나가기 ›</button>
+  </div>
 </div>
 
 <div class="tabs">
@@ -708,7 +711,7 @@ function updateExamWeekOptions(selectedWeek) {
   // 단어 파일이 이미 로드된 경우 실제 수 사용, 아니면 동적 로드
   var actualWords = window[setInfo.varName];
   if (actualWords && actualWords.length) {
-    _fillWeekOptions(weekSelect, actualWords.length, selectedWeek);
+    _fillWeekOptions(weekSelect, actualWords.length, selectedWeek, setId);
   } else {
     // 단어 파일 동적 로드
     weekSelect.innerHTML = '<option value="">로드 중...</option>';
@@ -716,7 +719,7 @@ function updateExamWeekOptions(selectedWeek) {
     sc.src = 'data/words/' + setInfo.file;
     sc.onload = function() {
       var words = window[setInfo.varName];
-      _fillWeekOptions(weekSelect, words ? words.length : 0, selectedWeek);
+      _fillWeekOptions(weekSelect, words ? words.length : 0, selectedWeek, setId);
     };
     sc.onerror = function() {
       weekSelect.innerHTML = '<option value="">로드 실패</option>';
@@ -725,17 +728,43 @@ function updateExamWeekOptions(selectedWeek) {
   }
 }
 
-function _fillWeekOptions(weekSelect, totalWords, selectedWeek) {
+function _fillWeekOptions(weekSelect, totalWords, selectedWeek, setId) {
   weekSelect.innerHTML = '<option value="">-- 주차 선택 --</option>';
   if (!totalWords) return;
-  var totalWeeks = Math.ceil(totalWords / 100);
-  for (var i = 1; i <= totalWeeks; i++) {
-    var start = (i-1)*100+1;
-    var end = Math.min(i*100, totalWords);
-    var opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = i + '주차 (' + start + '~' + end + '번, ' + (end-start+1) + '개)';
-    weekSelect.appendChild(opt);
+  // 실제 단어 파일의 Day 태그 기반으로 주차 계산
+  var catalog = window.WORD_CATALOG;
+  var setInfo = catalog && setId ? catalog.find(function(s){ return s.id === setId; }) : null;
+  var words = setInfo ? window[setInfo.varName] : null;
+  if (words && words.length && words[0][2] && words[0][2].startsWith('Day ')) {
+    // Day 태그 기반
+    var dayGroups = {};
+    words.forEach(function(w) {
+      var d = parseInt((w[2]||'').replace('Day ','')) || 1;
+      if (!dayGroups[d]) dayGroups[d] = { start: w, count: 0 };
+      dayGroups[d].count++;
+    });
+    var days = Object.keys(dayGroups).map(Number).sort(function(a,b){return a-b;});
+    days.forEach(function(d) {
+      var g = dayGroups[d];
+      var startIdx = days.slice(0,days.indexOf(d)).reduce(function(s,dd){return s+dayGroups[dd].count;},0)+1;
+      var endIdx = startIdx + g.count - 1;
+      var opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d + '주차 (' + startIdx + '~' + endIdx + '번, ' + g.count + '개)';
+      weekSelect.appendChild(opt);
+    });
+  } else {
+    // 기본 100개씩
+    var perWeek = 100;
+    var totalWeeks = Math.ceil(totalWords / perWeek);
+    for (var i = 1; i <= totalWeeks; i++) {
+      var start = (i-1)*perWeek+1;
+      var end = Math.min(i*perWeek, totalWords);
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i + '주차 (' + start + '~' + end + '번, ' + (end-start+1) + '개)';
+      weekSelect.appendChild(opt);
+    }
   }
   if (selectedWeek) weekSelect.value = selectedWeek;
 }
@@ -2775,6 +2804,58 @@ function initExamSetSelect() {
 }
 
 // -- Mnemonic Editor --
+
+function previewStudentMode() {
+  var stuList = Object.values(students).filter(function(s){ return s && s.name; });
+  if (!stuList.length) { alert('등록된 학생이 없습니다.'); return; }
+  var existing = document.getElementById('preview-stu-popup');
+  if (existing) { existing.remove(); return; }
+  var popup = document.createElement('div');
+  popup.id = 'preview-stu-popup';
+  popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10020;display:flex;align-items:center;justify-content:center;padding:1rem';
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:var(--sur);border-radius:20px;width:100%;max-width:300px;padding:1.5rem';
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:14px;font-weight:700;margin-bottom:1rem';
+  title.textContent = '\ud83d\udc64 학생 모드 미리보기';
+  var sel = document.createElement('select');
+  sel.id = 'preview-stu-sel';
+  sel.style.cssText = 'width:100%;margin-bottom:1rem;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:8px;color:var(--txt);font-size:13px';
+  var defOpt = document.createElement('option');
+  defOpt.value = ''; defOpt.textContent = '-- 학생 선택 --';
+  sel.appendChild(defOpt);
+  stuList.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.name;
+    sel.appendChild(opt);
+  });
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-full'; cancelBtn.textContent = '취소';
+  cancelBtn.onclick = function(){ popup.remove(); };
+  var okBtn = document.createElement('button');
+  okBtn.className = 'btn btn-gold btn-full'; okBtn.textContent = '전환 →';
+  okBtn.onclick = goStudentPreview;
+  btnRow.appendChild(cancelBtn); btnRow.appendChild(okBtn);
+  inner.appendChild(title); inner.appendChild(sel); inner.appendChild(btnRow);
+  popup.appendChild(inner);
+  document.body.appendChild(popup);
+}
+
+function goStudentPreview() {
+  var sel = document.getElementById('preview-stu-sel');
+  var id = sel ? sel.value : '';
+  if (!id) { alert('학생을 선택하세요'); return; }
+  var stu = students[id];
+  if (!stu) return;
+  // sessionStorage에 학생 정보 설정 후 홈으로
+  sessionStorage.setItem('stuId', id);
+  sessionStorage.setItem('stuName', stu.name || '');
+  sessionStorage.setItem('from_teacher', '1'); // 선생님 복귀용
+  window.location.href = 'index.html';
+}
+
 async function loadMnemonicEditor() {
   try {
     allMnemonics = await DB.getMnemonics();
@@ -3106,7 +3187,14 @@ function _buildExamPaper(direction, setInfo, week) {
   var words = window[setInfo.varName] || [];
   var wkNum = parseInt(week);
   var start = (wkNum - 1) * 100;
-  var weekWords = words.slice(start, start + 100);
+  // Day 태그 기반 주차 단어 추출
+  var hasDayTag = words.length > 0 && words[0][2] && words[0][2].startsWith('Day ');
+  var weekWords;
+  if (hasDayTag) {
+    weekWords = words.filter(function(w){ return parseInt((w[2]||'').replace('Day ','')) === wkNum; });
+  } else {
+    weekWords = words.slice(start, start + 100);
+  }
   if (!weekWords.length) { alert('해당 주차에 단어가 없습니다.'); return; }
 
   var shuffled = weekWords.slice().sort(function(){ return Math.random() - 0.5; });

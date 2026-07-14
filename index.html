@@ -212,6 +212,10 @@
                style="text-align:center" onkeydown="if(event.key==='Enter')doStuLogin()">
       </div>
       <div id="stu-err" style="color:var(--red);font-size:12px;text-align:center;margin-bottom:.5rem;min-height:16px"></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
+        <input type="checkbox" id="auto-login-chk" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
+        <label for="auto-login-chk" style="font-size:12px;color:var(--txt2);cursor:pointer">자동 로그인</label>
+      </div>
       <button class="btn btn-gold btn-full" onclick="doStuLogin()">입장 →</button>
       <p style="text-align:center;margin-top:1rem">
         <button class="btn btn-ghost btn-sm" onclick="goTeacher()">선생님 모드</button>
@@ -230,6 +234,19 @@
 
   <!-- 로그인 후 -->
   <div id="view-main" style="display:none">
+    <!-- 상단 퀵 메뉴 -->
+    <div style="display:flex;justify-content:flex-end;margin-bottom:.5rem" id="top-quick-menu">
+      <button id="btn-back-teacher" onclick="backToTeacher()" style="display:none;
+        background:var(--gold-bg);border:1px solid var(--gold-bdr);border-radius:99px;padding:4px 12px;
+        font-size:11px;color:var(--gold);cursor:pointer;margin-right:6px">
+        ← 선생님 모드
+      </button>
+      <button onclick="quickGoTeacher()"
+        style="background:none;border:1px solid var(--bdr);border-radius:99px;padding:4px 12px;
+        font-size:11px;color:var(--txt3);cursor:pointer;display:flex;align-items:center;gap:4px">
+        🎓 선생님 모드
+      </button>
+    </div>
     <!-- 프로필 카드 -->
     <div id="profile-card" style="display:none;background:var(--sur);border-radius:16px;padding:1rem;margin-bottom:1rem;position:relative;overflow:hidden">
       <div id="profile-card-border" style="position:absolute;inset:0;border-radius:16px;pointer-events:none"></div>
@@ -733,9 +750,47 @@ async function init() {
   if (saved) {
     state.stuId = saved;
     state.stuName = sessionStorage.getItem('stuName') || '';
-    // 접속 시마다 lastSeen 업데이트
-    try { DB.saveStudent(saved, { lastSeen: new Date().toISOString() }); } catch(e) {}
+    // 중복 로그인 감지: DB의 sessionToken과 현재 토큰 비교
+    try {
+      var _savedToken = sessionStorage.getItem('session_token');
+      var _freshStu = await DB.getStudent(saved);
+      if (_freshStu && _freshStu.sessionToken && _savedToken && _freshStu.sessionToken !== _savedToken) {
+        // 다른 기기에서 로그인됨 → 자동로그인도 해제
+        localStorage.removeItem('auto_stuId');
+        localStorage.removeItem('auto_stuName');
+        sessionStorage.clear();
+        showToastGlobal('다른 기기에서 로그인되어 로그아웃됩니다.');
+        return;
+      }
+      DB.saveStudent(saved, { lastSeen: new Date().toISOString() }).catch(function(){});
+    } catch(e) {}
     await showMain();
+  } else {
+    // 자동 로그인 확인
+    var _autoId = localStorage.getItem('auto_stuId');
+    var _autoName = localStorage.getItem('auto_stuName');
+    if (_autoId && _autoName) {
+      // 자동로그인 실행
+      try {
+        await state.students; // students 로드 대기
+        var _autoStu = Object.values(state.students).find(function(s){ return s.id === _autoId; });
+        if (_autoStu) {
+          state.stuId = _autoId;
+          state.stuName = _autoName;
+          sessionStorage.setItem('stuId', _autoId);
+          sessionStorage.setItem('stuName', _autoName);
+          // 새 세션 토큰 발급
+          var _newToken = Date.now() + '_' + Math.random().toString(36).slice(2,8);
+          sessionStorage.setItem('session_token', _newToken);
+          DB.saveStudent(_autoId, { lastSeen: new Date().toISOString(), sessionToken: _newToken }).catch(function(){});
+          await showMain();
+        } else {
+          // 학생 정보 없으면 자동로그인 해제
+          localStorage.removeItem('auto_stuId');
+          localStorage.removeItem('auto_stuName');
+        }
+      } catch(e) {}
+    }
   }
 
   try {
@@ -965,10 +1020,23 @@ async function doStuLogin() {
   state.stuName = nameVal;
   sessionStorage.setItem('stuId', id);
   sessionStorage.setItem('stuName', nameVal);
-  // 마지막 접속일 업데이트
-  try { DB.saveStudent(id, { lastSeen: new Date().toISOString() }); } catch(e) {}
+
+  // 자동 로그인 처리
+  var autoChk = document.getElementById('auto-login-chk');
+  if (autoChk && autoChk.checked) {
+    localStorage.setItem('auto_stuId', id);
+    localStorage.setItem('auto_stuName', nameVal);
+  } else {
+    // 체크 해제 시 자동로그인 삭제
+    localStorage.removeItem('auto_stuId');
+    localStorage.removeItem('auto_stuName');
+  }
+
+  // 세션 토큰 (중복 로그인 감지)
+  var _token = Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  sessionStorage.setItem('session_token', _token);
+  try { DB.saveStudent(id, { lastSeen: new Date().toISOString(), sessionToken: _token }); } catch(e) {}
   showMain();
-  // sessionStorage 복원도 lastSeen 업데이트
 }
 
 async function showMain() {
@@ -1015,6 +1083,11 @@ async function showMain() {
   // 플로팅 BGM 버튼 표시
   var _bgmFloat = document.getElementById('bgm-float');
   if (_bgmFloat) _bgmFloat.style.display = 'block';
+
+  // 선생님 모드에서 왔으면 복귀 버튼 표시
+  var _fromTeacher = sessionStorage.getItem('from_teacher');
+  var _backBtn = document.getElementById('btn-back-teacher');
+  if (_backBtn) _backBtn.style.display = _fromTeacher ? 'inline-flex' : 'none';
 
   // 프로필 카드 로드 (vocab에서 XP 변경 시 갱신)
   try {
@@ -3117,6 +3190,57 @@ async function savePwSetting() {
   }
 }
 
+
+
+function backToTeacher() {
+  sessionStorage.removeItem('from_teacher');
+  window.location.href = 'teacher.html';
+}
+
+function quickGoTeacher() {
+  var existing = document.getElementById('quick-teacher-popup');
+  if (existing) { existing.remove(); return; }
+  var popup = document.createElement('div');
+  popup.id = 'quick-teacher-popup';
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:10020;display:flex;align-items:center;justify-content:center;padding:1rem';
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:var(--sur);border-radius:20px;width:100%;max-width:300px;padding:1.5rem;text-align:center';
+  inner.innerHTML = '<div style="font-size:28px;margin-bottom:.75rem">🎓</div>' +
+    '<div style="font-size:14px;font-weight:700;margin-bottom:.25rem">선생님 모드</div>' +
+    '<div style="font-size:12px;color:var(--txt3);margin-bottom:1rem">비밀번호를 입력하세요</div>' +
+    '<div id="quick-teacher-err" style="font-size:12px;color:var(--red);min-height:16px;margin-bottom:.5rem"></div>' +
+    '<div style="display:flex;gap:8px;margin-top:.5rem">' +
+      '<button class="btn btn-full" id="quick-teacher-cancel">취소</button>' +
+      '<button class="btn btn-gold btn-full" id="quick-teacher-ok">입장 →</button>' +
+    '</div>';
+  var pw = document.createElement('input');
+  pw.type = 'password'; pw.id = 'quick-teacher-pw'; pw.placeholder = '비밀번호';
+  pw.style.cssText = 'text-align:center;margin-bottom:.5rem;width:100%';
+  pw.addEventListener('keydown', function(e){ if(e.key==='Enter') doQuickTeacher(); });
+  inner.insertBefore(pw, inner.querySelector('#quick-teacher-err'));
+  popup.appendChild(inner);
+  document.body.appendChild(popup);
+  document.getElementById('quick-teacher-cancel').onclick = function(){ popup.remove(); };
+  document.getElementById('quick-teacher-ok').onclick = doQuickTeacher;
+  setTimeout(function(){ pw.focus(); }, 100);
+}
+
+async function doQuickTeacher() {
+  var pw = document.getElementById('quick-teacher-pw').value;
+  var err = document.getElementById('quick-teacher-err');
+  var correct = state.settings.teacherPw || '1234';
+  if (pw === correct) {
+    localStorage.setItem('teacher_pw', pw);
+    var popup = document.getElementById('quick-teacher-popup');
+    if (popup) popup.remove();
+    window.location.href = 'teacher.html';
+  } else {
+    err.textContent = '비밀번호가 틀렸습니다';
+    var pwEl = document.getElementById('quick-teacher-pw');
+    if (pwEl) { pwEl.value = ''; pwEl.focus(); }
+  }
+}
+
 function showConnError() {
   var el = document.getElementById('conn-error-banner');
   if (el) el.style.display = 'block';
@@ -3229,12 +3353,32 @@ function showWordOfDay() {
 function goToReview() {} // review-alert onclick에서 직접 처리
 
 function logout() {
+  // 자동로그인 해제 여부
+  if (localStorage.getItem('auto_stuId')) {
+    if (!confirm('자동 로그인도 해제할까요?')) {
+      // 자동로그인 유지 - 세션만 클리어
+    } else {
+      localStorage.removeItem('auto_stuId');
+      localStorage.removeItem('auto_stuName');
+    }
+  }
   state.stuId = null; state.stuName = null;
   sessionStorage.clear();
   document.getElementById('view-login').style.display = 'block';
   document.getElementById('view-main').style.display = 'none';
   document.getElementById('stu-input').value = '';
   document.getElementById('stu-id').value = '';
+  // 자동로그인 체크박스 상태 반영
+  var chk = document.getElementById('auto-login-chk');
+  if (chk) chk.checked = !!localStorage.getItem('auto_stuId');
+}
+
+function showToastGlobal(msg) {
+  var el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:.625rem 1.25rem;border-radius:99px;font-size:13px;z-index:99999;white-space:nowrap';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3000);
 }
 
 // ── Teacher Login ──────────────────────────────

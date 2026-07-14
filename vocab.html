@@ -2175,10 +2175,19 @@ async function selectSet(setId) {
 }
 
 function buildWeekGrid() {
-  var WORDS_PER_WEEK = 100;
+  // 단어장 파일의 Day 태그 기반으로 주차 분류
+  // Day 태그 없으면 단어장별 기본값 사용
+  var defaultPerWeek = currentSet && currentSet.wordsPerWeek ? currentSet.wordsPerWeek : 100;
+  // Day 태그가 있는지 확인
+  var hasDayTag = allWords.length > 0 && allWords[0][2] && allWords[0][2].startsWith('Day ');
   var weeks = {};
   for (var i = 0; i < allWords.length; i++) {
-    var wk = Math.floor(i / WORDS_PER_WEEK) + 1;
+    var wk;
+    if (hasDayTag && allWords[i][2]) {
+      wk = parseInt(allWords[i][2].replace('Day ','')) || (Math.floor(i / defaultPerWeek) + 1);
+    } else {
+      wk = Math.floor(i / defaultPerWeek) + 1;
+    }
     if (!weeks[wk]) weeks[wk] = { words: [], count: 0 };
     weeks[wk].words.push(allWords[i]);
     weeks[wk].count++;
