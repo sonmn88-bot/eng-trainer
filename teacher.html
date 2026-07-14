@@ -791,17 +791,41 @@ async function clearNotice() {
 }
 init();
 
-// 단어장 셀렉트는 WORD_CATALOG가 로드된 즉시 초기화 (init 성공 여부와 무관)
-(function() {
-  var setSelect = document.getElementById('exam-set-select');
-  if (setSelect && window.WORD_CATALOG && setSelect.options.length <= 1) {
-    window.WORD_CATALOG.forEach(function(s) {
+// 단어장 셀렉트 초기화 - DOMContentLoaded 후 확실하게
+window.addEventListener('load', function() {
+  // 최대 10회 재시도 (2초)
+  var attempts = 0;
+  function tryInit() {
+    var catalog = window.WORD_CATALOG;
+    var setSelect = document.getElementById('exam-set-select');
+    if (!setSelect) return;
+    if (!catalog || !catalog.length) {
+      if (attempts++ < 10) setTimeout(tryInit, 200);
+      return;
+    }
+    while (setSelect.options.length > 1) setSelect.remove(1);
+    catalog.forEach(function(s) {
       var opt = document.createElement('option');
       opt.value = s.id; opt.textContent = s.name;
       setSelect.appendChild(opt);
     });
+    // 저장된 시험범위 복원
+    try {
+      DB.getSettings().then(function(saved) {
+        if (saved && saved.examRange) {
+          var er = saved.examRange;
+          if (er.setId) {
+            setSelect.value = er.setId;
+            updateExamWeekOptions(er.week);
+            var cur = document.getElementById('exam-range-current');
+            if (cur) { cur.textContent = '현재: ' + (er.setName||er.setId) + ' ' + er.week + '주차'; cur.style.display='block'; }
+          }
+        }
+      }).catch(function(){});
+    } catch(e) {}
   }
-})();
+  tryInit();
+});
 
 function logout() {
   localStorage.removeItem('teacher_pw');
