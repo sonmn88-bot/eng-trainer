@@ -50,6 +50,7 @@
   </div>
   <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px" title="테마 전환">🌙</button>
         <button class="btn btn-ghost" id="back-btn" onclick="goBack()">← 홈</button>
+  <button onclick="quickGoTeacherFromPage()" style="background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer;padding:4px 6px;border:1px solid var(--bdr);border-radius:99px" title="선생님 모드">🎓</button>
 </div>
 
 <div id="view-library" class="fade-in">
@@ -885,6 +886,28 @@ function toggleBgmPanel(){var p=document.getElementById('bgm-panel');if(p)p.styl
 document.addEventListener('click',function(e){var f=document.getElementById('bgm-float');if(f&&!f.contains(e.target)){var p=document.getElementById('bgm-panel');if(p)p.style.display='none';}});
 // 페이지 로드 시 자동 재개
 (function(){var saved=localStorage.getItem('bgm_type');var wasPlaying=localStorage.getItem('bgm_playing')==='1';if(saved&&wasPlaying){var titles={lofi:'☕ Lofi Beat',rain:'🌧️ 빗소리',white:'🌊 백색소음',nature:'🌿 자연 소리'};var subs={lofi:'집중 공부용',rain:'편안한 집중',white:'소음 차단용',nature:'스트레스 해소'};setTimeout(function(){selectBGM(saved,titles[saved]||saved,subs[saved]||'');startBGM();},500);}})();
+
+function quickGoTeacherFromPage() {
+  var pw = prompt('선생님 비밀번호를 입력하세요:');
+  if (pw === null) return;
+  DB.getSettings().then(function(s) {
+    var correct = (s && s.teacherPw) || '1234';
+    if (pw === correct) {
+      localStorage.setItem('teacher_pw', pw);
+      window.location.href = 'teacher.html';
+    } else {
+      alert('비밀번호가 틀렸습니다.');
+    }
+  }).catch(function() {
+    if (pw === '1234') {
+      localStorage.setItem('teacher_pw', pw);
+      window.location.href = 'teacher.html';
+    } else {
+      alert('비밀번호가 틀렸습니다.');
+    }
+  });
+}
+
 </script>
 </body>
 </html>

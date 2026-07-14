@@ -124,6 +124,7 @@
   <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px" title="테마 전환">🌙</button>
         <button class="btn btn-ghost" id="back-btn" onclick="goBack()">← 홈</button>
   <button onclick="showVocabHelp()" style="background:none;border:none;font-size:16px;color:var(--txt3);cursor:pointer;padding:4px 6px" title="도움말">❓</button>
+  <button onclick="quickGoTeacherFromPage()" style="background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer;padding:4px 6px;border:1px solid var(--bdr);border-radius:99px" title="선생님 모드">🎓</button>
 </div>
 <!-- vocab 도움말 팝업 -->
 <div id="vocab-help-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10006;align-items:flex-end;justify-content:center">
@@ -4784,6 +4785,29 @@ function resetModeSelection() {
   document.querySelectorAll('.mode-sel-btn').forEach(function(btn) {
     btn.style.border = '1.5px solid var(--bdr)';
     btn.style.background = 'var(--sur2)';
+  });
+}
+
+
+function quickGoTeacherFromPage() {
+  var pw = prompt('선생님 비밀번호를 입력하세요:');
+  if (pw === null) return;
+  // settings에서 teacherPw 확인
+  DB.getSettings().then(function(s) {
+    var correct = (s && s.teacherPw) || '1234';
+    if (pw === correct) {
+      localStorage.setItem('teacher_pw', pw);
+      window.location.href = 'teacher.html';
+    } else {
+      alert('비밀번호가 틀렸습니다.');
+    }
+  }).catch(function() {
+    if (pw === '1234') {
+      localStorage.setItem('teacher_pw', pw);
+      window.location.href = 'teacher.html';
+    } else {
+      alert('비밀번호가 틀렸습니다.');
+    }
   });
 }
 
