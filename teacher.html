@@ -890,7 +890,7 @@ function renderStudents() {
     }
     var absentThreshold = parseInt((settings && settings.absentDays) || 3);
     var alertBadge = (daysSince >= absentThreshold && daysSince < 999) ? '<span style="font-size:10px;color:var(--red,#e53935);font-weight:700;margin-left:4px">⚠️ ' + (daysSince >= 7 ? '7일+' : daysSince + '일') + ' 미접속</span>' : '';
-    var metaText = lastSeen ? '최근: ' + lastSeen.toLocaleDateString('ko') : '등록: ' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '-');
+    var metaText = s.lastSeen ? '최근: ' + new Date(s.lastSeen).toLocaleDateString('ko') : '등록: ' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '-');
     var memoText = s.memo ? '<div style="font-size:10px;color:var(--txt3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">📝 ' + s.memo + '</div>' : '';
     // 메시지 뱃지 (초기엔 비어있고 loadStuMessageBadges로 채워짐)
     var msgBadge = '<span id="msg-badge-' + s.id + '" style="font-size:10px;margin-left:4px"></span>';
