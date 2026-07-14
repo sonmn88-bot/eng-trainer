@@ -879,12 +879,15 @@ function renderStudents() {
   }
   if (!arr.length) { list.innerHTML = '<div class="empty">학생이 없습니다</div>'; return; }
   list.innerHTML = arr.map(function(s) {
-    var lastSeen = s.lastSeen ? new Date(s.lastSeen) : null;
-    // 오늘 날짜 기준으로 비교 (시간 무시)
-    var today = new Date(); today.setHours(0,0,0,0);
-    var lastDay = lastSeen ? new Date(lastSeen) : null;
-    if (lastDay) lastDay.setHours(0,0,0,0);
-    var daysSince = lastDay ? Math.round((today - lastDay) / 86400000) : 999;
+    // 날짜 문자열의 날짜 부분만 비교 (타임존 영향 없음)
+    var todayStr = new Date().toISOString().slice(0,10);
+    var lastStr = s.lastSeen ? s.lastSeen.slice(0,10) : null;
+    var daysSince = 999;
+    if (lastStr) {
+      var today0 = new Date(todayStr + 'T00:00:00');
+      var last0  = new Date(lastStr  + 'T00:00:00');
+      daysSince = Math.round((today0 - last0) / 86400000);
+    }
     var absentThreshold = parseInt((settings && settings.absentDays) || 3);
     var alertBadge = (daysSince >= absentThreshold && daysSince < 999) ? '<span style="font-size:10px;color:var(--red,#e53935);font-weight:700;margin-left:4px">⚠️ ' + (daysSince >= 7 ? '7일+' : daysSince + '일') + ' 미접속</span>' : '';
     var metaText = lastSeen ? '최근: ' + lastSeen.toLocaleDateString('ko') : '등록: ' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '-');
@@ -3207,25 +3210,22 @@ async function generateExamPaper(direction) {
 function _buildExamPaper(direction, setInfo, week) {
   var words = window[setInfo.varName] || [];
   var wkNum = parseInt(week);
-  var start = (wkNum - 1) * 100;
-  // Day 태그 기반 주차 단어 추출
   var hasDayTag = words.length > 0 && words[0][2] && words[0][2].startsWith('Day ');
   var weekWords;
   if (hasDayTag) {
     weekWords = words.filter(function(w){ return parseInt((w[2]||'').replace('Day ','')) === wkNum; });
   } else {
-    weekWords = words.slice(start, start + 100);
+    var perWeek = setInfo.wordsPerWeek || 100;
+    weekWords = words.slice((wkNum-1)*perWeek, wkNum*perWeek);
   }
   if (!weekWords.length) { alert('해당 주차에 단어가 없습니다.'); return; }
 
-  var shuffled = weekWords.slice().sort(function(){ return Math.random() - 0.5; });
-  var total = shuffled.length;
-  var half = Math.ceil(total / 2);
-  var leftCol = shuffled.slice(0, half);
-  var rightCol = shuffled.slice(half);
+  weekWords = weekWords.slice().sort(function(){ return Math.random() - 0.5; });
 
   var isEnToKo = direction === 'en';
   var title = setInfo.name + ' ' + week + '주차';
+  var dirLabel = isEnToKo ? '영→한' : '한→영';
+  var PAGE_SIZE = 100; // 한 페이지당 단어 수
 
   function makeRows(wordList, startNum, showAnswer) {
     return wordList.map(function(w, i) {
@@ -3234,25 +3234,47 @@ function _buildExamPaper(direction, setInfo, week) {
       var bg = i%2===1 ? 'background:#f9f9f9;' : '';
       return '<tr style="' + bg + '">' +
         '<td style="width:16px;text-align:right;color:#ccc;font-size:8px;padding:0 2px 0 0;border-right:1px solid #eee">' + (startNum+i) + '</td>' +
-        '<td style="padding:0 4px;font-size:10px;font-weight:' + (isEnToKo?'600':'400') + ';font-family:' + (isEnToKo?'Georgia,serif':'inherit') + ';white-space:nowrap;max-width:120px;overflow:hidden">' + q + '</td>' +
+        '<td style="padding:0 4px;font-size:' + (isEnToKo?'11px':'10px') + ';font-weight:' + (isEnToKo?'600':'400') + ';font-family:' + (isEnToKo?'Georgia,serif':'inherit') + ';white-space:nowrap">' + q + '</td>' +
         '<td style="' + (showAnswer ? 'padding:0 4px;font-size:10px;color:#333' : 'border-bottom:1px solid #ccc;min-width:80px') + '">' +
         (showAnswer ? ans : '') + '</td>' +
       '</tr>';
     }).join('');
   }
 
-  function makePage(showAnswer, label) {
+  function makePage(wordList, pageNum, totalPages, showAnswer, label) {
+    var half = Math.ceil(wordList.length / 2);
+    var leftCol = wordList.slice(0, half);
+    var rightCol = wordList.slice(half);
+    var globalStart = (pageNum - 1) * PAGE_SIZE + 1;
     return '<div class="page">' +
       '<div class="hdr">' +
-        '<span class="ttl">' + title + (isEnToKo?' 영→한':' 한→영') + ' ' + label + '</span>' +
-        '<span style="font-size:9px;color:#aaa">이름_________&nbsp;&nbsp;점수______</span>' +
+        '<span class="ttl">' + title + ' ' + dirLabel + ' ' + label +
+          (totalPages > 1 ? ' (' + pageNum + '/' + totalPages + ')' : '') + '</span>' +
+        '<span style="font-size:10px;color:#aaa">이름________ 점수______</span>' +
       '</div>' +
       '<div class="cols">' +
-        '<table><tbody>' + makeRows(leftCol, 1, showAnswer) + '</tbody></table>' +
-        '<table><tbody>' + makeRows(rightCol, half+1, showAnswer) + '</tbody></table>' +
+        '<table><tbody>' + makeRows(leftCol, globalStart, showAnswer) + '</tbody></table>' +
+        '<table><tbody>' + makeRows(rightCol, globalStart + half, showAnswer) + '</tbody></table>' +
       '</div>' +
     '</div>';
   }
+
+  // 100개씩 페이지 분할
+  var pages = [];
+  for (var i = 0; i < weekWords.length; i += PAGE_SIZE) {
+    pages.push(weekWords.slice(i, i + PAGE_SIZE));
+  }
+  var totalPages = pages.length;
+  var total = weekWords.length;
+
+  // 시험지 페이지들 + 정답지 페이지들
+  var bodyHtml = '';
+  pages.forEach(function(pg, idx) {
+    bodyHtml += makePage(pg, idx+1, totalPages, false, '시험지');
+  });
+  pages.forEach(function(pg, idx) {
+    bodyHtml += makePage(pg, idx+1, totalPages, true, '정답지');
+  });
 
   var html = '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">' +
     '<title>' + title + '</title>' +
@@ -3260,34 +3282,30 @@ function _buildExamPaper(direction, setInfo, week) {
     '*{margin:0;padding:0;box-sizing:border-box}' +
     'html,body{width:210mm}' +
     'body{font-family:"Malgun Gothic",sans-serif}' +
-    '.no-print{padding:8px 12px;display:flex;gap:8px;background:#f0f0f0;border-bottom:1px solid #ddd}' +
+    '.no-print{padding:8px 12px;display:flex;gap:8px;align-items:center;background:#f0f0f0;border-bottom:1px solid #ddd}' +
     'button{padding:5px 14px;border:none;border-radius:3px;cursor:pointer;font-size:12px;font-weight:600}' +
-    '.pri{background:#111;color:#fff}.grn{background:#2e7d32;color:#fff}' +
-    '.page{width:210mm;height:297mm;padding:5mm 7mm;overflow:hidden;page-break-after:always;display:flex;flex-direction:column}' +
+    '.pri{background:#111;color:#fff}.sec{background:#2e7d32;color:#fff}' +
+    '.page{width:210mm;min-height:297mm;padding:6mm 8mm;page-break-after:always;display:flex;flex-direction:column}' +
     '.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid #111;padding-bottom:4px;margin-bottom:5px;flex-shrink:0}' +
     '.ttl{font-size:13px;font-weight:800}' +
-    '.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 10px;flex:1}' +
+    '.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}' +
     'table{width:100%;border-collapse:collapse}' +
     'tr{height:19px}' +
     '@media print{.no-print{display:none!important}@page{margin:5mm 6mm;size:A4}}' +
-    '</style></head><body>' +
+    '<\/style><\/head><body>' +
     '<div class="no-print">' +
-      '<button class="pri" onclick="window.print()">🖨️ 인쇄 (2페이지)</button>' +
-      '<button class="grn" onclick="window.close()">닫기</button>' +
-      '<span style="font-size:11px;color:#666">1p 시험지 · 2p 정답지 · 총 ' + total + '문항</span>' +
+      '<button class="pri" onclick="window.print()">🖨️ 인쇄 (' + (totalPages*2) + '페이지)</button>' +
+      '<button class="sec" onclick="window.close()">닫기</button>' +
+      '<span style="font-size:11px;color:#666">총 ' + total + '단어 · 시험지 ' + totalPages + 'p + 정답지 ' + totalPages + 'p</span>' +
     '</div>' +
-    makePage(false, '시험지') +
-    makePage(true, '정답지') +
-    '</body></html>';
+    bodyHtml +
+    '<\/body><\/html>';
 
-  var win = window.open('', '_blank', 'width=900,height=750');
+  var win = window.open('', '_blank', 'width=920,height=750');
   if (!win) { alert('팝업이 차단됐어요. 팝업 허용 후 다시 시도하세요.'); return; }
   win.document.write(html);
   win.document.close();
 }
-
-
-
 </script>
 </body>
 </html>
