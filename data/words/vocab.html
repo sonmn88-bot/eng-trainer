@@ -68,7 +68,7 @@
 .wi-ans { color: var(--red); font-size: 12px; margin-top: 2px; }
 
 /* ── 카드 플립 연습 모드 ── */
-.flip-set-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1rem; }
+.flip-set-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-bottom:1rem; }
 .flip-set-btn { background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.625rem .5rem;text-align:center;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s; }
 .flip-set-btn:hover,.flip-set-btn.active { background:var(--gold-bg);border-color:var(--gold-bdr);color:var(--gold); }
 .flip-cards-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem; }
