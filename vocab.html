@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- vocab v20260719_185220 -->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +69,7 @@
 .wi-ans { color: var(--red); font-size: 12px; margin-top: 2px; }
 
 /* ── 카드 플립 연습 모드 ── */
-.flip-set-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1rem; }
+.flip-set-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-bottom:1rem; }
 .flip-set-btn { background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.625rem .5rem;text-align:center;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s; }
 .flip-set-btn:hover,.flip-set-btn.active { background:var(--gold-bg);border-color:var(--gold-bdr);color:var(--gold); }
 .flip-cards-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem; }
@@ -144,7 +145,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- ══ VIEW 1: 라이브러리 ══ -->
 <div id="view-library" class="fade-in">
@@ -329,7 +329,6 @@
   <div id="mode-picker-popup" style="display:none"></div>
 </div>
 
-
 <!-- ══ VIEW 3: 플래시카드 ══ -->
 <div id="view-flash" style="display:none">
   <div class="card">
@@ -448,7 +447,6 @@
     <button id="confuse-next-btn" class="btn btn-gold btn-full" style="display:none" onclick="nextConfuse()">다음 →</button>
   </div>
 </div>
-
 
 <!-- ══ VIEW 4: 퀴즈 ══ -->
 <div id="view-quiz" style="display:none">
@@ -638,7 +636,7 @@
     <div id="speed-meaning-dont" style="display:none;margin-top:.75rem">
       <div id="speed-meaning-dont-text" style="font-size:14px;color:var(--txt);background:var(--sur2);border-radius:var(--rs);padding:.75rem;margin-bottom:.5rem"></div>
       <div style="display:flex;gap:8px;justify-content:center">
-        <button class="btn btn-ghost btn-sm" onclick="speedBmCurrent()">☆ 북마크</button>
+        
         <button class="btn btn-gold" onclick="speedNext()">다음 →</button>
       </div>
     </div>
@@ -730,7 +728,6 @@
   </div>
 </div>
 
-
 <!-- ══ VIEW 13: 폴더 상세 ══ -->
 <div id="view-folder-detail" style="display:none">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:.875rem">
@@ -752,7 +749,6 @@
     <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteCurrentFolder()">🗑 이 폴더 삭제</button>
   </div>
 </div>
-
 
 <!-- ── 폴더 선택 팝업 ── -->
 <div id="folder-picker-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10010;align-items:flex-end;justify-content:center">
@@ -824,13 +820,13 @@
 
 // ── 카드 플립 연습 모드 ─────────────────────────
 var FLIP_SET_SIZE = 20;  // 세트당 20개
-var FLIP_SETS = 5;       // 5세트
+var FLIP_SETS = 10;     // 최대 10세트 (200개까지 커버)
 var flipWords = [];         // 현재 세트 단어
 var flipSetIdx = 0;         // 현재 세트 번호 (0~4)
 var flipSourceWords = [];   // 전체 100개
 
 function goFlipMode() {
-  flipSourceWords = (window._selectedWords || allWords).slice(0, 100);
+  flipSourceWords = window._selectedWords || allWords;
   flipSetIdx = 0;
   showView('flip');
   renderFlipSetButtons();
@@ -838,9 +834,9 @@ function goFlipMode() {
 }
 
 function goFlipModeFromWeek(wk) {
-  // 주차에서 진입 → 해당 주차 100개
+  // 주차에서 진입 → 해당 주차 단어 전체
   var info = window._weekWords && window._weekWords[wk];
-  flipSourceWords = info ? info.words : allWords.slice(0, 100);
+  flipSourceWords = info ? info.words : allWords;
   flipSetIdx = 0;
   showView('flip');
   renderFlipSetButtons();
@@ -850,7 +846,8 @@ function goFlipModeFromWeek(wk) {
 function renderFlipSetButtons() {
   var grid = document.getElementById('flip-set-grid');
   var html = '';
-  for (var i = 0; i < FLIP_SETS; i++) {
+  var totalSets = Math.ceil(flipSourceWords.length / FLIP_SET_SIZE); // 동적 계산
+  for (var i = 0; i < totalSets; i++) {
     var start = i * FLIP_SET_SIZE + 1;
     var end = Math.min((i + 1) * FLIP_SET_SIZE, flipSourceWords.length);
     if (start > flipSourceWords.length) break;
@@ -917,7 +914,6 @@ function renderFlipCards() {
   }).join('');
   updateFlipProgress();
 }
-
 
 function checkFlipCard(i) {
   var key = flipSetIdx + '_' + i;
@@ -993,7 +989,6 @@ function goQuizFromFlip() {
   currentMode = 'flip';
   goQuiz();
 }
-
 
 // ── 빈칸 채우기 퀴즈 ────────────────────────────
 var blank = { words: [], idx: 0, correct: 0, wrong: 0, results: [] };
@@ -1122,7 +1117,6 @@ function nextBlank() {
   renderBlank();
 }
 
-
 // ── 오늘의 복습 (망각곡선 기반) ──────────────────
 async function loadReviewWords() {
   // 취약단어 중 마지막 학습 후 1일/3일/7일 지난 것 복습 대상
@@ -1163,8 +1157,6 @@ function goReviewMode() {
   goQuiz();
 }
 
-
-
 // ── URL Params ─────────────────────────────────
 var params = new URLSearchParams(location.search);
 var STU_ID   = params.get('stu')  || 'guest';
@@ -1200,7 +1192,6 @@ var SUNEUNG_HIGH_FREQ = new Set([
   'moderate','neutral','optimal','potential','relevant','remarkable',
   'sophisticated','spontaneous','transparent'
 ]);
-
 
 // ── 단어 뜻 오류 패치 ─────────────────────────
 // wm-basic.js blame 오류: '상쾌하게 하는, 신선한' → '비난하다, 탓으로 돌리다'
@@ -1528,7 +1519,6 @@ async function selectFolderRange(folderId) {
   showModePanel(words);
 }
 
-
 function showModePanel(words) {
   var panel = document.getElementById('mode-select-panel');
   var badge = document.getElementById('word-cnt-badge');
@@ -1541,7 +1531,7 @@ function showModePanel(words) {
   var sel = document.getElementById('quiz-count');
   if (sel) {
     var cnt = words.length;
-    var opts = [10, 20, 30, 50, cnt].filter(function(v,i,a){ return v <= cnt && a.indexOf(v) === i; });
+    var opts = [10, 20, 30, 50, 100, cnt].filter(function(v,i,a){ return v <= cnt && a.indexOf(v) === i; });
     sel.innerHTML = opts.map(function(n){ return '<option value="'+n+'">'+n+'개</option>'; }).join('');
     if (opts.includes(20)) sel.value = 20;
   }
@@ -1588,7 +1578,6 @@ function startMode(mode) {
     }
   }
 }
-
 
 // ── 학습 모드 선택 팝업 ─────────────────────────
 var _pickerMode = null;
@@ -1719,7 +1708,6 @@ async function loadWordCount(setInfo, studiedCount) {
     el.textContent = '로딩 오류';
   }
 }
-
 
 // ── 혼동 단어쌍 특훈 ─────────────────────────
 var confuse = { pairs:[], learnIdx:0, questions:[], qIdx:0, correct:0, wrong:0 };
@@ -1922,7 +1910,6 @@ function finishConfuse() {
   giveXP(Math.round(score / 10) * 5);
 }
 
-
 // ── 단어 검색 ────────────────────────────────
 var _searchTimer = null;
 var _allWordsFlat = null; // { word, ko, setName, day }
@@ -1994,7 +1981,6 @@ function doWordSearch(q) {
   resultEl.style.display = 'block';
 }
 
-
 // 검색 결과에서 북마크 토글
 async function toggleSearchBm(word, ko) {
   var added = await DB.toggleBookmark(STU_ID, word, ko);
@@ -2008,7 +1994,6 @@ async function toggleSearchBm(word, ko) {
     showToast(added ? '⭐ 북마크 추가!' : '☆ 북마크 해제');
   }
 }
-
 
 function togglePinSet(setId) {
   var pinnedSets = {};
@@ -2031,7 +2016,6 @@ function togglePinSet(setId) {
   }
 }); // 다시 렌더
 }
-
 
 function showVocabHelp() {
   document.getElementById('vocab-help-popup').style.display = 'flex';
@@ -2289,7 +2273,7 @@ function applyPosFilter(pos, baseWords) {
   var cnt = filtered.length;
   document.getElementById('word-cnt-badge').textContent = cnt + '개 단어';
   var sel = document.getElementById('quiz-count');
-  var opts = [10, 20, 30, 50, cnt].filter(function(v,i,a){ return v <= cnt && a.indexOf(v) === i; });
+  var opts = [10, 20, 30, 50, 100, cnt].filter(function(v,i,a){ return v <= cnt && a.indexOf(v) === i; });
   sel.innerHTML = opts.map(function(n){ return '<option value="'+n+'">'+n+'개</option>'; }).join('');
   if (opts.includes(20)) sel.value = 20;
   document.getElementById('start-panel').style.display = 'block';
@@ -2924,7 +2908,6 @@ async function checkWeakBadges() {
   } catch(e) {}
 }
 
-
 // 무응답 자동 힌트 타이머
 var _hintAutoTimer = null;
 var _hintAutoLastIdx = -1;
@@ -3098,8 +3081,6 @@ async function submitAns() {
   document.getElementById('quiz-score').textContent = `✓${quiz.correct} ✗${quiz.wrong}`;
 }
 
-
-
 // 퀴즈 한글 입력 IME 처리
 var _imeComposing = false;
 (function() {
@@ -3116,7 +3097,6 @@ var _imeComposing = false;
 function onQuizKeydown(e) {
   if (e.key === 'Enter' && !_imeComposing) submitAns();
 }
-
 
 async function skipWord() {
   // 스킵 패스 - 일일 무료 1회
@@ -3157,7 +3137,6 @@ function prevWord() {
   quiz.idx--;
   renderQuiz();
 }
-
 
 // 유의어/반의어 데이터
 var WORD_RELATIONS = {
@@ -3630,7 +3609,6 @@ function preloadImages(words) {
   setTimeout(loadNext, 500); // 화면 전환 후 시작
 }
 
-
 // ── Mode Selection ──────────────────────────────
 async function selectMode(mode) {
   currentMode = mode;
@@ -3907,8 +3885,6 @@ function speedRecheck(wasCorrect) {
   speedNext();
 }
 
-async // speedBmCurrent → toggleBookmarkCurrent로 통합
-
 function speedNext() {
   document.getElementById('speed-check-panel').style.display = 'none';
   document.getElementById('speed-meaning-dont').style.display = 'none';
@@ -4015,7 +3991,6 @@ function retryWrong() {
   renderQuiz();
   startTimer();
 }
-
 
 // ══════════════════════════════════════════════════
 // 레벨 시스템
@@ -4220,7 +4195,6 @@ function startFolderRename(fid) {
   }).catch(function(e) { showToast('오류: ' + e.message); });
 }
 
-
 async function createFolder() {
   var name = (document.getElementById('folder-name-input').value || '').trim();
   if (!name) return;
@@ -4302,7 +4276,6 @@ function startFolderMode(mode) {
     goSpeedMode();
   }
 }
-
 
 async function fpQuickCreate() {
   var inp = document.getElementById('fp-new-name');
@@ -4524,7 +4497,6 @@ function updateBookmarkBtn(word) {
   });
 }
 
-
 async function doFlipBookmark(btn) {
   var word = btn.dataset.w;
   var ko   = btn.dataset.k;
@@ -4720,7 +4692,6 @@ document.addEventListener('click',function(e){var f=document.getElementById('bgm
 // 페이지 로드 시 자동 재개
 (function(){var saved=localStorage.getItem('bgm_type');var wasPlaying=localStorage.getItem('bgm_playing')==='1';if(saved&&wasPlaying){var titles={lofi:'☕ Lofi Beat',rain:'🌧️ 빗소리',white:'🌊 백색소음',nature:'🌿 자연 소리'};var subs={lofi:'집중 공부용',rain:'편안한 집중',white:'소음 차단용',nature:'스트레스 해소'};setTimeout(function(){selectBGM(saved,titles[saved]||saved,subs[saved]||'');startBGM();},500);}})();
 
-
 var _pickedMode = null;
 
 function pickMode(mode) {
@@ -4787,7 +4758,6 @@ function resetModeSelection() {
     btn.style.background = 'var(--sur2)';
   });
 }
-
 
 function quickGoTeacherFromPage() {
   var pw = prompt('선생님 비밀번호를 입력하세요:');
