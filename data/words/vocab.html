@@ -850,7 +850,8 @@ function goFlipModeFromWeek(wk) {
 function renderFlipSetButtons() {
   var grid = document.getElementById('flip-set-grid');
   var html = '';
-  for (var i = 0; i < FLIP_SETS; i++) {
+  var totalSets = Math.ceil(flipSourceWords.length / FLIP_SET_SIZE); // 동적 계산
+  for (var i = 0; i < totalSets; i++) {
     var start = i * FLIP_SET_SIZE + 1;
     var end = Math.min((i + 1) * FLIP_SET_SIZE, flipSourceWords.length);
     if (start > flipSourceWords.length) break;
