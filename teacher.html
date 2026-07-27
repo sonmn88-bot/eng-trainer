@@ -917,11 +917,20 @@ function renderStudents() {
 async function loadStuMessageBadges(arr) {
   for (var i = 0; i < arr.length; i++) {
     try {
-      var msg = await DB.getSticker(arr[i].id);
+      var stickerData = await DB.getSticker(arr[i].id);
       var badgeEl = document.getElementById('msg-badge-' + arr[i].id);
       if (!badgeEl) continue;
-      if (msg && msg.message) {
-        if (!msg.read) {
+      // 여러 스티커 중 최신 1개 추출
+      var lastMsg = null;
+      if (stickerData && typeof stickerData === 'object') {
+        var entries = Object.values(stickerData);
+        if (entries.length) {
+          entries.sort(function(a,b){ return (b.sentAt||0)-(a.sentAt||0); });
+          lastMsg = entries[0];
+        }
+      }
+      if (lastMsg && (lastMsg.text || lastMsg.message)) {
+        if (!lastMsg.read) {
           badgeEl.innerHTML = '<span style="color:var(--red,#e53935);font-weight:700">✉ 안읽음</span>';
         } else {
           badgeEl.innerHTML = '<span style="color:var(--txt3)">✉ 읽음</span>';
@@ -933,9 +942,6 @@ async function loadStuMessageBadges(arr) {
 
 async function loadStuLevelBadges(arr) {
   var LEVEL_ICONS = ['','🌱','📖','✏️','💡','🔥','⚡','🎯','💎','🏹','👑'];
-  var now = Date.now();
-  var DAY = 86400000;
-  var absentThreshold = (settings && settings.absentDays) || 3;
   for (var i = 0; i < arr.length; i++) {
     try {
       var prof = await DB.getProfile(arr[i].id);
@@ -945,23 +951,7 @@ async function loadStuLevelBadges(arr) {
         el.textContent = LEVEL_ICONS[lv] + ' Lv.' + lv;
         el.style.color = lv >= 8 ? 'var(--gold)' : lv >= 5 ? '#A78BFA' : 'var(--txt3)';
       }
-      // 미접속 알림
-      var lastActive = await DB.getLastActive(arr[i].id);
-      var card = document.querySelector('.stu-card[data-id="' + arr[i].id + '"]');
-      if (card && lastActive) {
-        var daysSince = Math.floor((now - lastActive) / DAY);
-        if (daysSince >= absentThreshold) {
-          var absent = card.querySelector('.absent-badge');
-          if (!absent) {
-            absent = document.createElement('span');
-            absent.className = 'absent-badge';
-            absent.style.cssText = 'font-size:10px;color:var(--red,#f87171);margin-left:4px;font-weight:600';
-            absent.textContent = daysSince + '일 미접속';
-            var nameEl = card.querySelector('.stu-name');
-            if (nameEl) nameEl.appendChild(absent);
-          }
-        }
-      }
+      // 미접속 뱃지는 renderStudents의 alertBadge(lastSeen 기준)로 통일 처리됨
     } catch(e) {}
   }
 }
