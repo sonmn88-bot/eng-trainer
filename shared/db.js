@@ -216,6 +216,25 @@ const DB = {
   },
 
 
+  async saveSticker(stuId, emoji, text) {
+    const { db, ref, set } = await initDB();
+    const key = 'sticker_' + Date.now();
+    await set(ref(db, `stickers/${stuId}/${key}`), {
+      emoji, text, sentAt: Date.now(), read: false
+    });
+  },
+
+  async getStickers(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `stickers/${stuId}`));
+    return snap.exists() ? snap.val() : {};
+  },
+
+  async markStickerRead(stuId, key) {
+    const { db, ref, update } = await initDB();
+    await update(ref(db, `stickers/${stuId}/${key}`), { read: true });
+  },
+
   async saveStudentPassword(stuId, password) {
     const { db, ref, update } = await initDB();
     await update(ref(db, `students/${stuId}`), { password: password || '' });
