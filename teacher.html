@@ -176,21 +176,24 @@
           </div>
           <div id="last-msg-time" style="font-size:10px;color:var(--txt3);margin-top:2px"></div>
         </div>
-        <!-- 빠른 스티커 -->
+        <!-- 아이콘 선택 (선택 시 입력창에 세팅) -->
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.625rem">
-          <button class="btn btn-sm" onclick="sendSticker('🌟','정말 잘했어요!')" style="font-size:18px;padding:6px 10px" title="정말 잘했어요!">🌟</button>
-          <button class="btn btn-sm" onclick="sendSticker('🔥','완전 불타오르고 있어요!')" style="font-size:18px;padding:6px 10px" title="불타오르는 중!">🔥</button>
-          <button class="btn btn-sm" onclick="sendSticker('💪','포기하지 마세요!')" style="font-size:18px;padding:6px 10px" title="포기하지 마세요!">💪</button>
-          <button class="btn btn-sm" onclick="sendSticker('🏆','최고예요!')" style="font-size:18px;padding:6px 10px" title="최고예요!">🏆</button>
-          <button class="btn btn-sm" onclick="sendSticker('👑','왕중왕!')" style="font-size:18px;padding:6px 10px" title="왕중왕!">👑</button>
-          <button class="btn btn-sm" onclick="sendSticker('💯','완벽해요!')" style="font-size:18px;padding:6px 10px" title="완벽해요!">💯</button>
+          <button class="btn btn-sm sticker-pick-btn" data-emoji="🌟" onclick="pickStickerEmoji(this)" style="font-size:18px;padding:6px 10px;border:2px solid transparent" title="🌟">🌟</button>
+          <button class="btn btn-sm sticker-pick-btn" data-emoji="🔥" onclick="pickStickerEmoji(this)" style="font-size:18px;padding:6px 10px;border:2px solid transparent" title="🔥">🔥</button>
+          <button class="btn btn-sm sticker-pick-btn" data-emoji="💪" onclick="pickStickerEmoji(this)" style="font-size:18px;padding:6px 10px;border:2px solid transparent" title="💪">💪</button>
+          <button class="btn btn-sm sticker-pick-btn" data-emoji="🏆" onclick="pickStickerEmoji(this)" style="font-size:18px;padding:6px 10px;border:2px solid transparent" title="🏆">🏆</button>
+          <button class="btn btn-sm sticker-pick-btn" data-emoji="👑" onclick="pickStickerEmoji(this)" style="font-size:18px;padding:6px 10px;border:2px solid transparent" title="👑">👑</button>
+          <button class="btn btn-sm sticker-pick-btn" data-emoji="💯" onclick="pickStickerEmoji(this)" style="font-size:18px;padding:6px 10px;border:2px solid transparent" title="💯">💯</button>
         </div>
-        <!-- 직접 메시지 -->
-        <div style="display:flex;gap:6px">
-          <input id="sticker-msg" type="text" placeholder="직접 메시지 입력..." style="flex:1;font-size:12px" onkeydown="if(event.key==='Enter')sendStickerCustom()">
+        <!-- 선택된 아이콘 + 메시지 입력 -->
+        <div style="display:flex;gap:6px;align-items:center">
+          <div id="selected-emoji-display" style="font-size:24px;width:36px;text-align:center;flex-shrink:0">✉️</div>
+          <input type="text" id="custom-msg-input" placeholder="메시지를 입력하세요"
+            style="flex:1;font-size:13px"
+            onkeydown="if(event.key==='Enter')sendStickerCustom()">
           <button class="btn btn-gold btn-sm" onclick="sendStickerCustom()">전송</button>
         </div>
-        <div id="sticker-sent-msg" style="font-size:11px;min-height:16px;margin-top:.375rem;text-align:center"></div>
+                <div id="sticker-sent-msg" style="font-size:11px;min-height:16px;margin-top:.375rem;text-align:center"></div>
       </div>
 
       <!-- 시험 단어 내보내기 패널 -->
@@ -3316,6 +3319,70 @@ function _buildExamPaper(direction, setInfo, week) {
 }
 
 // ── 개인 메시지 (스티커) ─────────────────────
+
+
+function drawScoreChart(results) {
+  var canvas = document.getElementById('score-chart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  var w = canvas.offsetWidth || 280;
+  var h = canvas.offsetHeight || 80;
+  canvas.width = w; canvas.height = h;
+  ctx.clearRect(0, 0, w, h);
+
+  var scores = results.map(function(r){ return r.score || 0; });
+  var max = 100;
+  var step = w / (scores.length - 1 || 1);
+
+  // 배경 그리드
+  ctx.strokeStyle = 'rgba(128,128,128,.15)';
+  ctx.lineWidth = 1;
+  [25,50,75,100].forEach(function(v) {
+    var y = h - (v/max)*h;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+  });
+
+  // 라인
+  ctx.beginPath();
+  ctx.strokeStyle = '#C9A961';
+  ctx.lineWidth = 2;
+  scores.forEach(function(s, i) {
+    var x = i * step;
+    var y = h - (s/max)*h;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // 점
+  scores.forEach(function(s, i) {
+    var x = i * step;
+    var y = h - (s/max)*h;
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI*2);
+    ctx.fillStyle = '#C9A961';
+    ctx.fill();
+  });
+}
+
+function pickStickerEmoji(btn) {
+  // 이전 선택 해제
+  document.querySelectorAll('.sticker-pick-btn').forEach(function(b) {
+    b.style.borderColor = 'transparent';
+    b.style.background = '';
+  });
+  // 선택 표시
+  btn.style.borderColor = 'var(--gold)';
+  btn.style.background = 'var(--gold-bg)';
+  var emoji = btn.dataset.emoji;
+  window._selectedStickerEmoji = emoji;
+  var display = document.getElementById('selected-emoji-display');
+  if (display) display.textContent = emoji;
+  // 입력창 포커스
+  var input = document.getElementById('custom-msg-input');
+  if (input) input.focus();
+}
+
 async function sendSticker(emoji, text) {
   if (!selectedStuId) { showToast('학생을 먼저 선택하세요'); return; }
   var msgEl = document.getElementById('sticker-sent-msg');
@@ -3338,10 +3405,18 @@ async function sendStickerCustom() {
   var input = document.getElementById('custom-msg-input');
   var text = input ? input.value.trim() : '';
   if (!text) { showToast('메시지를 입력해주세요'); return; }
+  var emoji = window._selectedStickerEmoji || '✉️';
   var msgEl = document.getElementById('sticker-sent-msg');
   try {
-    await DB.saveSticker(selectedStuId, '✉️', text);
+    await DB.saveSticker(selectedStuId, emoji, text);
     if (input) input.value = '';
+    // 이모지 선택 초기화
+    window._selectedStickerEmoji = null;
+    document.querySelectorAll('.sticker-pick-btn').forEach(function(b) {
+      b.style.borderColor = 'transparent'; b.style.background = '';
+    });
+    var display = document.getElementById('selected-emoji-display');
+    if (display) display.textContent = '✉️';
     if (msgEl) {
       msgEl.style.color = 'var(--grn,#4caf50)';
       msgEl.textContent = '✓ 메시지를 보냈습니다!';
