@@ -2614,7 +2614,6 @@ function renderSettings() {
 }
 
 
-async 
 function toggleMemoOverview() {
   var el = document.getElementById('memo-overview-list');
   var btn = document.querySelector('#memo-overview-card button');
@@ -3373,6 +3372,15 @@ async function loadLastSticker(stuId) {
     if (timeEl) timeEl.textContent = new Date(last.sentAt).toLocaleString('ko');
     if (readEl) readEl.textContent = last.read ? '✓ 읽음' : '미확인';
   } catch(e) {}
+}
+
+
+function showToast(msg, duration) {
+  var el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:.5rem 1.25rem;border-radius:99px;font-size:13px;z-index:99999;white-space:nowrap;pointer-events:none';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, duration || 2000);
 }
 
 </script>
