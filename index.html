@@ -1165,23 +1165,41 @@ async function showMain() {
     }
   } catch(e) {}
   try {
-    var sticker = await DB.getSticker(state.stuId);
-    if (sticker && !sticker.read) {
-      document.getElementById('sticker-popup-emoji').textContent = sticker.emoji || '🌟';
-      document.getElementById('sticker-popup-msg').textContent = sticker.message || '잘하고 있어요!';
+    var stickerData = await DB.getSticker(state.stuId);
+    // 최신 읽지 않은 스티커 찾기
+    var latestSticker = null;
+    var latestStickerKey = null;
+    if (stickerData && typeof stickerData === 'object') {
+      var entries = Object.entries(stickerData);
+      entries.sort(function(a,b){ return (b[1].sentAt||0)-(a[1].sentAt||0); });
+      for (var si = 0; si < entries.length; si++) {
+        if (!entries[si][1].read) {
+          latestStickerKey = entries[si][0];
+          latestSticker = entries[si][1];
+          break;
+        }
+      }
+    }
+    if (latestSticker) {
+      document.getElementById('sticker-popup-emoji').textContent = latestSticker.emoji || '🌟';
+      document.getElementById('sticker-popup-msg').textContent = latestSticker.text || latestSticker.message || '잘하고 있어요!';
       document.getElementById('sticker-popup').style.display = 'flex';
       window._pendingStickerStuId = state.stuId;
+      window._pendingStickerKey = latestStickerKey;
     }
   } catch(e) {}
   try {
     var notice = await DB.getNotice();
     if (notice && notice.text) {
-      var dismissed = localStorage.getItem('notice_dismissed_' + notice.updatedAt);
+      // updatedAt 또는 text 해시 기반으로 dismissed 체크
+      var noticeKey = notice.updatedAt || notice.text.slice(0,20);
+      var dismissed = localStorage.getItem('notice_dismissed_' + noticeKey);
       if (!dismissed) {
         document.getElementById('notice-text').textContent = notice.text;
         document.getElementById('notice-banner').style.display = 'block';
         // 읽음 처리용 updatedAt 저장
-        document.getElementById('notice-banner').dataset.ts = notice.updatedAt;
+        var noticeKey = notice.updatedAt || btoa(notice.text.slice(0,20)).replace(/=/g,'');
+        document.getElementById('notice-banner').dataset.ts = noticeKey;
       }
     }
   } catch(e) {}

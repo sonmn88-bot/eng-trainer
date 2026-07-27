@@ -1042,11 +1042,20 @@ async function showStuDetail(stuId) {
 
   // 마지막 메시지 불러오기
   try {
-    var lastMsg = await DB.getSticker(stuId);
+    var stickerData = await DB.getSticker(stuId);
+    // 여러 스티커 중 최신 1개 추출
+    var lastMsg = null;
+    if (stickerData && typeof stickerData === 'object') {
+      var entries = Object.values(stickerData);
+      if (entries.length) {
+        entries.sort(function(a,b){ return (b.sentAt||0)-(a.sentAt||0); });
+        lastMsg = entries[0];
+      }
+    }
     var wrap = document.getElementById('last-msg-wrap');
-    if (lastMsg && lastMsg.message && wrap) {
+    if (lastMsg && (lastMsg.text || lastMsg.message) && wrap) {
       document.getElementById('last-msg-emoji').textContent = lastMsg.emoji || '💌';
-      document.getElementById('last-msg-text').textContent = lastMsg.message;
+      document.getElementById('last-msg-text').textContent = lastMsg.text || lastMsg.message;
       // 읽음 여부
       var readEl = document.getElementById('last-msg-read');
       if (lastMsg.read) {
@@ -3306,6 +3315,66 @@ function _buildExamPaper(direction, setInfo, week) {
   win.document.write(html);
   win.document.close();
 }
+
+// ── 개인 메시지 (스티커) ─────────────────────
+async function sendSticker(emoji, text) {
+  if (!selectedStuId) { showToast('학생을 먼저 선택하세요'); return; }
+  var msgEl = document.getElementById('sticker-sent-msg');
+  try {
+    await DB.saveSticker(selectedStuId, emoji, text);
+    if (msgEl) {
+      msgEl.style.color = 'var(--grn,#4caf50)';
+      msgEl.textContent = '✓ ' + emoji + ' 메시지를 보냈습니다!';
+      setTimeout(function(){ if(msgEl) msgEl.textContent=''; }, 2500);
+    }
+    // 마지막 메시지 표시 업데이트
+    loadLastSticker(selectedStuId);
+  } catch(e) {
+    if (msgEl) { msgEl.style.color='var(--red)'; msgEl.textContent='오류: '+e.message; }
+  }
+}
+
+async function sendStickerCustom() {
+  if (!selectedStuId) { showToast('학생을 먼저 선택하세요'); return; }
+  var input = document.getElementById('custom-msg-input');
+  var text = input ? input.value.trim() : '';
+  if (!text) { showToast('메시지를 입력해주세요'); return; }
+  var msgEl = document.getElementById('sticker-sent-msg');
+  try {
+    await DB.saveSticker(selectedStuId, '✉️', text);
+    if (input) input.value = '';
+    if (msgEl) {
+      msgEl.style.color = 'var(--grn,#4caf50)';
+      msgEl.textContent = '✓ 메시지를 보냈습니다!';
+      setTimeout(function(){ if(msgEl) msgEl.textContent=''; }, 2500);
+    }
+    loadLastSticker(selectedStuId);
+  } catch(e) {
+    if (msgEl) { msgEl.style.color='var(--red)'; msgEl.textContent='오류: '+e.message; }
+  }
+}
+
+async function loadLastSticker(stuId) {
+  try {
+    var stickers = await DB.getStickers(stuId);
+    var entries = Object.entries(stickers || {});
+    if (!entries.length) return;
+    // 가장 최근 스티커
+    entries.sort(function(a,b){ return b[1].sentAt - a[1].sentAt; });
+    var last = entries[0][1];
+    var wrap = document.getElementById('last-msg-wrap');
+    var emojiEl = document.getElementById('last-msg-emoji');
+    var textEl = document.getElementById('last-msg-text');
+    var timeEl = document.getElementById('last-msg-time');
+    var readEl = document.getElementById('last-msg-read');
+    if (wrap) wrap.style.display = 'block';
+    if (emojiEl) emojiEl.textContent = last.emoji || '✉️';
+    if (textEl) textEl.textContent = last.text || '';
+    if (timeEl) timeEl.textContent = new Date(last.sentAt).toLocaleString('ko');
+    if (readEl) readEl.textContent = last.read ? '✓ 읽음' : '미확인';
+  } catch(e) {}
+}
+
 </script>
 </body>
 </html>

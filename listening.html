@@ -556,8 +556,19 @@ audio.addEventListener('ended', function() {
 
 function togglePlay() {
   if (audio.paused) {
-    audio.play();
-    document.getElementById('play-btn').textContent = '⏸';
+    var playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.then(function() {
+        document.getElementById('play-btn').textContent = '⏸';
+      }).catch(function(err) {
+        // 자동재생 차단 - 사용자 인터랙션 필요
+        console.warn('재생 오류:', err);
+        document.getElementById('play-btn').textContent = '▶';
+        showToast && showToast('재생 버튼을 다시 눌러주세요');
+      });
+    } else {
+      document.getElementById('play-btn').textContent = '⏸';
+    }
   } else {
     audio.pause();
     document.getElementById('play-btn').textContent = '▶';
