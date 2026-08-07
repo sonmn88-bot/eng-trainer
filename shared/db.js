@@ -233,6 +233,34 @@ const DB = {
   },
 
 
+
+  async cleanupLegacyStickers() {
+    const { db, ref, get, remove, update } = await initDB();
+    const snap = await get(ref(db, 'stickers'));
+    if (!snap.exists()) return 0;
+    const all = snap.val();
+    let cleaned = 0;
+    for (const stuId in all) {
+      const node = all[stuId];
+      const flatFields = {};
+      let hasFlat = false;
+      for (const k in node) {
+        const v = node[k];
+        // 키가 'sticker_'로 시작하지 않는데 값이 객체가 아니면 레거시 평면 필드
+        if (!k.startsWith('sticker_') && (typeof v !== 'object' || v === null)) {
+          hasFlat = true;
+        }
+      }
+      if (hasFlat) {
+        // 레거시 평면 필드만 제거 (emoji/message/text/sentAt/read 등 최상위 원시값)
+        await update(ref(db, `stickers/${stuId}`), {
+          emoji: null, message: null, text: null, sentAt: null, read: null
+        });
+        cleaned++;
+      }
+    }
+    return cleaned;
+  },
   async saveSticker(stuId, emoji, text) {
     const { db, ref, set } = await initDB();
     const key = 'sticker_' + Date.now();
