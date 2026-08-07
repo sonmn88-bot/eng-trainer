@@ -986,3 +986,12 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(201,169,97,.12);
 }
 
+/* ── 가로모드(태블릿) 최적화 ── */
+@media (orientation: landscape) and (max-height: 600px) {
+  .app { padding-top: .75rem; padding-bottom: 3rem; }
+  .flashcard { min-height: 200px; }
+  .player-card { padding: .75rem 1rem; }
+}
+@media (orientation: landscape) and (min-width: 700px) {
+  .app { max-width: 720px; }
+}
