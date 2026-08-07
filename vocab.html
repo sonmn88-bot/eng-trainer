@@ -533,6 +533,9 @@
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <button class="btn btn-full" onclick="shareResultCard()">📸 결과 카드 저장</button>
     </div>
+    <div id="continue-batch-wrap" style="display:none;margin-bottom:8px">
+      <button class="btn btn-gold btn-full" onclick="continueBatch()" id="continue-batch-btn">▶ 다음 단어 이어하기</button>
+    </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-full" onclick="backToSet()">다시 시작</button>
       <button class="btn btn-full" onclick="showWrong()">📝 오답 노트</button>
@@ -994,7 +997,7 @@ function goQuizFromFlip() {
 var blank = { words: [], idx: 0, correct: 0, wrong: 0, results: [] };
 
 function goBlankQuiz() {
-  // 예문 있는 단어만 필터링
+  // 예문 있는 단어만 필터링 (없음 체크용)
   var src = (window._selectedWords || allWords).slice();
   var withEx = src.filter(function(w) {
     var ex = window.EXAMPLES && window.EXAMPLES[w[0].toLowerCase()];
@@ -1006,11 +1009,11 @@ function goBlankQuiz() {
     return;
   }
 
-  // 최대 20개
-  Utils.shuffle(withEx);
   var _bCnt = window._pickerCount || parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
   window._pickerCount = null;
-  blank.words = withEx.slice(0, Math.min(_bCnt, withEx.length));
+  window._lastRunMode = 'blank';
+  window._lastRunCount = _bCnt;
+  blank.words = getBatchWords(_bCnt, 'blank');
   blank.idx = 0;
   blank.correct = 0;
   blank.wrong = 0;
@@ -1395,6 +1398,7 @@ function backToSet() {
 
 // ── Library ────────────────────────────────────
 async function selectRange(range) {
+  resetBatchState();
   // 탭 버튼 active 처리
   ['all','week','bookmark','weak'].forEach(function(r) {
     var btn = document.getElementById('rb-' + r);
@@ -1442,6 +1446,7 @@ function showModePanel(words) {
 }
 
 async function loadWeakRange() {
+  resetBatchState();
   try {
     var weakList = await DB.getWeakWords(STU_ID);
     var weakSet = new Set(weakList.map(function(w){ return w.word.toLowerCase(); }));
@@ -1481,6 +1486,7 @@ async function loadFolderRangeList() {
 }
 
 async function selectFolderRange(folderId) {
+  resetBatchState();
   // 버튼 active
   document.querySelectorAll('.folder-range-btn').forEach(function(btn) {
     var isActive = folderId ? btn.dataset.fid === folderId : !btn.dataset.fid;
@@ -2197,6 +2203,7 @@ function buildWeekGrid() {
 }
 
 function selectWeek(wk) {
+  resetBatchState();
   document.querySelectorAll('.week-card').forEach(function(c){ c.classList.remove('sel'); });
   var wkEl = document.getElementById('wk-' + wk);
   if (wkEl) wkEl.classList.add('sel');
@@ -2566,7 +2573,9 @@ function goQuiz() {
   clearInterval(quiz.timer);
   var cnt = window._pickerCount || parseInt(document.getElementById('quiz-count').value) || 20;
   window._pickerCount = null;
-  var words = Utils.shuffle([...window._selectedWords]).slice(0, cnt);
+  window._lastRunMode = 'quiz';
+  window._lastRunCount = cnt;
+  var words = getBatchWords(cnt, 'main');
   quiz.words = words;
   quiz.idx = 0; quiz.correct = 0; quiz.wrong = 0;
   quiz.elapsed = 0; quiz.results = []; quiz.history = []; quiz.combo = 0; quiz.maxCombo = 0; quiz.focusMode = false;
@@ -3357,6 +3366,20 @@ function showResult(score, total, skipSave) {
   var retryWrap = document.getElementById('btn-retry-wrap');
   if (retryWrap) retryWrap.style.display = wrongWords.length ? 'block' : 'none';
 
+  // 이어하기 버튼 - 배치에 남은 단어가 있으면 표시
+  var batchKey = window._lastRunMode === 'blank' ? 'blank' : 'main';
+  var remaining = getBatchRemaining(batchKey);
+  var contWrap = document.getElementById('continue-batch-wrap');
+  var contBtn = document.getElementById('continue-batch-btn');
+  if (contWrap) {
+    if (remaining > 0) {
+      contWrap.style.display = 'block';
+      if (contBtn) contBtn.textContent = '▶ 다음 ' + Math.min(remaining, window._lastRunCount||20) + '개 이어하기 (남음 ' + remaining + '개)';
+    } else {
+      contWrap.style.display = 'none';
+    }
+  }
+
   // skipSave=true면 저장 안 함 (finishQuiz에서 이미 저장)
   if (!skipSave) {
     // 마지막 활동 업데이트
@@ -3702,7 +3725,9 @@ var choice = { words: [], idx: 0, correct: 0, wrong: 0, combo: 0, maxCombo: 0, r
 function goChoiceQuiz() {
   var _cnt = window._pickerCount || parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
   window._pickerCount = null; // 사용 후 초기화
-  choice.words = Utils.shuffle((window._selectedWords || allWords).slice()).slice(0, _cnt);
+  window._lastRunMode = 'choice';
+  window._lastRunCount = _cnt;
+  choice.words = getBatchWords(_cnt, 'main');
   choice.idx = 0; choice.correct = 0; choice.wrong = 0; choice.combo = 0; choice.maxCombo = 0; choice.results = [];
   showView('choice');
   renderChoice();
@@ -3818,8 +3843,11 @@ function answerChoice(i) {
 var speed = { words: [], idx: 0, know: 0, dontKnow: 0, results: [] };
 
 function goSpeedMode() {
-    var _sCnt = parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
-  speed.words = Utils.shuffle((window._selectedWords || allWords).slice()).slice(0, _sCnt);
+  var _sCnt = window._pickerCount || parseInt(document.getElementById('quiz-count') && document.getElementById('quiz-count').value) || 20;
+  window._pickerCount = null;
+  window._lastRunMode = 'speed';
+  window._lastRunCount = _sCnt;
+  speed.words = getBatchWords(_sCnt, 'main');
   speed.idx = 0; speed.know = 0; speed.dontKnow = 0; speed.results = [];
   showView('speed');
   renderSpeed();
@@ -4693,6 +4721,50 @@ document.addEventListener('click',function(e){var f=document.getElementById('bgm
 (function(){var saved=localStorage.getItem('bgm_type');var wasPlaying=localStorage.getItem('bgm_playing')==='1';if(saved&&wasPlaying){var titles={lofi:'☕ Lofi Beat',rain:'🌧️ 빗소리',white:'🌊 백색소음',nature:'🌿 자연 소리'};var subs={lofi:'집중 공부용',rain:'편안한 집중',white:'소음 차단용',nature:'스트레스 해소'};setTimeout(function(){selectBGM(saved,titles[saved]||saved,subs[saved]||'');startBGM();},500);}})();
 
 var _pickedMode = null;
+
+
+// ── 이어하기(배치) 상태 관리 ─────────────────────
+function getBatchWords(cnt, key) {
+  window._batchState = window._batchState || {};
+  var selRef = window._selectedWords || allWords;
+  var state = window._batchState[key];
+  if (!state || state.srcRef !== selRef) {
+    var pool;
+    if (key === 'blank') {
+      pool = selRef.filter(function(w) {
+        var ex = window.EXAMPLES && window.EXAMPLES[w[0].toLowerCase()];
+        return ex && ex.en;
+      });
+    } else {
+      pool = selRef.slice();
+    }
+    state = { srcRef: selRef, shuffled: Utils.shuffle(pool), offset: 0 };
+    window._batchState[key] = state;
+  }
+  var slice = state.shuffled.slice(state.offset, state.offset + cnt);
+  state.offset += slice.length;
+  return slice;
+}
+
+function getBatchRemaining(key) {
+  var state = window._batchState && window._batchState[key];
+  if (!state) return 0;
+  return Math.max(0, state.shuffled.length - state.offset);
+}
+
+function resetBatchState() {
+  window._batchState = {};
+}
+
+function continueBatch() {
+  var mode = window._lastRunMode;
+  var cnt = window._lastRunCount || 20;
+  window._pickerCount = cnt;
+  if (mode === 'quiz') goQuiz();
+  else if (mode === 'choice') goChoiceQuiz();
+  else if (mode === 'blank') goBlankQuiz();
+  else if (mode === 'speed') goSpeedMode();
+}
 
 function pickMode(mode) {
   _pickedMode = mode;
