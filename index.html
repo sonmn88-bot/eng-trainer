@@ -1166,11 +1166,14 @@ async function showMain() {
   } catch(e) {}
   try {
     var stickerData = await DB.getSticker(state.stuId);
-    // 최신 읽지 않은 스티커 찾기
+    // 최신 읽지 않은 스티커 찾기 (레거시 평면 데이터 방어: 객체이고 text/message가 있는 것만)
     var latestSticker = null;
     var latestStickerKey = null;
     if (stickerData && typeof stickerData === 'object') {
-      var entries = Object.entries(stickerData);
+      var entries = Object.entries(stickerData).filter(function(e) {
+        var v = e[1];
+        return v && typeof v === 'object' && (typeof v.text === 'string' || typeof v.message === 'string');
+      });
       entries.sort(function(a,b){ return (b[1].sentAt||0)-(a[1].sentAt||0); });
       for (var si = 0; si < entries.length; si++) {
         if (!entries[si][1].read) {
@@ -3295,11 +3298,14 @@ function showStreakPopup(cnt) {
   document.getElementById('streak-popup').style.display = 'flex';
 }
 
-function closeSticker() {
+async function closeSticker() {
   document.getElementById('sticker-popup').style.display = 'none';
-  if (window._pendingStickerStuId) {
-    try { DB.markStickerRead(window._pendingStickerStuId); } catch(e) {}
+  if (window._pendingStickerStuId && window._pendingStickerKey) {
+    var stuId = window._pendingStickerStuId;
+    var key = window._pendingStickerKey;
     window._pendingStickerStuId = null;
+    window._pendingStickerKey = null;
+    try { await DB.markStickerRead(stuId, key); } catch(e) { console.warn('읽음 처리 실패', e); }
   }
 }
 
@@ -3484,5 +3490,7 @@ init();
     </div>
   </div>
 </div>
+<button class="rotate-btn" onclick="Utils.toggleLandscape()" title="가로 화면 전환">🔄</button>
+<script>if (window.Utils && Utils.applyLandscapePref) Utils.applyLandscapePref();</script>
 </body>
 </html>

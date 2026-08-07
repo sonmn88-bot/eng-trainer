@@ -664,6 +664,13 @@ async function init() {
         }
       } catch(e) {}
     }
+    // 레거시 평면 스티커 데이터 정리 (읽음 처리 안 되던 문제 해결)
+    if (!localStorage.getItem('sticker_cleanup_v1')) {
+      try {
+        await DB.cleanupLegacyStickers();
+        localStorage.setItem('sticker_cleanup_v1', '1');
+      } catch(e) {}
+    }
     renderStudents();
     loadStats();
     loadMnemonicEditor();
@@ -930,10 +937,12 @@ async function loadStuMessageBadges(arr) {
       var stickerData = await DB.getSticker(arr[i].id);
       var badgeEl = document.getElementById('msg-badge-' + arr[i].id);
       if (!badgeEl) continue;
-      // 여러 스티커 중 최신 1개 추출
+      // 여러 스티커 중 최신 1개 추출 (레거시 평면 데이터 방어)
       var lastMsg = null;
       if (stickerData && typeof stickerData === 'object') {
-        var entries = Object.values(stickerData);
+        var entries = Object.values(stickerData).filter(function(v) {
+          return v && typeof v === 'object' && (typeof v.text === 'string' || typeof v.message === 'string');
+        });
         if (entries.length) {
           entries.sort(function(a,b){ return (b.sentAt||0)-(a.sentAt||0); });
           lastMsg = entries[0];
@@ -1046,10 +1055,12 @@ async function showStuDetail(stuId) {
   // 마지막 메시지 불러오기
   try {
     var stickerData = await DB.getSticker(stuId);
-    // 여러 스티커 중 최신 1개 추출
+    // 여러 스티커 중 최신 1개 추출 (레거시 평면 데이터 방어)
     var lastMsg = null;
     if (stickerData && typeof stickerData === 'object') {
-      var entries = Object.values(stickerData);
+      var entries = Object.values(stickerData).filter(function(v) {
+        return v && typeof v === 'object' && (typeof v.text === 'string' || typeof v.message === 'string');
+      });
       if (entries.length) {
         entries.sort(function(a,b){ return (b.sentAt||0)-(a.sentAt||0); });
         lastMsg = entries[0];
@@ -3441,7 +3452,10 @@ async function sendStickerCustom() {
 async function loadLastSticker(stuId) {
   try {
     var stickers = await DB.getStickers(stuId);
-    var entries = Object.entries(stickers || {});
+    var entries = Object.entries(stickers || {}).filter(function(e) {
+      var v = e[1];
+      return v && typeof v === 'object' && (typeof v.text === 'string' || typeof v.message === 'string');
+    });
     if (!entries.length) return;
     // 가장 최근 스티커
     entries.sort(function(a,b){ return b[1].sentAt - a[1].sentAt; });
