@@ -169,14 +169,31 @@ const DB = {
     }
   },
 
+
+  async migrateOldMemos() {
+    const { db, ref, get, update, remove } = await initDB();
+    const snap = await get(ref(db, 'memos'));
+    if (!snap.exists()) return 0;
+    const oldMemos = snap.val();
+    let count = 0;
+    for (const stuId in oldMemos) {
+      const memoText = oldMemos[stuId];
+      if (memoText && memoText.trim()) {
+        await update(ref(db, `students/${stuId}`), { memo: memoText });
+        count++;
+      }
+    }
+    await remove(ref(db, 'memos')); // 이전 완료 후 구 경로 삭제
+    return count;
+  },
   async saveMemo(stuId, memo) {
-    const { db, ref, set } = await initDB();
-    await set(ref(db, 'memos/' + stuId), memo || '');
+    const { db, ref, update } = await initDB();
+    await update(ref(db, `students/${stuId}`), { memo: memo || '' });
   },
 
   async getMemo(stuId) {
     const { db, ref, get } = await initDB();
-    const snap = await get(ref(db, 'memos/' + stuId));
+    const snap = await get(ref(db, `students/${stuId}/memo`));
     return snap.exists() ? snap.val() : '';
   },
 
