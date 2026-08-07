@@ -654,6 +654,16 @@ async function init() {
     if (pw !== (saved.teacherPw || '1234')) { localStorage.removeItem('teacher_pw'); location.href = 'index.html'; return; }
     settings = saved;
     students = await DB.getStudents();
+    // 구버전 메모 데이터 1회 이전 (memos/ → students/{id}/memo)
+    if (!localStorage.getItem('memo_migrated_v1')) {
+      try {
+        var migrated = await DB.migrateOldMemos();
+        localStorage.setItem('memo_migrated_v1', '1');
+        if (migrated > 0) {
+          students = await DB.getStudents(); // 이전 후 재로드
+        }
+      } catch(e) {}
+    }
     renderStudents();
     loadStats();
     loadMnemonicEditor();
@@ -3226,7 +3236,17 @@ function _buildExamPaper(direction, setInfo, week) {
   var isEnToKo = direction === 'en';
   var title = setInfo.name + ' ' + week + '주차';
   var dirLabel = isEnToKo ? '영→한' : '한→영';
-  var PAGE_SIZE = 100; // 한 페이지당 단어 수
+  var total = weekWords.length;
+
+  // 페이지 수를 계산하고, 페이지당 단어 수를 균등 분배 (남는 페이지에 몰리지 않게)
+  var numPages = Math.max(1, Math.ceil(total / 100));
+  var PAGE_SIZE = Math.ceil(total / numPages);
+
+  // 페이지당 단어 수에 따라 글자 크기/행 높이 동적 조정 (여유 있을수록 크게)
+  var sizeTier;
+  if (PAGE_SIZE <= 60)      sizeTier = { rowH: 25, qFont: 13, ansFont: 12, numFont: 9,  gap: 16 };
+  else if (PAGE_SIZE <= 80) sizeTier = { rowH: 21, qFont: 12, ansFont: 11, numFont: 9,  gap: 13 };
+  else                      sizeTier = { rowH: 19, qFont: 11, ansFont: 10, numFont: 8,  gap: 10 };
 
   function makeRows(wordList, startNum, showAnswer) {
     return wordList.map(function(w, i) {
@@ -3234,9 +3254,9 @@ function _buildExamPaper(direction, setInfo, week) {
       var ans = isEnToKo ? (w[1]||'').split(',')[0].trim() : w[0];
       var bg = i%2===1 ? 'background:#f9f9f9;' : '';
       return '<tr style="' + bg + '">' +
-        '<td style="width:16px;text-align:right;color:#ccc;font-size:8px;padding:0 2px 0 0;border-right:1px solid #eee">' + (startNum+i) + '</td>' +
-        '<td style="padding:0 4px;font-size:' + (isEnToKo?'11px':'10px') + ';font-weight:' + (isEnToKo?'600':'400') + ';font-family:' + (isEnToKo?'Georgia,serif':'inherit') + ';white-space:nowrap">' + q + '</td>' +
-        '<td style="' + (showAnswer ? 'padding:0 4px;font-size:10px;color:#333' : 'border-bottom:1px solid #ccc;min-width:80px') + '">' +
+        '<td style="width:18px;text-align:right;color:#ccc;font-size:' + sizeTier.numFont + 'px;padding:0 2px 0 0;border-right:1px solid #eee">' + (startNum+i) + '</td>' +
+        '<td style="padding:0 4px;font-size:' + (isEnToKo?sizeTier.qFont:sizeTier.ansFont) + 'px;font-weight:' + (isEnToKo?'600':'400') + ';font-family:' + (isEnToKo?'Georgia,serif':'inherit') + ';white-space:nowrap">' + q + '</td>' +
+        '<td style="' + (showAnswer ? 'padding:0 4px;font-size:' + sizeTier.ansFont + 'px;color:#333' : 'border-bottom:1px solid #ccc;min-width:90px') + '">' +
         (showAnswer ? ans : '') + '</td>' +
       '</tr>';
     }).join('');
@@ -3246,34 +3266,34 @@ function _buildExamPaper(direction, setInfo, week) {
     var half = Math.ceil(wordList.length / 2);
     var leftCol = wordList.slice(0, half);
     var rightCol = wordList.slice(half);
-    var globalStart = (pageNum - 1) * PAGE_SIZE + 1;
+    var globalStart = 1;
+    for (var p = 0; p < pageNum - 1; p++) globalStart += pageChunks[p].length;
     return '<div class="page">' +
       '<div class="hdr">' +
         '<span class="ttl">' + title + ' ' + dirLabel + ' ' + label +
           (totalPages > 1 ? ' (' + pageNum + '/' + totalPages + ')' : '') + '</span>' +
         '<span style="font-size:10px;color:#aaa">이름________ 점수______</span>' +
       '</div>' +
-      '<div class="cols">' +
+      '<div class="cols" style="gap:0 ' + sizeTier.gap + 'px">' +
         '<table><tbody>' + makeRows(leftCol, globalStart, showAnswer) + '</tbody></table>' +
         '<table><tbody>' + makeRows(rightCol, globalStart + half, showAnswer) + '</tbody></table>' +
       '</div>' +
     '</div>';
   }
 
-  // 100개씩 페이지 분할
-  var pages = [];
-  for (var i = 0; i < weekWords.length; i += PAGE_SIZE) {
-    pages.push(weekWords.slice(i, i + PAGE_SIZE));
+  // 균등 분배로 페이지 나누기
+  var pageChunks = [];
+  for (var i = 0; i < total; i += PAGE_SIZE) {
+    pageChunks.push(weekWords.slice(i, i + PAGE_SIZE));
   }
-  var totalPages = pages.length;
-  var total = weekWords.length;
+  var totalPages = pageChunks.length;
 
   // 시험지 페이지들 + 정답지 페이지들
   var bodyHtml = '';
-  pages.forEach(function(pg, idx) {
+  pageChunks.forEach(function(pg, idx) {
     bodyHtml += makePage(pg, idx+1, totalPages, false, '시험지');
   });
-  pages.forEach(function(pg, idx) {
+  pageChunks.forEach(function(pg, idx) {
     bodyHtml += makePage(pg, idx+1, totalPages, true, '정답지');
   });
 
@@ -3289,15 +3309,15 @@ function _buildExamPaper(direction, setInfo, week) {
     '.page{width:210mm;min-height:297mm;padding:6mm 8mm;page-break-after:always;display:flex;flex-direction:column}' +
     '.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid #111;padding-bottom:4px;margin-bottom:5px;flex-shrink:0}' +
     '.ttl{font-size:13px;font-weight:800}' +
-    '.cols{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}' +
+    '.cols{display:grid;grid-template-columns:1fr 1fr}' +
     'table{width:100%;border-collapse:collapse}' +
-    'tr{height:19px}' +
+    'tr{height:' + sizeTier.rowH + 'px}' +
     '@media print{.no-print{display:none!important}@page{margin:5mm 6mm;size:A4}}' +
     '<\/style><\/head><body>' +
     '<div class="no-print">' +
       '<button class="pri" onclick="window.print()">🖨️ 인쇄 (' + (totalPages*2) + '페이지)</button>' +
       '<button class="sec" onclick="window.close()">닫기</button>' +
-      '<span style="font-size:11px;color:#666">총 ' + total + '단어 · 시험지 ' + totalPages + 'p + 정답지 ' + totalPages + 'p</span>' +
+      '<span style="font-size:11px;color:#666">총 ' + total + '단어 · 페이지당 ' + PAGE_SIZE + '개 · 시험지 ' + totalPages + 'p + 정답지 ' + totalPages + 'p</span>' +
     '</div>' +
     bodyHtml +
     '<\/body><\/html>';
@@ -3449,5 +3469,7 @@ function showToast(msg, duration) {
 }
 
 </script>
+<button class="rotate-btn" onclick="Utils.toggleLandscape()" title="가로 화면 전환">🔄</button>
+<script>if (window.Utils && Utils.applyLandscapePref) Utils.applyLandscapePref();</script>
 </body>
 </html>
