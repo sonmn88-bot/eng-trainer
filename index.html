@@ -1166,7 +1166,7 @@ async function showMain() {
   } catch(e) {}
   try {
     var stickerData = await DB.getSticker(state.stuId);
-    // 최신 읽지 않은 스티커 찾기 (레거시 평면 데이터 방어: 객체이고 text/message가 있는 것만)
+    // 최신 읽지 않은 스티커 찾기 (레거시 평면 데이터 방어 + 로컬 dismiss 이중 확인)
     var latestSticker = null;
     var latestStickerKey = null;
     if (stickerData && typeof stickerData === 'object') {
@@ -1176,11 +1176,14 @@ async function showMain() {
       });
       entries.sort(function(a,b){ return (b[1].sentAt||0)-(a[1].sentAt||0); });
       for (var si = 0; si < entries.length; si++) {
-        if (!entries[si][1].read) {
-          latestStickerKey = entries[si][0];
-          latestSticker = entries[si][1];
-          break;
-        }
+        var eKey = entries[si][0];
+        var eVal = entries[si][1];
+        var localDismissKey = 'sticker_seen_' + state.stuId + '_' + eKey;
+        // 서버 read=false 여도 이 기기에서 이미 확인 처리했으면 건너뜀 (서버 쓰기 실패 방어)
+        if (eVal.read || localStorage.getItem(localDismissKey)) continue;
+        latestStickerKey = eKey;
+        latestSticker = eVal;
+        break;
       }
     }
     if (latestSticker) {
@@ -3305,7 +3308,10 @@ async function closeSticker() {
     var key = window._pendingStickerKey;
     window._pendingStickerStuId = null;
     window._pendingStickerKey = null;
-    try { await DB.markStickerRead(stuId, key); } catch(e) { console.warn('읽음 처리 실패', e); }
+    // 1) 로컬에 즉시 확인 처리 마킹 (서버 실패해도 이 기기에서는 절대 다시 안 뜸)
+    localStorage.setItem('sticker_seen_' + stuId + '_' + key, '1');
+    // 2) 서버에도 반영 (선생님 화면에 읽음 표시용) - 실패해도 로컬 마킹은 이미 완료됨
+    try { await DB.markStickerRead(stuId, key); } catch(e) { console.warn('읽음 처리(서버) 실패', e); }
   }
 }
 
