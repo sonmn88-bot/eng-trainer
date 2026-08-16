@@ -146,6 +146,26 @@ const DB = {
   },
 
 
+
+  // ── 학생 개인 단어장 ──
+  async saveMyWord(stuId, word, data) {
+    const { db, ref, update } = await initDB();
+    const key = btoa(encodeURIComponent(word.toLowerCase())).replace(/=/g,'');
+    await update(ref(db, `myWords/${stuId}/${key}`), data);
+    return key;
+  },
+
+  async getMyWords(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `myWords/${stuId}`));
+    return snap.exists() ? snap.val() : {};
+  },
+
+  async deleteMyWord(stuId, key) {
+    const { db, ref, set } = await initDB();
+    await set(ref(db, `myWords/${stuId}/${key}`), null);
+  },
+
   async saveBookmark(stuId, word, ko) {
     const { db, ref, set } = await initDB();
     await set(ref(db, `bookmarks/${stuId}/${word}`), { word, ko: ko||'', addedAt: Date.now() });
