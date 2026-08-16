@@ -4966,22 +4966,28 @@ async function saveMyWordWithAI() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
+        max_tokens: 600,
         messages: [{
           role: 'user',
           content: '영단어: ' + en + '\n학생이 입력한 뜻: ' + ko + '\n\n' +
-            '이 단어에 대해 아래 JSON 형식으로만 답해줘(다른 설명 없이):\n' +
-            '{"commonKo":"수능/모의고사에 자주 쓰이는 뜻(학생 뜻과 같으면 학생 뜻 그대로)","exampleEn":"그 뜻에 맞는 영어 예문 한 문장","exampleKo":"예문의 한글 해석"}'
+            '이 단어에 대해 아래 JSON 형식으로만 답해(설명, 코드블록 없이 JSON만):\n' +
+            '{"commonKo":"수능/모의고사에 자주 쓰이는 뜻(학생 뜻과 같으면 학생 뜻 그대로, 20자 이내)","exampleEn":"그 뜻에 맞는 영어 예문 한 문장","exampleKo":"예문의 한글 해석"}'
         }]
       })
     });
     var data = await res.json();
     var replyText = (data.content && data.content[0] && data.content[0].text) || '';
+    // 마크다운 코드펜스 제거 (```json ... ``` 대비)
+    replyText = replyText.replace(/```json/gi, '').replace(/```/g, '').trim();
     var jsonMatch = replyText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      var parsed = JSON.parse(jsonMatch[0]);
-      if (parsed.commonKo) wordData.aiKo = parsed.commonKo;
-      if (parsed.exampleEn) wordData.example = { en: parsed.exampleEn, ko: parsed.exampleKo || '' };
+      try {
+        var parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.commonKo) wordData.aiKo = parsed.commonKo;
+        if (parsed.exampleEn) wordData.example = { en: parsed.exampleEn, ko: parsed.exampleKo || '' };
+      } catch(parseErr) {
+        console.warn('JSON 파싱 실패 (응답이 잘렸을 수 있음)', replyText);
+      }
     }
   } catch(e) {
     console.warn('AI 예문 생성 실패, 기본 저장으로 진행', e);
@@ -5026,11 +5032,55 @@ function openMyWordDetail(key) {
       '<div style="font-style:italic;margin-bottom:4px">' + w.example.en + '</div>' +
       '<div style="font-size:12px;color:var(--txt3)">' + (w.example.ko||'') + '</div></div>';
   } else {
-    html += '<div style="font-size:12px;color:var(--txt3)">예문 정보가 없어요</div>';
+    html += '<div id="myword-ex-regen-wrap" style="text-align:center;padding:.5rem 0">' +
+      '<div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">예문 생성에 실패했어요</div>' +
+      '<button class="btn btn-gold btn-sm" onclick="regenerateMyWordExample()">✨ 예문 다시 생성</button>' +
+      '</div>';
   }
 
   document.getElementById('myword-detail-body').innerHTML = html;
   document.getElementById('myword-detail-popup').style.display = 'flex';
+}
+
+async function regenerateMyWordExample() {
+  var key = _currentMyWordKey;
+  var w = myWordsCache[key];
+  if (!w) return;
+  var wrap = document.getElementById('myword-ex-regen-wrap');
+  if (wrap) wrap.innerHTML = '<span style="font-size:12px;color:var(--txt3)">✨ 생성 중...</span>';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
+        messages: [{
+          role: 'user',
+          content: '영단어: ' + w.word + '\n뜻: ' + (w.aiKo||w.ko) + '\n\n' +
+            '이 단어에 대해 아래 JSON 형식으로만 답해(설명, 코드블록 없이 JSON만):\n' +
+            '{"exampleEn":"자연스러운 영어 예문 한 문장","exampleKo":"예문의 한글 해석"}'
+        }]
+      })
+    });
+    var data = await res.json();
+    var replyText = (data.content && data.content[0] && data.content[0].text) || '';
+    replyText = replyText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    var jsonMatch = replyText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      var parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.exampleEn) {
+        w.example = { en: parsed.exampleEn, ko: parsed.exampleKo || '' };
+        await DB.saveMyWord(STU_ID, w.word, w);
+        openMyWordDetail(key); // 갱신된 상세 다시 렌더
+        return;
+      }
+    }
+    if (wrap) wrap.innerHTML = '<span style="font-size:12px;color:var(--red)">생성 실패, 다시 시도해주세요</span><br><button class="btn btn-gold btn-sm" style="margin-top:.5rem" onclick="regenerateMyWordExample()">다시 시도</button>';
+  } catch(e) {
+    if (wrap) wrap.innerHTML = '<span style="font-size:12px;color:var(--red)">오류 발생</span><br><button class="btn btn-gold btn-sm" style="margin-top:.5rem" onclick="regenerateMyWordExample()">다시 시도</button>';
+  }
 }
 
 async function deleteMyWordConfirm() {
