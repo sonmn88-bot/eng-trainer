@@ -62,20 +62,21 @@ const DB = {
     return snap.exists() ? Object.values(snap.val()) : [];
   },
 
-  async updateWeakWord(stuId, word, ko, correct) {
+  async updateWeakWord(stuId, word, ko, correct, neutral) {
     const { db, ref, get, update } = await initDB();
     const path = `students/${stuId}/weakWords/${btoa(word).replace(/=/g,'')}`;
     const snap = await get(ref(db, path));
     // 핵심: 오답일 때만 신규 등록, 이미 등록된 단어만 정답 업데이트
     if (!snap.exists()) {
       if (correct) return; // 처음 보는 단어를 맞혔으면 취약단어 등록 안 함
-      // 처음 틀린 단어만 등록
-      await update(ref(db, path), { word, ko: ko||'', wrong: 1, right: 0, streak: 0, lastStudied: Date.now() });
+      // 애매해요(neutral)는 오답 횟수 없이 복습 목록에만 등록
+      await update(ref(db, path), { word, ko: ko||'', wrong: neutral ? 0 : 1, right: 0, streak: 0, lastStudied: Date.now() });
       return;
     }
     const curr = snap.val();
     if (ko && !curr.ko) curr.ko = ko;
-    if (correct) { curr.right++; curr.streak++; }
+    if (neutral) { /* 애매해요: 연속정답/오답 모두 유지, 복습 시각만 갱신 */ }
+    else if (correct) { curr.right++; curr.streak++; }
     else { curr.wrong++; curr.streak = 0; }
     curr.lastStudied = Date.now();
     await update(ref(db, path), curr);
@@ -138,6 +139,8 @@ const DB = {
   },
 
 
+  _bk(word) { return String(word).replace(/[.#$\[\]\/]/g, '_'); },
+
   async getBookmarks(stuId) {
     const { db, ref, get } = await initDB();
     const snap = await get(ref(db, `bookmarks/${stuId}`));
@@ -168,17 +171,17 @@ const DB = {
 
   async saveBookmark(stuId, word, ko) {
     const { db, ref, set } = await initDB();
-    await set(ref(db, `bookmarks/${stuId}/${word}`), { word, ko: ko||'', addedAt: Date.now() });
+    await set(ref(db, `bookmarks/${stuId}/${this._bk(word)}`), { word, ko: ko||'', addedAt: Date.now() });
   },
 
   async removeBookmark(stuId, word) {
     const { db, ref, remove } = await initDB();
-    await remove(ref(db, `bookmarks/${stuId}/${word}`));
+    await remove(ref(db, `bookmarks/${stuId}/${this._bk(word)}`));
   },
 
   async toggleBookmark(stuId, word, ko) {
     const { db, ref, get, set, remove } = await initDB();
-    const r = ref(db, `bookmarks/${stuId}/${word}`);
+    const r = ref(db, `bookmarks/${stuId}/${this._bk(word)}`);
     const snap = await get(r);
     if (snap.exists()) {
       await remove(r);
