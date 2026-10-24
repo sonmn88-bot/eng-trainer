@@ -59,9 +59,9 @@
 </div>
 
 <div id="view-set" style="display:none">
-  <div class="card card-sm" style="margin-bottom:1rem" id="set-info-card"></div>
+  <div class="card card-sm mb-4" id="set-info-card"></div>
   <div class="card card-sm">
-    <p class="sec-title" style="margin-bottom:.875rem">문항 목록</p>
+    <p class="sec-title mb-35">문항 목록</p>
     <div id="q-list"></div>
   </div>
 </div>
@@ -126,15 +126,15 @@
   </div>
 
   <div id="tab-script">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-      <p class="sec-title" style="margin:0">스크립트</p>
+    <div class="row-between mb-3">
+      <p class="sec-title m-0">스크립트</p>
       <button class="btn btn-ghost btn-sm" id="script-toggle" onclick="toggleScript()">숨기기</button>
     </div>
     <div class="script-panel" id="script-text"></div>
   </div>
   <div id="tab-keywords" style="display:none">
     <div class="card card-sm">
-      <p class="sec-title" style="margin-bottom:.875rem">핵심 표현</p>
+      <p class="sec-title mb-35">핵심 표현</p>
       <div id="kw-list"></div>
     </div>
   </div>
@@ -564,7 +564,7 @@ function togglePlay() {
         // 자동재생 차단 - 사용자 인터랙션 필요
         console.warn('재생 오류:', err);
         document.getElementById('play-btn').textContent = '▶';
-        showToast && showToast('재생 버튼을 다시 눌러주세요');
+        (typeof showToast==='function') && showToast('재생 버튼을 다시 눌러주세요');
       });
     } else {
       document.getElementById('play-btn').textContent = '⏸';
@@ -601,7 +601,7 @@ function setTtsRate(rate) {
 async function markDone() {
   var q = questions[currentQIdx];
   progress[q.num] = true;
-  try { await DB.saveListeningProgress(STU_ID, currentSetInfo.id, q.num, true); } catch(e) {}
+  try { await DB.saveListeningProgress(STU_ID, currentSetInfo.id, q.num, true); } catch(e) { console.warn('저장 실패', e); }
 
   var btn = document.getElementById('done-btn');
   btn.textContent = '✓ 완료됨';
@@ -786,7 +786,7 @@ function showListeningBookmarkPopup(el, word, ko) {
 
   popup.innerHTML =
     '<div style="font-weight:700;font-family:var(--font-display);font-style:italic;margin-bottom:2px">' + word + '</div>' +
-    (ko ? '<div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">' + ko + '</div>' : '<div style="margin-bottom:.5rem"></div>') +
+    (ko ? '<div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">' + ko + '</div>' : '<div class="mb-2"></div>') +
     '<button id="bm-toggle-btn" style="width:100%;padding:.375rem;background:' + (isBm ? 'var(--gold-bg)' : 'var(--sur2)') + ';border:1px solid ' + (isBm ? 'var(--gold-bdr)' : 'var(--bdr)') + ';border-radius:6px;font-size:13px;cursor:pointer;color:var(--txt)">' +
     (isBm ? '⭐ 북마크 해제' : '☆ 북마크 추가') + '</button>';
 
@@ -861,10 +861,10 @@ loadListeningBookmarks();
         cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">▶</button>
     </div>
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
-      <span style="font-size:11px">🔈</span>
+      <span class="fs-11">🔈</span>
       <input type="range" id="bgm-volume" min="0" max="100" value="30"
         oninput="setBGMVolume(this.value)" style="flex:1;accent-color:var(--gold);height:3px">
-      <span style="font-size:11px">🔊</span>
+      <span class="fs-11">🔊</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
       <button class="bgm-btn" data-type="lofi" onclick="selectBGM('lofi','☕ Lofi Beat','집중 공부용')"

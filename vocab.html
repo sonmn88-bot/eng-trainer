@@ -55,8 +55,8 @@
 }
 .fc-grade-dot { width:8px;height:8px;border-radius:50%;background:var(--sur3); }
 .fc-grade-dot.filled-s { background:#C8F25A; }
-.fc-grade-dot.filled-a { background:#60A5FA; }
-.fc-grade-dot.filled-b { background:#4ADE80; }
+.fc-grade-dot.filled-a { background:var(--blue); }
+.fc-grade-dot.filled-b { background:var(--grn); }
 .fc-grade-dot.filled-c { background:var(--sur3); }
 .wrong-item {
   display: flex; gap: 10px; align-items: flex-start;
@@ -168,8 +168,8 @@
 
 <!-- ══ VIEW 1: 라이브러리 ══ -->
 <div id="view-library" class="fade-in">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-    <p class="sec-title" style="margin:0">단어장 선택</p>
+  <div class="row-between mb-3">
+    <p class="sec-title m-0">단어장 선택</p>
     <div style="display:flex;gap:6px">
       
       <button class="btn btn-ghost btn-sm" onclick="showCalendar()" id="my-record-btn" style="display:none">📅 내 기록</button>
@@ -209,7 +209,7 @@
   </div>
 
   <!-- ── STEP 1: 단어 범위 선택 ── -->
-  <div class="card card-sm" style="margin-bottom:.75rem">
+  <div class="card card-sm mb-3">
     <div style="font-size:11px;font-weight:700;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.625rem">① 단어 범위</div>
 
     <!-- 범위 탭 -->
@@ -245,7 +245,7 @@
     <div id="folder-panel" style="display:none;margin-bottom:.5rem">
       <div style="font-size:10.5px;color:var(--txt3);margin-bottom:.5rem">단어장 안 단어를 학습 중 ☆로 저장한 목록이에요 · <span style="color:var(--gold);text-decoration:underline;cursor:pointer" onclick="showVocabHelp()">차이점 보기</span></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.375rem">
-        <div style="font-size:11px;color:var(--txt3)">폴더 선택 (전체 또는 특정 폴더)</div>
+        <div class="muted-sm">폴더 선택 (전체 또는 특정 폴더)</div>
         <button onclick="showView('folders');loadFolders();" style="background:none;border:none;font-size:11px;color:var(--gold);cursor:pointer;font-weight:600">📁 폴더 관리 →</button>
       </div>
       <div id="folder-range-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
@@ -255,7 +255,7 @@
     <div id="mywords-panel" style="display:none;margin-bottom:.5rem">
       <div style="font-size:10.5px;color:var(--txt3);margin-bottom:.5rem">이 앱에 없는 새 단어를 직접 등록해요 · <span style="color:var(--gold);text-decoration:underline;cursor:pointer" onclick="showVocabHelp()">차이점 보기</span></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
-        <div style="font-size:11px;color:var(--txt3)" id="mywords-summary">내가 등록한 단어</div>
+        <div id="mywords-summary" class="muted-sm">내가 등록한 단어</div>
         <div style="display:flex;gap:6px;align-items:center">
           <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--txt3);cursor:pointer">
             <input type="checkbox" id="myword-hide-mastered-chk" onchange="renderMyWordsList()" style="width:13px;height:13px;accent-color:var(--gold)">
@@ -288,7 +288,7 @@
 
   <!-- ── STEP 2: 학습 모드 선택 ── -->
   <div id="mode-select-panel" style="display:none" class="card card-sm" style="margin-bottom:.75rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+    <div class="row-between mb-25">
       <div style="font-size:11px;font-weight:700;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase">② 학습 모드</div>
       <span class="badge b-gold" id="word-cnt-badge"></span>
     </div>
@@ -299,44 +299,44 @@
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
         <div style="font-size:22px;margin-bottom:3px">📖</div>
         <div style="font-size:11px;font-weight:700;color:var(--txt)">플래시</div>
-        <div style="font-size:9px;color:var(--txt3)">앞뒤 학습</div>
+        <div class="muted-2xs">앞뒤 학습</div>
       </button>
       <button class="mode-sel-btn" data-mode="flip" onclick="pickMode('flip')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
         <div style="font-size:22px;margin-bottom:3px">🃏</div>
         <div style="font-size:11px;font-weight:700;color:var(--txt)">카드</div>
-        <div style="font-size:9px;color:var(--txt3)">탭해서 확인</div>
+        <div class="muted-2xs">탭해서 확인</div>
       </button>
       <button class="mode-sel-btn" data-mode="quiz" onclick="pickMode('quiz')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
         <div style="font-size:22px;margin-bottom:3px">✏️</div>
         <div style="font-size:11px;font-weight:700;color:var(--txt)">타이핑</div>
-        <div style="font-size:9px;color:var(--txt3)">뜻 입력</div>
+        <div class="muted-2xs">뜻 입력</div>
       </button>
       <button class="mode-sel-btn" data-mode="choice" onclick="pickMode('choice')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
         <div style="font-size:22px;margin-bottom:3px">🔢</div>
         <div style="font-size:11px;font-weight:700;color:var(--txt)">4지선다</div>
-        <div style="font-size:9px;color:var(--txt3)">선택형</div>
+        <div class="muted-2xs">선택형</div>
       </button>
       <button class="mode-sel-btn" data-mode="blank" onclick="pickMode('blank')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
         <div style="font-size:22px;margin-bottom:3px">📝</div>
         <div style="font-size:11px;font-weight:700;color:var(--txt)">빈칸</div>
-        <div style="font-size:9px;color:var(--txt3)">예문 완성</div>
+        <div class="muted-2xs">예문 완성</div>
       </button>
       <button class="mode-sel-btn" data-mode="speed" onclick="pickMode('speed')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
         <div style="font-size:22px;margin-bottom:3px">⚡</div>
         <div style="font-size:11px;font-weight:700;color:var(--txt)">속도</div>
-        <div style="font-size:9px;color:var(--txt3)">O/X 인식</div>
+        <div class="muted-2xs">O/X 인식</div>
       </button>
       <button class="mode-sel-btn" data-mode="confuse" onclick="pickMode('confuse')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;grid-column:span 3;display:flex;align-items:center;justify-content:center;gap:8px">
         <div style="font-size:22px">🔀</div>
         <div style="text-align:left">
           <div style="font-size:11px;font-weight:700;color:var(--txt)">혼동 단어쌍 특훈</div>
-          <div style="font-size:9px;color:var(--txt3)">헷갈리는 단어쌍 집중 학습</div>
+          <div class="muted-2xs">헷갈리는 단어쌍 집중 학습</div>
         </div>
       </button>
     </div>
@@ -346,9 +346,9 @@
   <div id="start-action-panel" style="display:none" class="card card-sm">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem">
       <div id="start-mode-icon" style="font-size:28px">📖</div>
-      <div style="flex:1">
+      <div class="flex-1">
         <div id="start-mode-name" style="font-size:14px;font-weight:700;color:var(--txt)"></div>
-        <div id="start-mode-desc" style="font-size:11px;color:var(--txt3)"></div>
+        <div id="start-mode-desc" class="muted-sm"></div>
       </div>
       <button onclick="resetModeSelection()" style="background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">변경</button>
     </div>
@@ -368,14 +368,35 @@
 
   <!-- 하위 호환용 숨김 요소 -->
   <div id="start-panel" style="display:none"></div>
-  <div id="mode-picker-popup" style="display:none"></div>
+  <div id="mode-picker-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10020;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--sur);border-radius:24px 24px 0 0;padding:1.25rem 1rem calc(1.25rem + env(safe-area-inset-bottom,0px));width:100%;max-width:560px;max-height:85vh;overflow-y:auto">
+      <div id="picker-title" style="font-size:18px;font-weight:900"></div>
+      <div id="picker-subtitle" style="font-size:13px;color:var(--txt2);margin:.25rem 0 1rem"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button type="button" class="picker-mode-btn btn" style="min-height:52px" onclick="startFromPicker('flash')">플래시카드</button>
+        <button type="button" class="picker-mode-btn btn" style="min-height:52px" onclick="startFromPicker('flip')">카드 뒤집기</button>
+        <button type="button" class="picker-mode-btn btn" style="min-height:52px" onclick="startFromPicker('quiz')">시험(주관식)</button>
+        <button type="button" class="picker-mode-btn btn" style="min-height:52px" onclick="startFromPicker('choice')">4지선다</button>
+        <button type="button" class="picker-mode-btn btn" style="min-height:52px" onclick="startFromPicker('blank')">빈칸 채우기</button>
+        <button type="button" class="picker-mode-btn btn" style="min-height:52px" onclick="startFromPicker('speed')">스피드</button>
+      </div>
+      <div id="picker-count-wrap" style="display:none;margin-top:1rem">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+          <span style="font-size:13px;color:var(--txt2)">문제 수</span>
+          <select id="picker-quiz-count" style="flex:1;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;color:var(--txt);font-size:14px"></select>
+        </div>
+        <button type="button" id="picker-start-btn" class="btn btn-gold btn-full" style="min-height:52px;font-size:16px;font-weight:900" onclick="confirmStartFromPicker()">시작하기</button>
+      </div>
+      <button type="button" class="btn btn-ghost btn-full" style="margin-top:.75rem" onclick="document.getElementById('mode-picker-popup').style.display='none'">닫기</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ VIEW 3: 플래시카드 ══ -->
 <div id="view-flash" style="display:none">
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <p class="sec-title" style="margin:0">📖 학습 모드</p>
+    <div class="row-between mb-4">
+      <p class="sec-title m-0">📖 학습 모드</p>
       <span class="badge b-gold" id="flash-prog"></span>
     </div>
     <div class="flashcard" onclick="flipCard()" id="flashcard-el">
@@ -384,7 +405,7 @@
         <div class="fc-front">
           <div id="fc-img-wrap"></div>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:.25rem">
-            <div class="fc-en" id="fc-en" style="margin:0"></div>
+            <div class="fc-en m-0" id="fc-en"></div>
             <div id="fc-grade-badge" style="display:none;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px"></div>
           </div>
           <div id="fc-grade-bar" style="display:none;display:flex;gap:2px;justify-content:center;margin-bottom:.25rem">
@@ -427,9 +448,9 @@
 
 <!-- ══ VIEW CONFUSE: 혼동단어쌍 특훈 ══ -->
 <div id="view-confuse" style="display:none">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+  <div class="row-between mb-3">
     <div>
-      <p class="sec-title" style="margin:0">🔀 혼동 단어쌍 특훈</p>
+      <p class="sec-title m-0">🔀 혼동 단어쌍 특훈</p>
       <div style="font-size:11px;color:var(--txt3);margin-top:2px" id="confuse-total-info"></div>
     </div>
     <button class="btn btn-ghost btn-sm" onclick="backToSet()">← 돌아가기</button>
@@ -456,15 +477,15 @@
 
   <!-- 학습 모드 -->
   <div id="confuse-learn-panel" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-      <span id="confuse-learn-prog" style="font-size:12px;color:var(--txt3)"></span>
+    <div class="row-between mb-25">
+      <span id="confuse-learn-prog" class="muted-md"></span>
       <button onclick="document.getElementById('confuse-mode-select').style.display='block';document.getElementById('confuse-learn-panel').style.display='none'" style="background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">모드 변경</button>
     </div>
     <!-- 단어쌍 카드 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.875rem" id="confuse-learn-cards"></div>
     <!-- 설명 -->
     <div id="confuse-learn-tip" style="display:none;background:var(--sur2);border-radius:var(--rs);padding:.625rem .875rem;font-size:11px;color:var(--txt2);margin-bottom:.75rem;border-left:3px solid var(--gold-bdr)"></div>
-    <div style="display:flex;gap:8px">
+    <div class="row-gap8">
       <button class="btn btn-full" onclick="confuseLearnPrev()">← 이전</button>
       <button class="btn btn-gold btn-full" onclick="confuseLearnNext()" id="confuse-learn-next-btn">다음 →</button>
     </div>
@@ -472,14 +493,14 @@
 
   <!-- 테스트 모드 -->
   <div id="confuse-test-panel" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.625rem">
+    <div class="row-between mb-25">
       <span id="confuse-prog" style="font-size:13px;font-weight:600"></span>
-      <div style="display:flex;align-items:center;gap:8px">
+      <div class="row-center">
         <span id="confuse-score" style="font-size:12px;font-family:var(--font-mono)"></span>
         <button onclick="document.getElementById('confuse-mode-select').style.display='block';document.getElementById('confuse-test-panel').style.display='none'" style="background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">모드 변경</button>
       </div>
     </div>
-    <div class="card" style="margin-bottom:.75rem">
+    <div class="card mb-3">
       <div style="font-size:11px;color:var(--txt3);margin-bottom:.5rem;text-align:center">다음 단어의 뜻은?</div>
       <div id="confuse-question" style="font-size:28px;font-weight:800;color:var(--txt);text-align:center;font-family:var(--font-display);font-style:italic;margin-bottom:.25rem"></div>
       <div id="confuse-question-sub" style="font-size:11px;color:var(--txt3);text-align:center"></div>
@@ -495,8 +516,8 @@
   <div class="card">
     <div class="prog-wrap">
       <div class="prog-info">
-        <span id="quiz-prog" style="font-weight:600"></span>
-        <div style="display:flex;align-items:center;gap:8px">
+        <span id="quiz-prog" class="fw-6"></span>
+        <div class="row-center">
           <span id="quiz-score" class="mono"></span>
           <!-- 집중 모드 토글 -->
           <button id="focus-mode-btn" onclick="toggleFocusMode()" style="font-size:10px;padding:2px 8px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--txt3);cursor:pointer;transition:all .2s">⚡집중</button>
@@ -517,8 +538,7 @@
       <span id="quiz-grade-badge" style="display:none;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px"></span>
     </div>
     <div style="display:flex;align-items:center;justify-content:center;gap:8px">
-      <div class="big-word" id="quiz-word" style="margin:0"></div>
-      <span id="quiz-grade-badge" style="display:none;font-size:11px;font-weight:800;color:#fff;padding:3px 8px;border-radius:5px;align-self:center"></span>
+      <div class="big-word m-0" id="quiz-word"></div>
     </div>
     <div style="text-align:center;margin-bottom:.75rem;display:flex;gap:8px;justify-content:center">
       <button class="tts-btn" id="quiz-bm-btn" onclick="toggleBookmarkCurrent()" style="font-size:16px" title="북마크">☆</button>
@@ -550,11 +570,11 @@
     <div class="metrics" id="res-metrics"></div>
     <div id="res-mode-info" style="font-size:11px;color:var(--txt3);text-align:center;margin-bottom:.5rem"></div>
     <div id="res-msg" style="margin-bottom:1rem;font-size:14px;color:var(--txt2);text-align:center;font-weight:500"></div>
-    <div id="res-list" style="margin-bottom:1rem"></div>
+    <div id="res-list" class="mb-4"></div>
     <!-- AI 오답 분석 -->
     <div id="ai-feedback-wrap" style="display:none;margin-bottom:1rem">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
-        <p class="sec-title" style="margin:0">🤖 AI 오답 분석</p>
+        <p class="sec-title m-0">🤖 AI 오답 분석</p>
         <button class="btn btn-ghost btn-sm" id="ai-feedback-btn" onclick="requestAIFeedback()">분석 받기</button>
       </div>
       <div id="ai-feedback-content" style="background:var(--sur2);border-radius:var(--rs);padding:.75rem 1rem;font-size:13px;color:var(--txt2);line-height:1.7;border-left:2px solid var(--gold-bdr);display:none"></div>
@@ -578,7 +598,7 @@
     <div id="continue-batch-wrap" style="display:none;margin-bottom:8px">
       <button class="btn btn-gold btn-full" onclick="continueBatch()" id="continue-batch-btn">▶ 다음 단어 이어하기</button>
     </div>
-    <div style="display:flex;gap:8px">
+    <div class="row-gap8">
       <button class="btn btn-full" onclick="backToSet()">다시 시작</button>
       <button class="btn btn-full" onclick="showWrong()">📝 오답 노트</button>
     </div>
@@ -586,8 +606,8 @@
 </div>
 
 <div id="view-flip" style="display:none">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-    <p class="sec-title" style="margin:0">🃏 카드 연습</p>
+  <div class="row-between mb-3">
+    <p class="sec-title m-0">🃏 카드 연습</p>
     <button class="btn btn-ghost btn-sm" onclick="backToSet()">← 돌아가기</button>
   </div>
   <div class="flip-set-grid" id="flip-set-grid"></div>
@@ -605,7 +625,7 @@
   <div class="card">
     <div class="prog-wrap">
       <div class="prog-info">
-        <span id="blank-prog" style="font-weight:600"></span>
+        <span id="blank-prog" class="fw-6"></span>
         <span id="blank-score" class="mono"></span>
       </div>
       <div class="prog-track"><div class="prog-fill" id="blank-fill" style="width:0%"></div></div>
@@ -631,7 +651,7 @@
   <div class="card">
     <div class="prog-wrap">
       <div class="prog-info">
-        <span id="choice-prog" style="font-weight:600"></span>
+        <span id="choice-prog" class="fw-6"></span>
         <span id="choice-score" class="mono"></span>
       </div>
       <div class="prog-track"><div class="prog-fill" id="choice-fill" style="width:0%"></div></div>
@@ -640,7 +660,7 @@
     <div style="display:flex;justify-content:flex-end;margin-bottom:.25rem">
       <button class="tts-btn" id="choice-bm-btn" onclick="toggleBookmarkCurrent()" style="font-size:16px" title="북마크">☆</button>
     </div>
-    <div class="big-word" id="choice-word" style="margin-bottom:.5rem"></div>
+    <div class="big-word mb-2" id="choice-word"></div>
     <div id="choice-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;box-sizing:border-box"></div>
     <div id="choice-fb" style="display:none;text-align:center;padding:.5rem;border-radius:var(--rs);margin-top:.75rem;font-size:13px;font-weight:600"></div>
   </div>
@@ -654,7 +674,7 @@
   <div class="card" style="text-align:center">
     <div class="prog-wrap">
       <div class="prog-info">
-        <span id="speed-prog" style="font-weight:600"></span>
+        <span id="speed-prog" class="fw-6"></span>
         <span id="speed-score" class="mono"></span>
       </div>
       <div class="prog-track"><div class="prog-fill" id="speed-fill" style="width:0%"></div></div>
@@ -664,7 +684,7 @@
     <div id="speed-hint" style="font-size:12px;color:var(--txt3);min-height:18px;margin-bottom:1rem"></div>
     <!-- 기본 버튼 -->
     <div id="speed-btns" style="display:flex;gap:12px;justify-content:center">
-      <button class="btn" style="flex:1;background:var(--red,#e53935);color:#fff;font-size:16px;padding:1rem" onclick="speedAnswer(false)">❌ 몰라요</button>
+      <button class="btn" style="flex:1;background:var(--red,#e53935);color:var(--on-gold,#0E1116);font-size:16px;padding:1rem" onclick="speedAnswer(false)">✕ 몰라요</button>
       <button class="btn btn-gold" style="flex:1;font-size:16px;padding:1rem" onclick="speedAnswer(true)">✅ 알아요</button>
     </div>
     <!-- 알아요 눌렀을 때 뜻 확인 패널 -->
@@ -693,8 +713,8 @@
 
 <!-- ══ VIEW 11: 출석 달력 & 레벨 ══ -->
 <div id="view-calendar" style="display:none">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-    <p class="sec-title" style="margin:0">📅 내 학습 기록</p>
+  <div class="row-between mb-3">
+    <p class="sec-title m-0">📅 내 학습 기록</p>
     <button class="btn btn-ghost btn-sm" onclick="backToLibrary()">← 돌아가기</button>
   </div>
 
@@ -706,20 +726,20 @@
     <div style="background:var(--sur2);border-radius:99px;height:8px;overflow:hidden;margin-bottom:.375rem">
       <div id="level-bar" style="height:100%;background:var(--gold);border-radius:99px;transition:width .6s"></div>
     </div>
-    <div id="level-progress-txt" style="font-size:11px;color:var(--txt3)"></div>
+    <div id="level-progress-txt" class="muted-sm"></div>
   </div>
 
   <!-- 도장 모음 -->
-  <div class="card" style="margin-bottom:.75rem">
-    <p class="sec-title" style="margin-bottom:.75rem">🏅 도장 모음</p>
+  <div class="card mb-3">
+    <p class="sec-title mb-3">🏅 도장 모음</p>
     <div id="stamp-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center"></div>
   </div>
 
   <!-- 출석 달력 -->
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+    <div class="row-between mb-3">
       <button class="btn btn-ghost btn-sm" onclick="calMonth(-1)">‹</button>
-      <span id="cal-title" style="font-weight:600"></span>
+      <span id="cal-title" class="fw-6"></span>
       <button class="btn btn-ghost btn-sm" onclick="calMonth(1)">›</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px;color:var(--txt3);margin-bottom:4px">
@@ -742,7 +762,7 @@
   <div class="card">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
       <button class="btn btn-ghost btn-sm" onclick="showResult()">← 결과</button>
-      <p class="sec-title" style="margin:0">📝 오답 노트</p>
+      <p class="sec-title m-0">📝 오답 노트</p>
     </div>
     <div id="wrong-list"></div>
   </div>
@@ -752,19 +772,19 @@
 <div id="view-folders" style="display:none">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem">
     <div>
-      <p class="sec-title" style="margin:0">⭐ 북마크 & 폴더</p>
+      <p class="sec-title m-0">⭐ 북마크 & 폴더</p>
       <div style="font-size:11px;color:var(--txt3);margin-top:2px" id="bm-total-count"></div>
     </div>
     <button class="btn btn-ghost btn-sm" onclick="goBack()">← 뒤로</button>
   </div>
 
   <!-- 폴더 목록 -->
-  <div id="folder-list" style="margin-bottom:.75rem"></div>
+  <div id="folder-list" class="mb-3"></div>
 
   <!-- 새 폴더 만들기 -->
   <div class="card card-sm">
-    <p class="sec-title" style="margin-bottom:.5rem">+ 새 폴더 만들기</p>
-    <div style="display:flex;gap:8px">
+    <p class="sec-title mb-2">+ 새 폴더 만들기</p>
+    <div class="row-gap8">
       <input id="folder-name-input" type="text" placeholder="폴더 이름 (예: 1주차 틀린것)" style="flex:1;font-size:13px" maxlength="20"
         onkeydown="if(event.key==='Enter')createFolder()">
       <button class="btn btn-gold" onclick="createFolder()">만들기</button>
@@ -777,12 +797,12 @@
 <div id="view-folder-detail" style="display:none">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:.875rem">
     <button class="btn btn-ghost btn-sm" onclick="if(currentFolderId==='__all__'){showView('folders');loadFolders();}else{showView('folders');loadFolders();}">← 북마크</button>
-    <p class="sec-title" style="margin:0" id="folder-detail-title"></p>
+    <p class="sec-title m-0" id="folder-detail-title"></p>
   </div>
   <div id="folder-detail-list"></div>
   <!-- 폴더 단어로 학습 -->
   <div id="folder-study-btns" style="display:none;margin-top:.875rem">
-    <p class="sec-title" style="margin-bottom:.5rem">이 폴더로 학습</p>
+    <p class="sec-title mb-2">이 폴더로 학습</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <button class="btn btn-full" onclick="startFolderMode('flash')">📖 플래시카드</button>
       <button class="btn btn-gold btn-full" onclick="startFolderMode('quiz')">✏️ 퀴즈</button>
@@ -791,7 +811,7 @@
     </div>
   </div>
   <div style="text-align:center;margin-top:.75rem">
-    <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteCurrentFolder()">🗑 이 폴더 삭제</button>
+    <button class="btn btn-ghost btn-sm c-red" onclick="deleteCurrentFolder()">🗑 이 폴더 삭제</button>
   </div>
 </div>
 
@@ -801,7 +821,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem .75rem;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:var(--sur)">
       <div>
         <div style="font-size:14px;font-weight:700" id="fp-word-label"></div>
-        <div style="font-size:11px;color:var(--txt3)">저장할 폴더를 선택하세요</div>
+        <div class="muted-sm">저장할 폴더를 선택하세요</div>
       </div>
       <button onclick="closeFolderPicker()" style="background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
     </div>
@@ -810,8 +830,8 @@
       <div style="display:flex;gap:6px">
         <input id="fp-new-folder-input" type="text" placeholder="새 폴더 이름 (예: 1주차, 틀린것만...)"
           style="flex:1;font-size:13px" maxlength="20"
-          onkeydown="if(event.key==='Enter')fpCreateAndAdd()">
-        <button class="btn btn-gold btn-sm" onclick="fpCreateAndAdd()">만들기+추가</button>
+          onkeydown="if(event.key==='Enter')fpQuickCreate()">
+        <button class="btn btn-gold btn-sm" onclick="fpQuickCreate()">만들기+추가</button>
       </div>
     </div>
     <!-- 기존 폴더 목록 -->
@@ -827,9 +847,9 @@
       <button onclick="closeAddMyWordPopup()" style="background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
     </div>
     <label class="label">영단어</label>
-    <input id="myword-en-input" type="text" placeholder="예) ambiguous" style="margin-bottom:.75rem" autocomplete="off">
+    <input id="myword-en-input" type="text" placeholder="예) ambiguous" autocomplete="off" class="mb-3">
     <label class="label">내가 아는 뜻</label>
-    <input id="myword-ko-input" type="text" placeholder="예) 애매한" style="margin-bottom:.875rem" autocomplete="off">
+    <input id="myword-ko-input" type="text" placeholder="예) 애매한" autocomplete="off" class="mb-35">
     <div id="myword-status" style="font-size:12px;min-height:18px;margin-bottom:.5rem;text-align:center;color:var(--txt3)"></div>
     <button class="btn btn-gold btn-full" id="myword-save-btn" onclick="saveMyWordWithAI()">저장하고 예문 생성 ✨</button>
   </div>
@@ -838,7 +858,7 @@
 <!-- ── 내 단어 상세(수정/삭제) 팝업 ── -->
 <div id="myword-detail-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10015;align-items:center;justify-content:center;padding:1rem">
   <div style="background:var(--sur);border-radius:20px;width:100%;max-width:340px;padding:1.5rem;max-height:80vh;overflow-y:auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div class="row-between mb-4">
       <div style="font-size:16px;font-weight:800;font-family:var(--font-display);font-style:italic" id="myword-detail-word"></div>
       <button onclick="document.getElementById('myword-detail-popup').style.display='none'" style="background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
     </div>
@@ -851,9 +871,9 @@
 <!-- 폴더 선택 바텀시트 -->
 <div id="folder-picker" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9995;align-items:flex-end;justify-content:center">
   <div style="background:var(--sur);border-radius:20px 20px 0 0;padding:1.25rem;width:100%;max-width:480px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+    <div class="row-between mb-3">
       <div>
-        <p class="sec-title" style="margin:0">📁 폴더에 추가</p>
+        <p class="sec-title m-0">📁 폴더에 추가</p>
         <div style="font-size:11px;color:var(--txt3);margin-top:2px" id="fp-curr-word"></div>
       </div>
       <button onclick="closeFolderPicker()" style="background:none;border:none;font-size:20px;color:var(--txt3);cursor:pointer">×</button>
@@ -973,7 +993,7 @@ function renderFlipCards() {
         '<button onclick="event.stopPropagation();checkFlipCard(' + i + ')" id="fc-check-' + i + '" ' +
           'style="flex:1;padding:4px 0;border-radius:0 0 0 var(--rs);border:none;font-size:11px;font-weight:700;cursor:pointer;' +
           (isChecked
-            ? 'background:rgba(74,222,128,.25);color:#4ade80;'
+            ? 'background:rgba(74,222,128,.25);color:var(--grn);'
             : 'background:rgba(0,0,0,.35);color:rgba(255,255,255,.6);') +
           '">' + (isChecked ? '✓ 알았어요' : '알았어요') + '</button>' +
         // 북마크 버튼
@@ -1119,7 +1139,7 @@ function renderBlank() {
   }
   // 그래도 없으면 단어가 아예 없는 예문 → 단어만 따로 표시
   if (!blanked.includes('blank-hole')) {
-    blanked = HOLE + ' <span style="font-size:11px;color:var(--txt3)">(위 빈칸에 단어 입력)</span><br><em style="font-size:12px;color:var(--txt3)">' + ex.en + '</em>';
+    blanked = HOLE + ' <span class="muted-sm">(위 빈칸에 단어 입력)</span><br><em class="muted-md">' + ex.en + '</em>';
   }
 
   document.getElementById('blank-sentence').innerHTML = blanked;
@@ -1560,7 +1580,7 @@ async function loadFolderRangeList() {
     }).join('');
     listEl.innerHTML = html;
     selectFolderRange(null); // 기본: 전체 북마크
-  } catch(e) { listEl.innerHTML = '<div style="color:var(--txt3);font-size:12px">폴더 없음</div>'; }
+  } catch(e) { listEl.innerHTML = '<div class="muted-md">폴더 없음</div>'; }
 }
 
 async function selectFolderRange(folderId) {
@@ -1686,14 +1706,14 @@ function openModePicker(title, subtitle) {
 }
 
 function startFromPicker(mode) {
+  var _evBtn = (window.event && window.event.currentTarget) || null;
   _pickerMode = mode;
   // 버튼 active 표시
   document.querySelectorAll('.picker-mode-btn').forEach(function(b) {
     b.style.borderColor = 'var(--bdr)';
     b.style.background = 'var(--sur2)';
   });
-  event.currentTarget.style.borderColor = 'var(--gold)';
-  event.currentTarget.style.background = 'var(--gold-bg)';
+  if (_evBtn) { _evBtn.style.borderColor = 'var(--gold)'; _evBtn.style.background = 'var(--gold-bg)'; }
 
   var needCount = ['quiz','choice','blank'].includes(mode);
   var cw = document.getElementById('picker-count-wrap');
@@ -1859,9 +1879,9 @@ function renderConfuseLearn() {
         '<button data-w="' + pair[0] + '" onclick="Utils.speak(this.dataset.w)" style="margin-top:.5rem;background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">🔊</button>' +
       '</div>' +
       '<div style="background:rgba(96,165,250,.08);border:2px solid rgba(96,165,250,.3);border-radius:14px;padding:1rem;text-align:center">' +
-        '<div style="font-size:10px;font-weight:700;color:#60A5FA;letter-spacing:.08em;margin-bottom:.5rem">단어 B</div>' +
+        '<div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.08em;margin-bottom:.5rem">단어 B</div>' +
         '<div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:.5rem;font-style:italic">' + pair[2] + '</div>' +
-        '<div style="font-size:13px;color:#60A5FA;font-weight:600">' + pair[3] + '</div>' +
+        '<div style="font-size:13px;color:var(--blue);font-weight:600">' + pair[3] + '</div>' +
         '<button data-w2="' + pair[2] + '" onclick="Utils.speak(this.dataset.w2)" style="margin-top:.5rem;background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">🔊</button>' +
       '</div>';
   }
@@ -1979,7 +1999,7 @@ function answerConfuse(idx) {
   document.getElementById('confuse-next-btn').style.display = 'block';
   document.getElementById('confuse-score').textContent = '✓' + confuse.correct + ' ✗' + confuse.wrong;
 
-  try { DB.updateWeakWord(STU_ID, q.word, q.ko, isCorrect); } catch(e) {}
+  try { DB.updateWeakWord(STU_ID, q.word, q.ko, isCorrect); } catch(e) { console.warn('저장 실패', e); }
 }
 
 function nextConfuse() {
@@ -2040,7 +2060,7 @@ function doWordSearch(q) {
   if (countEl) countEl.textContent = results.length + '개 검색됨' + (results.length === 50 ? ' (상위 50개)' : '');
 
   if (!results.length) {
-    listEl.innerHTML = '<div class="empty" style="padding:.5rem 0">결과 없음</div>';
+    listEl.innerHTML = '<div class="empty py-2">결과 없음</div>';
     resultEl.style.display = 'block';
     return;
   }
@@ -2055,7 +2075,7 @@ function doWordSearch(q) {
     var safeKo = w.ko.replace(/'/g,"\\'");
     return '<div style="display:flex;align-items:center;gap:8px;padding:.5rem 0;border-bottom:1px solid var(--bdr)">' +
       '<button onclick="Utils.speak(\'' + safeWord + '\')" style="background:none;border:none;font-size:14px;cursor:pointer;flex-shrink:0">🔊</button>' +
-      '<div style="flex:1">' +
+      '<div class="flex-1">' +
         '<span style="font-family:var(--font-display);font-style:italic;font-size:14px">' + hi_word + '</span>' +
         '<span style="color:var(--txt3);font-size:11px;margin-left:6px">' + w.setIcon + ' ' + w.setName + (w.day?' · '+w.day:'') + '</span>' +
         '<div style="font-size:12px;color:var(--txt2);margin-top:1px">' + hi_ko + '</div>' +
@@ -2551,7 +2571,7 @@ function selfEval(result) {
   window._selfEvalMap[w[0].toLowerCase()] = result;
   // 'no' / 'blur' → 취약단어 업데이트
   var isCorrect = result === 'yes';
-  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect, result === 'blur'); } catch(e) {}
+  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect, result === 'blur'); } catch(e) { console.warn('저장 실패', e); }
   // 다음 카드로
   flashNext();
 }
@@ -2631,7 +2651,7 @@ async function showHint() {
       var spent = await DB.spendGold(STU_ID, 5);
       if (!spent.success) { showToast('골드가 부족해요'); return; }
       showToast('💡 골드 5 사용 (남은 골드: ' + spent.amount + ')');
-      loadGoldDisplay && loadGoldDisplay().catch(function(){});
+      (typeof loadGoldDisplay==='function') && loadGoldDisplay && loadGoldDisplay().catch(function(){});
     } else {
       var left = freeResult.limit - freeResult.used;
       if (left > 0) showToast('💡 힌트 무료 ' + left + '회 남음');
@@ -3120,7 +3140,7 @@ async function submitAns() {
   quiz.results.push(histEntry);
   if (!quiz.history) quiz.history = [];
   quiz.history.push(histEntry);
-  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); } catch(e) {}
+  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); } catch(e) { console.warn('저장 실패', e); }
   // XP 지급
   var xpAmt = isCorrect ? (currentMode==='weak'?window.XP_RULES.weak_correct:window.XP_RULES.quiz_correct) : window.XP_RULES.quiz_wrong;
   giveXP(xpAmt);
@@ -3411,7 +3431,7 @@ async function finishQuiz() {
   if (retryRow) retryRow.style.display = wrongOnes.length > 0 ? 'flex' : 'none';
   if (wrongOnes.length) {
     document.getElementById('res-list').innerHTML =
-      '<p class="sec-title" style="margin-bottom:.75rem">틀린 단어 ('+wrongOnes.length+'개)</p>' +
+      '<p class="sec-title mb-3">틀린 단어 ('+wrongOnes.length+'개)</p>' +
       wrongOnes.slice(0,5).map(function(r){
         return '<div class="wrong-item"><div class="wi-word">'+r.word+'</div><div><div class="wi-ko">'+r.ko+'</div><div class="wi-ans">내 답: '+(r.input||'')+'</div></div></div>';
       }).join('') +
@@ -3580,7 +3600,7 @@ function showWrong() {
 async function generateAIExample(word, ko, idx) {
   var wrap = document.getElementById('ai-ex-wrap-' + idx);
   if (!wrap) return;
-  wrap.innerHTML = '<span style="font-size:11px;color:var(--txt3)">✨ 생성 중...</span>';
+  wrap.innerHTML = '<span class="muted-sm">✨ 생성 중...</span>';
   try {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -3898,10 +3918,10 @@ function answerChoice(i) {
 
   btns.forEach(function(btn, bi) {
     btn.disabled = true;
-    if (bi === correctIdx) { btn.style.background = 'var(--grn,#4caf50)'; btn.style.color = '#fff'; }
+    if (bi === correctIdx) { btn.style.background = 'var(--grn,#4caf50)'; btn.style.color = 'var(--on-gold,#0E1116)'; if (btn.textContent.indexOf('✓') !== 0) btn.textContent = '✓ ' + btn.textContent; }
   });
   if (!isCorrect) {
-    btns[i].style.background = 'var(--red,#e53935)'; btns[i].style.color = '#fff';
+    btns[i].style.background = 'var(--red,#e53935)'; btns[i].style.color = 'var(--on-gold,#0E1116)'; if (btns[i].textContent.indexOf('✕') !== 0) btns[i].textContent = '✕ ' + btns[i].textContent;
   }
 
   if (isCorrect) { choice.correct++; choice.combo++; choice.maxCombo = Math.max(choice.maxCombo, choice.combo);
@@ -3910,7 +3930,7 @@ function answerChoice(i) {
   else { choice.wrong++; choice.combo = 0; }
   choice.results.push({ word: w[0], ko: w[1], correct: isCorrect });
 
-  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); } catch(e) {}
+  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); } catch(e) { console.warn('저장 실패', e); }
   // XP 지급
   giveXP(isCorrect ? (window.XP_RULES&&window.XP_RULES.choice_correct||5) : (window.XP_RULES&&window.XP_RULES.quiz_wrong||2));
 
@@ -3986,7 +4006,7 @@ function speedAnswer(know) {
     document.getElementById('speed-meaning-dont-text').textContent = meanText;
     speed.dontKnow++;
     speed.results.push({ word: w[0], ko: w[1], correct: false });
-    try { DB.updateWeakWord(STU_ID, w[0], w[1], false); } catch(e) {}
+    try { DB.updateWeakWord(STU_ID, w[0], w[1], false); } catch(e) { console.warn('저장 실패', e); }
     document.getElementById('speed-score').textContent = '✓' + speed.know + ' ✗' + speed.dontKnow;
   }
 }
@@ -3996,11 +4016,11 @@ function speedRecheck(wasCorrect) {
   if (wasCorrect) {
     speed.know++;
     speed.results.push({ word: w[0], ko: w[1], correct: true });
-    try { DB.updateWeakWord(STU_ID, w[0], w[1], true); } catch(e) {}
+    try { DB.updateWeakWord(STU_ID, w[0], w[1], true); } catch(e) { console.warn('저장 실패', e); }
   } else {
     speed.dontKnow++;
     speed.results.push({ word: w[0], ko: w[1], correct: false });
-    try { DB.updateWeakWord(STU_ID, w[0], w[1], false); } catch(e) {}
+    try { DB.updateWeakWord(STU_ID, w[0], w[1], false); } catch(e) { console.warn('저장 실패', e); }
   }
   document.getElementById('speed-score').textContent = '✓' + speed.know + ' ✗' + speed.dontKnow;
   speedNext();
@@ -4171,7 +4191,7 @@ async function loadLevelData() {
     if (modes.size >= 4) earnedStamps.add('all_modes');
     // streak 확인
     var streak = 0;
-    try { var s = await DB.updateStreak(STU_ID); streak = s || 0; } catch(e) {}
+    try { var s = await DB.updateStreak(STU_ID); streak = s || 0; } catch(e) { console.warn('저장 실패', e); }
     if (streak >= 3) earnedStamps.add('streak3');
     if (streak >= 7) earnedStamps.add('streak7');
 
@@ -4219,11 +4239,11 @@ function renderFolderList() {
   var allBmHtml = '<div class="card card-sm" style="margin-bottom:.625rem;cursor:pointer" onclick="openAllBookmarks()">' +
     '<div style="display:flex;align-items:center;gap:10px">' +
       '<span style="font-size:24px">⭐</span>' +
-      '<div style="flex:1">' +
+      '<div class="flex-1">' +
         '<div style="font-size:14px;font-weight:700">전체 북마크</div>' +
-        '<div style="font-size:11px;color:var(--txt3)">' + bmCount + '개 단어</div>' +
+        '<div class="muted-sm">' + bmCount + '개 단어</div>' +
       '</div>' +
-      '<span style="color:var(--txt3)">›</span>' +
+      '<span class="c-txt3">›</span>' +
     '</div>' +
   '</div>';
 
@@ -4237,12 +4257,12 @@ function renderFolderList() {
     var fid = e[0], f = e[1];
     var wordCount = f.words ? Object.keys(f.words).length : 0;
     var safeFid = fid.replace(/'/g,"\'");
-    return '<div class="card card-sm" style="margin-bottom:.5rem">' +
+    return '<div class="card card-sm mb-2">' +
       '<div style="display:flex;align-items:center;gap:10px">' +
         '<span style="font-size:22px;cursor:pointer" onclick="openFolder(\'' + safeFid + '\')">' + (f.emoji||'📁') + '</span>' +
         '<div style="flex:1;cursor:pointer" onclick="openFolder(\'' + safeFid + '\')">' +
           '<div style="font-size:14px;font-weight:600">' + (f.name||'폴더') + '</div>' +
-          '<div style="font-size:11px;color:var(--txt3)">' + wordCount + '개 단어</div>' +
+          '<div class="muted-sm">' + wordCount + '개 단어</div>' +
         '</div>' +
         '<button onclick="startFolderRename(\'' + safeFid + '\')" style="background:none;border:none;font-size:13px;color:var(--txt3);cursor:pointer;padding:4px" title="이름 변경">✏️</button>' +
         '<span style="color:var(--txt3);cursor:pointer;padding:4px" onclick="openFolder(\'' + safeFid + '\')">›</span>' +
@@ -4448,7 +4468,7 @@ async function addToFolderPopup(word, ko) {
   window._folderPickerKo = ko;
   // 현재 단어 표시
   var cwEl = document.getElementById('fp-curr-word');
-  if (cwEl) cwEl.innerHTML = '<b style="color:var(--gold)">' + word + '</b> · ' + ko;
+  if (cwEl) cwEl.innerHTML = '<b class="c-gold">' + word + '</b> · ' + ko;
   // 입력창 초기화
   var inp = document.getElementById('fp-new-name');
   if (inp) inp.value = '';
@@ -4460,9 +4480,9 @@ async function addToFolderPopup(word, ko) {
     var wordCount = f.words ? Object.keys(f.words).length : 0;
     return '<div style="display:flex;align-items:center;gap:10px;padding:.75rem;border-radius:var(--rs);cursor:pointer;margin-bottom:4px;background:var(--sur2)" onclick="pickFolder(\'' + fid + '\')">' +
       '<span style="font-size:22px">' + (f.emoji||'📁') + '</span>' +
-      '<div style="flex:1"><div style="font-size:14px;font-weight:600">' + (f.name||'폴더') + '</div>' +
-      '<div style="font-size:11px;color:var(--txt3)">' + wordCount + '개 단어</div></div>' +
-      '<span style="color:var(--txt3)">+</span></div>';
+      '<div class="flex-1"><div style="font-size:14px;font-weight:600">' + (f.name||'폴더') + '</div>' +
+      '<div class="muted-sm">' + wordCount + '개 단어</div></div>' +
+      '<span class="c-txt3">+</span></div>';
   }).join('');
   document.getElementById('folder-picker').style.display = 'flex';
 }
@@ -4576,7 +4596,7 @@ function renderResultDetail(score, total) {
   var wrongOnes = (quiz.results||[]).filter(function(r){ return !r.correct; });
   if (wrongOnes.length) {
     document.getElementById('res-list').innerHTML =
-      '<p class="sec-title" style="margin-bottom:.75rem">틀린 단어 ('+wrongOnes.length+'개)</p>' +
+      '<p class="sec-title mb-3">틀린 단어 ('+wrongOnes.length+'개)</p>' +
       wrongOnes.slice(0,5).map(function(r){
         return '<div class="wrong-item"><div class="wi-word">'+r.word+'</div><div><div class="wi-ko">'+r.ko+'</div></div></div>';
       }).join('') +
@@ -4782,10 +4802,10 @@ function showToast(msg) {
         cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">▶</button>
     </div>
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
-      <span style="font-size:11px">🔈</span>
+      <span class="fs-11">🔈</span>
       <input type="range" id="bgm-volume" min="0" max="100" value="30"
         oninput="setBGMVolume(this.value)" style="flex:1;accent-color:var(--gold);height:3px">
-      <span style="font-size:11px">🔊</span>
+      <span class="fs-11">🔊</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
       <button class="bgm-btn" data-type="lofi" onclick="selectBGM('lofi','☕ Lofi Beat','집중 공부용')"
@@ -4942,7 +4962,7 @@ async function renderMyWordsList() {
     var streak = masteryMap[w.word.toLowerCase()] || 0;
     var isMastered = streak >= 5;
     var masterBadge = isMastered
-      ? '<span style="font-size:9px;color:#4ade80;margin-left:4px;font-weight:700">✅ 마스터</span>'
+      ? '<span style="font-size:9px;color:var(--grn);margin-left:4px;font-weight:700">✅ 마스터</span>'
       : (streak > 0 ? '<span style="font-size:9px;color:var(--txt3);margin-left:4px">' + streak + '/5</span>' : '');
     return '<div class="list-item" style="cursor:pointer' + (isMastered?';opacity:.55':'') + '" onclick="openMyWordDetail(\'' + safeKey + '\')">' +
       '<div>' +
@@ -4950,7 +4970,7 @@ async function renderMyWordsList() {
         '<span style="color:var(--txt3);font-size:12px;margin-left:8px">' + displayKo + '</span>' +
         diffBadge + masterBadge +
       '</div>' +
-      '<span style="color:var(--txt3)">›</span>' +
+      '<span class="c-txt3">›</span>' +
     '</div>';
   }).join('');
 }
@@ -5046,13 +5066,13 @@ function openMyWordDetail(key) {
       '<div>' + w.aiKo + '</div></div>';
     html += '<div style="font-size:12px;color:var(--txt3);margin-bottom:.75rem">내가 입력한 뜻: ' + w.ko + '</div>';
   } else {
-    html += '<div style="margin-bottom:.75rem"><b>뜻:</b> ' + w.ko + '</div>';
+    html += '<div class="mb-3"><b>뜻:</b> ' + w.ko + '</div>';
   }
 
   if (w.example && w.example.en) {
     html += '<div style="background:var(--sur2);border-radius:8px;padding:.625rem .75rem">' +
       '<div style="font-style:italic;margin-bottom:4px">' + w.example.en + '</div>' +
-      '<div style="font-size:12px;color:var(--txt3)">' + (w.example.ko||'') + '</div></div>';
+      '<div class="muted-md">' + (w.example.ko||'') + '</div></div>';
   } else {
     html += '<div id="myword-ex-regen-wrap" style="text-align:center;padding:.5rem 0">' +
       '<div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">예문 생성에 실패했어요</div>' +
@@ -5069,7 +5089,7 @@ async function regenerateMyWordExample() {
   var w = myWordsCache[key];
   if (!w) return;
   var wrap = document.getElementById('myword-ex-regen-wrap');
-  if (wrap) wrap.innerHTML = '<span style="font-size:12px;color:var(--txt3)">✨ 생성 중...</span>';
+  if (wrap) wrap.innerHTML = '<span class="muted-md">✨ 생성 중...</span>';
 
   try {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -5227,7 +5247,7 @@ function quickGoTeacherFromPage() {
     var old = document.getElementById('bm-grad'); if (old) old.remove();
     var d = document.createElement('div'); d.id = 'bm-grad';
     d.style.cssText = 'position:fixed;left:12px;right:12px;bottom:84px;z-index:9000;background:var(--sur);border:1px solid var(--gold-bdr);border-radius:18px;padding:14px;box-shadow:var(--shadow-lg);max-width:560px;margin:0 auto';
-    d.innerHTML = '<div style="font-size:15px;font-weight:800;margin-bottom:4px"></div><div style="font-size:13px;color:var(--txt2);margin-bottom:10px">3번 연속 맞혔어요. 이제 북마크에서 뺄까요?</div><div style="display:flex;gap:8px"><button type="button" class="btn btn-full" data-a="keep">계속 보기</button><button type="button" class="btn btn-gold btn-full" data-a="del">북마크 해제</button></div>';
+    d.innerHTML = '<div style="font-size:15px;font-weight:800;margin-bottom:4px"></div><div style="font-size:13px;color:var(--txt2);margin-bottom:10px">3번 연속 맞혔어요. 이제 북마크에서 뺄까요?</div><div class="row-gap8"><button type="button" class="btn btn-full" data-a="keep">계속 보기</button><button type="button" class="btn btn-gold btn-full" data-a="del">북마크 해제</button></div>';
     d.firstChild.textContent = '“' + word + '”';
     document.body.appendChild(d);
     d.querySelector('[data-a=keep]').onclick = function() { d.remove(); };

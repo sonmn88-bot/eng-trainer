@@ -73,40 +73,46 @@
 
 <div class="tabs">
   <button class="tab active" id="tt-students" onclick="switchT('students')">학생</button>
-  <button class="tab" id="tt-progress" onclick="switchT('progress')">진도</button>
-  <button class="tab" id="tt-stats"    onclick="switchT('stats')">통계</button>
-  <button class="tab" id="tt-report"   onclick="switchT('report')">리포트</button>
-  <button class="tab" id="tt-mnemonic" onclick="switchT('mnemonic')">연상법</button>
+  <button class="tab" id="tt-exam"     onclick="switchT('exam')">시험</button>
+  <button class="tab" id="tt-analysis" onclick="switchT('analysis')">분석</button>
   <button class="tab" id="tt-settings" onclick="switchT('settings')">설정</button>
+</div>
+<div class="seg" id="analysis-seg" style="display:none">
+  <button type="button" class="seg-btn active" id="sg-progress" onclick="switchT('progress')">진도</button>
+  <button type="button" class="seg-btn" id="sg-stats" onclick="switchT('stats')">통계</button>
+  <button type="button" class="seg-btn" id="sg-report" onclick="switchT('report')">리포트</button>
 </div>
 
 <!-- ══ 학생 탭 ══ -->
 <div class="tsec active" id="ts-students">
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <div style="display:flex;gap:8px;margin-bottom:.875rem">
-      <input id="new-stu-name" type="text" placeholder="학생 이름" style="flex:1"
-             onkeydown="if(event.key==='Enter')addStudent()">
-      <button class="btn btn-gold" onclick="addStudent()">추가</button>
-    </div>
-    <div style="font-size:12px;color:var(--red);min-height:16px" id="stu-err"></div>
+  <div class="card card-sm">
+    <p class="sec-title mb-35">등록 학생 <span id="stu-count" class="badge b-gold" style="vertical-align:middle"></span></p>
+    <div id="stu-list"><div class="empty">학생이 없습니다</div></div>
   </div>
 
   <div class="card card-sm">
     <details open>
       <summary style="cursor:pointer;font-size:14px;font-weight:800;min-height:44px">모의시험 결과 (전체 학생)</summary>
-      <div id="mock-overview" style="margin-top:.5rem"><div class="empty" style="padding:.5rem 0">불러오는 중…</div></div>
+      <div id="mock-overview" style="margin-top:.5rem"><div class="empty py-2">불러오는 중…</div></div>
     </details>
   </div>
 
-  <div class="card card-sm">
-    <p class="sec-title" style="margin-bottom:.875rem">등록 학생 <span id="stu-count" class="badge b-gold" style="vertical-align:middle"></span></p>
-    <div id="stu-list"><div class="empty">학생이 없습니다</div></div>
+  <details class="card card-sm mb-4"><summary style="cursor:pointer;font-size:14px;font-weight:800;min-height:44px">＋ 학생 추가</summary>
+  <div style="margin-top:.5rem">
+    <div style="display:flex;gap:8px;margin-bottom:.875rem">
+      <input id="new-stu-name" type="text" placeholder="학생 이름"
+             onkeydown="if(event.key==='Enter')addStudent()" class="flex-1">
+      <button class="btn btn-gold" onclick="addStudent()">추가</button>
+    </div>
+    <div style="font-size:12px;color:var(--red);min-height:16px" id="stu-err"></div>
   </div>
 
+  </details>
+
   <!-- 메모 한눈에 보기 -->
-  <div class="card card-sm" style="margin-bottom:1rem" id="memo-overview-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-      <p class="sec-title" style="margin:0">📝 메모 한눈에 보기</p>
+  <div class="card card-sm mb-4" id="memo-overview-card">
+    <div class="row-between mb-3">
+      <p class="sec-title m-0">📝 메모 한눈에 보기</p>
       <button class="btn btn-ghost btn-sm" onclick="toggleMemoOverview()">보기</button>
     </div>
     <div id="memo-overview-list" style="display:none"></div>
@@ -117,7 +123,7 @@
     <div class="card">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('stu-detail').style.display='none'">← 목록</button>
-        <div style="flex:1">
+        <div class="flex-1">
           <div style="display:flex;align-items:center;gap:6px">
             <div style="font-size:15px;font-weight:600" id="detail-name"></div>
             <button onclick="startRenameStudent()" id="rename-btn"
@@ -128,54 +134,53 @@
             <button class="btn btn-gold btn-sm" onclick="saveRenameStudent()">저장</button>
             <button class="btn btn-ghost btn-sm" onclick="cancelRenameStudent()">취소</button>
           </div>
-          <div style="font-size:11px;color:var(--txt3)" id="detail-joined"></div>
+          <div id="detail-joined" class="muted-sm"></div>
         </div>
         <button class="btn btn-gold btn-sm" onclick="openExportPanel()">📋 시험 단어</button>
         <button class="btn btn-ghost btn-sm" onclick="generateGrowthReport()">📊 리포트</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteStudent()">삭제</button>
       </div>
       <div class="metrics" id="detail-metrics"></div>
       <div id="detail-weak" style="margin-top:.5rem"></div>
-      <div id="detail-extras" style="margin-top:1rem"></div>
+      <div id="detail-extras" class="mt-4"></div>
       <div id="detail-score-chart" style="margin-top:.875rem;display:none">
         <div style="font-size:12px;font-weight:600;margin-bottom:.5rem">📈 최근 점수 추이</div>
         <div id="detail-score-bars" style="display:flex;align-items:flex-end;gap:3px;height:60px;margin-bottom:4px"></div>
         <div id="detail-score-labels" style="display:flex;gap:3px;font-size:9px;color:var(--txt3)"></div>
       </div>
       <div id="detail-graph" style="display:none;margin-top:1rem">
-        <p class="sec-title" style="margin-bottom:.5rem">📈 점수 추이 (최근 10회)</p>
+        <p class="sec-title mb-2">📈 점수 추이 (최근 10회)</p>
         <div style="position:relative;height:80px;background:var(--sur2);border-radius:var(--rs);overflow:hidden">
           <canvas id="score-chart" style="width:100%;height:80px"></canvas>
         </div>
       </div>
 
       <!-- 학생 비밀번호 설정 -->
-      <div style="margin-top:1rem">
-        <p class="sec-title" style="margin-bottom:.5rem">🔑 학생 비밀번호</p>
+      <div class="mt-4">
+        <p class="sec-title mb-2">🔑 학생 비밀번호</p>
         <div style="display:flex;gap:6px;align-items:center">
           <input type="text" id="detail-pw" placeholder="없으면 비워두세요"
             style="flex:1;font-size:14px;letter-spacing:.08em;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.5rem .75rem;color:var(--txt)">
           <button class="btn btn-gold btn-sm" onclick="saveStudentPassword()">저장</button>
-          <button class="btn btn-ghost btn-sm" onclick="resetStudentPassword()" style="font-size:11px">초기화</button>
+          <button class="btn btn-ghost btn-sm fs-11" onclick="resetStudentPassword()">초기화</button>
         </div>
         <div id="detail-pw-msg" style="font-size:11px;min-height:14px;margin-top:4px;color:var(--grn,#4caf50)"></div>
       </div>
 
       <!-- 선생님 메모 -->
-      <div style="margin-top:1rem">
-        <p class="sec-title" style="margin-bottom:.5rem">📝 선생님 메모</p>
+      <div class="mt-4">
+        <p class="sec-title mb-2">📝 선생님 메모</p>
         <textarea id="detail-memo" style="width:100%;height:72px;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.5rem;font-size:12px;color:var(--txt);resize:none;box-sizing:border-box" placeholder="이 학생에 대한 메모를 남겨보세요..."></textarea>
         <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="saveMemo()">저장</button>
         <span id="memo-saved" style="font-size:11px;color:var(--grn,#4caf50);margin-left:8px;display:none">✓ 저장됨</span>
       </div>
 
       <!-- 개인 메시지 -->
-      <div style="margin-top:1rem">
-        <p class="sec-title" style="margin-bottom:.5rem">✉️ 개인 메시지</p>
+      <div class="mt-4">
+        <p class="sec-title mb-2">✉️ 개인 메시지</p>
         <!-- 마지막 보낸 메시지 표시 -->
         <div id="last-msg-wrap" style="display:none;background:var(--sur2);border-radius:var(--rs);padding:.625rem .875rem;margin-bottom:.625rem;border-left:3px solid var(--gold-bdr)">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-            <span style="font-size:10px;color:var(--txt3)">마지막 메시지</span>
+            <span class="muted-xs">마지막 메시지</span>
             <span id="last-msg-read" style="font-size:10px"></span>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
@@ -204,9 +209,11 @@
                 <div id="sticker-sent-msg" style="font-size:11px;min-height:16px;margin-top:.375rem;text-align:center"></div>
       </div>
 
+      <details class="mt-4"><summary style="cursor:pointer;font-size:12px;color:var(--txt3);min-height:44px">관리 (위험)</summary><button class="btn btn-danger btn-sm" onclick="deleteStudent()">학생 삭제</button></details>
+
       <!-- 시험 단어 내보내기 패널 -->
       <div id="export-panel" style="display:none" class="export-panel">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div class="row-between mb-3">
           <div>
             <div style="font-size:13px;font-weight:600">📋 이번 주 시험 단어</div>
             <div style="font-size:11px;color:var(--txt3);margin-top:2px">공부한 단어 + 취약단어 합산</div>
@@ -250,11 +257,10 @@
 <!-- ══ 진도 탭 ══ -->
 <div class="tsec" id="ts-progress">
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <p class="sec-title" style="margin:0">📊 반 진도 현황</p>
+    <div class="row-between mb-4">
+      <p class="sec-title m-0">📊 반 진도 현황</p>
       <div style="display:flex;gap:6px">
       <button class="btn btn-ghost btn-sm" onclick="exportAllExcel()">📥 전체 엑셀</button>
-      <button class="btn btn-ghost btn-sm" onclick="generateTestSheet()">📄 시험지 생성</button>
     </div>
     </div>
     <div id="progress-loading" style="text-align:center;color:var(--txt3);padding:2rem">탭을 눌러 불러오세요</div>
@@ -265,39 +271,31 @@
 
       <!-- 취약단어 학생별 비교 매트릭스 -->
       <div style="margin-top:1.25rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-          <p class="sec-title" style="margin:0">📊 취약단어 학생별 비교</p>
+        <div class="row-between mb-25">
+          <p class="sec-title m-0">📊 취약단어 학생별 비교</p>
           <button class="btn btn-ghost btn-sm" onclick="loadWeakWordMatrix()">불러오기</button>
         </div>
-        <div id="weak-matrix-content" style="font-size:12px;color:var(--txt3)">버튼을 눌러 불러오세요</div>
+        <div id="weak-matrix-content" class="muted-md">버튼을 눌러 불러오세요</div>
       </div>
       <!-- 시험범위 학생별 달성도 -->
       <div style="margin-top:1.25rem" id="exam-range-progress-wrap" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-          <p class="sec-title" style="margin:0">📋 시험범위 학습 달성도</p>
+        <div class="row-between mb-25">
+          <p class="sec-title m-0">📋 시험범위 학습 달성도</p>
           <button class="btn btn-ghost btn-sm" onclick="loadExamRangeProgress()">불러오기</button>
         </div>
-        <div id="exam-range-progress-content" style="font-size:12px;color:var(--txt3)">버튼을 눌러 불러오세요</div>
+        <div id="exam-range-progress-content" class="muted-md">버튼을 눌러 불러오세요</div>
       </div>
 
       <!-- AI 반 전체 분석 -->
       <!-- 리스닝 완료 현황 -->
       <div style="margin-top:1.25rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-          <p class="sec-title" style="margin:0">🎧 리스닝 완료 현황</p>
+        <div class="row-between mb-25">
+          <p class="sec-title m-0">🎧 리스닝 완료 현황</p>
           <button class="btn btn-ghost btn-sm" onclick="loadListeningProgressReport()">불러오기</button>
         </div>
-        <div id="listening-progress-content" style="font-size:12px;color:var(--txt3)">버튼을 눌러 불러오세요</div>
+        <div id="listening-progress-content" class="muted-md">버튼을 눌러 불러오세요</div>
       </div>
 
-      <!-- AI 반 전체 분석 (원본) -->
-      <div style="margin-top:1.25rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-          <p class="sec-title" style="margin:0">🤖 AI 반 취약 분석</p>
-          <button class="btn btn-ghost btn-sm" id="class-ai-btn" onclick="requestClassAI()">분석 받기</button>
-        </div>
-        <div id="class-ai-content" style="display:none;background:var(--sur2);border-radius:var(--rs);padding:.75rem 1rem;font-size:13px;color:var(--txt2);line-height:1.7;border-left:2px solid var(--gold-bdr)"></div>
-      </div>
     </div>
   </div>
 </div>
@@ -305,42 +303,42 @@
 <!-- ══ 통계 탭 ══ -->
 <div class="tsec" id="ts-stats">
   <!-- 주간 MVP -->
-  <div class="card card-sm" style="margin-bottom:1rem" id="mvp-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-      <p class="sec-title" style="margin:0">🏆 이번 주 MVP</p>
+  <div class="card card-sm mb-4" id="mvp-card">
+    <div class="row-between mb-25">
+      <p class="sec-title m-0">🏆 이번 주 MVP</p>
       <button class="btn btn-ghost btn-sm" onclick="loadMVP()">집계</button>
     </div>
-    <div id="mvp-content" style="font-size:12px;color:var(--txt3)">집계 버튼을 눌러주세요</div>
+    <div id="mvp-content" class="muted-md">집계 버튼을 눌러주세요</div>
   </div>
 
   <!-- 학습 시간 순위 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-      <p class="sec-title" style="margin:0">⏱ 이번 주 학습 시간 순위</p>
+  <div class="card card-sm mb-4">
+    <div class="row-between mb-25">
+      <p class="sec-title m-0">⏱ 이번 주 학습 시간 순위</p>
       <button class="btn btn-ghost btn-sm" onclick="loadStudyTimeRank()">집계</button>
     </div>
-    <div id="study-time-rank" style="font-size:12px;color:var(--txt3)">집계 버튼을 눌러주세요</div>
+    <div id="study-time-rank" class="muted-md">집계 버튼을 눌러주세요</div>
   </div>
 
   <!-- 학생 포인트 순위 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-      <p class="sec-title" style="margin:0">💰 포인트 순위</p>
+  <div class="card card-sm mb-4">
+    <div class="row-between mb-25">
+      <p class="sec-title m-0">💰 포인트 순위</p>
       <button class="btn btn-ghost btn-sm" onclick="loadPointsRank()">집계</button>
     </div>
-    <div id="points-rank-content" style="font-size:12px;color:var(--txt3)">집계 버튼을 눌러주세요</div>
+    <div id="points-rank-content" class="muted-md">집계 버튼을 눌러주세요</div>
   </div>
 
   <!-- 전체 현황 요약 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.875rem">📊 반 전체 현황</p>
+  <div class="card card-sm mb-4">
+    <p class="sec-title mb-35">📊 반 전체 현황</p>
     <div class="metrics" id="global-metrics"></div>
   </div>
 
   <!-- 점수 분포 차트 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-      <p class="sec-title" style="margin:0">📊 최근 시험 점수 분포</p>
+  <div class="card card-sm mb-4">
+    <div class="row-between mb-3">
+      <p class="sec-title m-0">📊 최근 시험 점수 분포</p>
       <button class="btn btn-ghost btn-sm" onclick="renderScoreDist()">갱신</button>
     </div>
     <div id="score-dist-wrap">
@@ -349,9 +347,9 @@
   </div>
 
   <!-- 전체 취약단어 TOP 분석 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-      <p class="sec-title" style="margin:0">🔥 단어장별 최다 오답 TOP5</p>
+  <div class="card card-sm mb-4">
+    <div class="row-between mb-3">
+      <p class="sec-title m-0">🔥 단어장별 최다 오답 TOP5</p>
       <button class="btn btn-ghost btn-sm" onclick="renderWeakWordAnalysis()">분석</button>
     </div>
     <div id="weak-analysis-wrap">
@@ -366,9 +364,9 @@
   </div>
 
   <!-- 학생 선택 → 심층 분석 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-      <p class="sec-title" style="margin:0">🔍 학생 심층 분석</p>
+  <div class="card card-sm mb-4">
+    <div class="row-between mb-3">
+      <p class="sec-title m-0">🔍 학생 심층 분석</p>
       <select id="stats-stu-select" style="font-size:12px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;padding:4px 8px;color:var(--txt)" onchange="loadStudentDetail()">
         <option value="">학생 선택</option>
       </select>
@@ -379,15 +377,15 @@
   </div>
 
   <!-- 학습 시간대 분석 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.875rem">⏰ 반 학습 시간대</p>
+  <div class="card card-sm mb-4">
+    <p class="sec-title mb-35">⏰ 반 학습 시간대</p>
     <div id="time-analysis-list"><div class="empty" style="font-size:12px">통계 탭을 열면 불러와요</div></div>
   </div>
 
   <!-- 출석 히트맵 -->
   <div class="card card-sm">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem">
-      <p class="sec-title" style="margin:0">📅 출석 히트맵</p>
+      <p class="sec-title m-0">📅 출석 히트맵</p>
       <select id="heatmap-stu-select" style="font-size:11px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;padding:3px 6px;color:var(--txt)" onchange="renderHeatmap()">
         <option value="">학생 선택</option>
       </select>
@@ -408,9 +406,9 @@
 
 <!-- ══ 주간 리포트 탭 ══ -->
 <div class="tsec" id="ts-report">
-  <div class="card card-sm" style="margin-bottom:1rem">
+  <div class="card card-sm mb-4">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
-      <p class="sec-title" style="margin:0">📋 학생별 주간 리포트</p>
+      <p class="sec-title m-0">📋 학생별 주간 리포트</p>
       <div style="display:flex;gap:6px">
         <select id="report-period" style="font-size:11px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;padding:3px 6px;color:var(--txt)">
           <option value="7">최근 7일</option>
@@ -426,44 +424,18 @@
   <!-- 반 취약단어 TOP -->
   <div class="card card-sm">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
-      <p class="sec-title" style="margin:0">🔥 반 전체 취약단어 TOP10</p>
+      <p class="sec-title m-0">🔥 반 전체 취약단어 TOP10</p>
       <button class="btn btn-ghost btn-sm" onclick="loadClassWeakWords()">불러오기</button>
     </div>
-    <div id="class-weak-report" style="color:var(--txt3);font-size:12px">버튼을 눌러 불러오세요</div>
+    <div id="class-weak-report" class="muted-md">버튼을 눌러 불러오세요</div>
   </div>
 </div>
 
 <!-- ══ 연상법 편집 탭 ══ -->
-<div class="tsec" id="ts-mnemonic">
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.875rem">✏️ 연상법 직접 편집</p>
-    <p style="font-size:12px;color:var(--txt2);margin-bottom:1rem">단어를 검색하고 연상법을 직접 수정할 수 있어요. 저장하면 모든 학생에게 적용됩니다.</p>
-    <div style="display:flex;gap:8px;margin-bottom:.75rem">
-      <input id="mn-search" type="text" placeholder="단어 검색 (예: abandon)" style="flex:1"
-             oninput="searchMnemonic()" autocomplete="off">
-    </div>
-    <div id="mn-result" style="display:none" class="card card-sm" style="margin-top:.5rem">
-      <div style="font-size:13px;font-weight:600;margin-bottom:.5rem" id="mn-word-label"></div>
-      <label class="label">현재 연상법</label>
-      <div id="mn-current" style="font-size:12px;color:var(--txt2);background:var(--sur3);border-radius:var(--rs);padding:.625rem .875rem;margin-bottom:.75rem;line-height:1.5"></div>
-      <label class="label">새 연상법</label>
-      <input id="mn-new" type="text" placeholder="새 연상법 입력..." style="margin-bottom:.75rem">
-      <button class="btn btn-gold btn-full" onclick="saveMnemonic()">저장</button>
-      <div id="mn-msg" style="font-size:12px;min-height:16px;margin-top:.5rem;text-align:center"></div>
-    </div>
-  </div>
-
-  <div class="card card-sm">
-    <p class="sec-title" style="margin-bottom:.875rem">📋 저장된 커스텀 연상법</p>
-    <div id="mn-list"><div class="empty">아직 편집한 연상법이 없습니다</div></div>
-  </div>
-</div>
-
-<!-- ══ 설정 탭 ══ -->
-<div class="tsec" id="ts-settings">
+<div class="tsec" id="ts-exam">
   <!-- 시험 범위 지정 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.75rem">📅 이번 주 시험 범위</p>
+  <div class="card card-sm mb-4">
+    <p class="sec-title mb-3">📅 이번 주 시험 범위</p>
     <div style="font-size:12px;color:var(--txt2);margin-bottom:.75rem">지정하면 학생 단어장에서 해당 주차가 강조 표시됩니다.</div>
     <label class="label">단어장 선택</label>
     <select id="exam-set-select" style="width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;color:var(--txt);font-size:13px;margin-bottom:.75rem" onchange="updateExamWeekOptions()">
@@ -473,7 +445,7 @@
     <select id="exam-week-select" style="width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;color:var(--txt);font-size:13px;margin-bottom:.75rem">
       <option value="">-- 주차 선택 --</option>
     </select>
-    <div style="display:flex;gap:8px">
+    <div class="row-gap8">
       <button class="btn btn-gold btn-full" onclick="saveExamRange()">시험 범위 저장</button>
       <button class="btn btn-full" onclick="clearExamRange()">초기화</button>
     </div>
@@ -482,7 +454,7 @@
     <!-- 시험지 생성 -->
     <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--bdr)">
       <div style="font-size:12px;color:var(--txt2);margin-bottom:.5rem">시험 범위 저장 후 시험지를 바로 만들 수 있어요</div>
-      <div style="display:flex;gap:8px">
+      <div class="row-gap8">
         <button class="btn btn-full" onclick="generateExamPaper('ko')">📄 한→영 시험지</button>
         <button class="btn btn-full" onclick="generateExamPaper('en')">📄 영→한 시험지</button>
       </div>
@@ -490,8 +462,8 @@
   </div>
 
   <!-- 공지 관리 -->
-  <div class="card card-sm" style="margin-bottom:1rem">
-    <p class="sec-title" style="margin-bottom:.75rem">📢 학생 공지</p>
+  <div class="card card-sm mb-4">
+    <p class="sec-title mb-3">📢 학생 공지</p>
     <div style="font-size:12px;color:var(--txt2);margin-bottom:.75rem">저장하면 모든 학생 홈 화면에 표시됩니다. 비우고 저장하면 공지가 사라져요.</div>
     <textarea id="notice-input" placeholder="예) 이번 주 목요일 단어 시험 범위: Day 5~8" style="width:100%;min-height:70px;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.625rem .875rem;color:var(--txt);font-size:13px;line-height:1.6;resize:vertical;outline:none;box-sizing:border-box"></textarea>
     <div style="display:flex;gap:8px;margin-top:.5rem;align-items:center">
@@ -501,8 +473,12 @@
     <div id="notice-msg" style="font-size:12px;min-height:16px;margin-top:.375rem;text-align:center"></div>
   </div>
 
+  <div class="card card-sm mb-4"><p style="font-size:12px;color:var(--txt2);line-height:1.6;margin:0">학생별 시험 단어(취약+학습)는 학생 탭에서 학생을 열고 “시험 단어” 버튼을 누르세요.</p></div>
+</div>
+
+<div class="tsec" id="ts-settings">
   <div class="card">
-    <p class="sec-title" style="margin-bottom:.75rem">퀴즈 채점 설정</p>
+    <p class="sec-title mb-3">퀴즈 채점 설정</p>
     <div class="stu-detail-card" style="margin-bottom:1.25rem">
       <div style="font-size:13px;font-weight:600;margin-bottom:.375rem">AI 유사 뜻 인정</div>
       <div style="font-size:12px;color:var(--txt3);margin-bottom:.75rem">학생이 비슷한 맥락의 뜻을 쓰면 AI가 정답으로 인정합니다</div>
@@ -553,7 +529,7 @@
     <div id="set-absent-msg" style="font-size:11px;min-height:14px;margin-bottom:1rem;color:var(--grn,#4caf50)"></div>
 
     <label class="label">앱 이름</label>
-    <input id="set-appname" type="text" placeholder="English Trainer" style="margin-bottom:1rem">
+    <input id="set-appname" type="text" placeholder="English Trainer" class="mb-4">
 
     <label class="label">앱 로고 이모지</label>
     <div style="display:flex;gap:6px;margin-bottom:1rem;align-items:center">
@@ -574,36 +550,23 @@
     </div>
 
     <label class="label">선생님 비밀번호 변경</label>
-    <input id="set-pw-old" type="password" placeholder="현재 비밀번호" style="margin-bottom:.5rem">
-    <input id="set-pw-new" type="password" placeholder="새 비밀번호" style="margin-bottom:.5rem">
-    <input id="set-pw-cfm" type="password" placeholder="새 비밀번호 확인" style="margin-bottom:1rem">
+    <input id="set-pw-old" type="password" placeholder="현재 비밀번호" class="mb-2">
+    <input id="set-pw-new" type="password" placeholder="새 비밀번호" class="mb-2">
+    <input id="set-pw-cfm" type="password" placeholder="새 비밀번호 확인" class="mb-4">
 
     <div style="font-size:12px;color:var(--red);min-height:18px;margin-bottom:.75rem" id="set-err"></div>
     <button class="btn btn-gold btn-full" onclick="saveSettings()">저장</button>
   </div>
 
-  <!-- 취약단어 초기화 -->
-  <div class="card card-sm" style="margin-top:1rem">
-    <p class="sec-title" style="margin-bottom:.5rem">🗑️ 취약단어 초기화</p>
-    <p style="font-size:12px;color:var(--txt2);margin-bottom:.75rem">단어 데이터 오류 등으로 잘못 쌓인 취약단어를 초기화합니다.</p>
-    <div style="display:flex;gap:8px">
-      <select id="clear-weak-target" style="flex:1;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:6px 8px;color:var(--txt);font-size:13px">
-        <option value="all">전체 학생 초기화</option>
-      </select>
-      <button class="btn btn-danger btn-sm" onclick="clearWeakWords()">초기화</button>
-    </div>
-    <div id="clear-weak-msg" style="font-size:11px;min-height:14px;margin-top:6px;color:var(--grn,#4caf50)"></div>
-  </div>
-
   <!-- 앱 버전 -->
-  <div class="card card-sm" style="margin-top:1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between">
+  <div class="card card-sm mt-4">
+    <div class="row-between">
       <div>
         <div style="font-size:12px;font-weight:600;color:var(--txt)">English Trainer</div>
         <div style="font-size:11px;color:var(--txt3);margin-top:2px">v2.5.0 · 2026년 5월 업데이트</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:10px;color:var(--txt3)">총 기능</div>
+        <div class="muted-xs">총 기능</div>
         <div style="font-size:18px;font-weight:800;color:var(--gold)">60+</div>
       </div>
     </div>
@@ -614,8 +577,8 @@
   </div>
 
   <!-- 데이터 백업/복원 -->
-  <div class="card card-sm" style="margin-top:1rem">
-    <p class="sec-title" style="margin-bottom:.875rem">💾 데이터 백업 / 복원</p>
+  <div class="card card-sm mt-4">
+    <p class="sec-title mb-35">💾 데이터 백업 / 복원</p>
     <p style="font-size:12px;color:var(--txt2);margin-bottom:.875rem;line-height:1.6">학생 데이터 전체를 JSON으로 내보내거나 복원할 수 있어요.</p>
     <div style="display:flex;gap:8px;margin-bottom:.5rem">
       <button class="btn btn-gold btn-full" onclick="exportBackup()">📥 백업 다운로드</button>
@@ -625,6 +588,51 @@
     <div id="backup-msg" style="font-size:11px;min-height:14px;color:var(--grn,#4caf50)"></div>
   </div>
 
+  <!-- 취약단어 초기화 -->
+
+
+</div>
+
+<div class="tsec" id="ts-mnemonic">
+  <div class="card card-sm mb-4">
+    <p class="sec-title mb-35">✏️ 연상법 직접 편집</p>
+    <p style="font-size:12px;color:var(--txt2);margin-bottom:1rem">단어를 검색하고 연상법을 직접 수정할 수 있어요. 저장하면 모든 학생에게 적용됩니다.</p>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem">
+      <input id="mn-search" type="text" placeholder="단어 검색 (예: abandon)"
+             oninput="searchMnemonic()" autocomplete="off" class="flex-1">
+    </div>
+    <div id="mn-result" style="display:none" class="card card-sm" style="margin-top:.5rem">
+      <div style="font-size:13px;font-weight:600;margin-bottom:.5rem" id="mn-word-label"></div>
+      <label class="label">현재 연상법</label>
+      <div id="mn-current" style="font-size:12px;color:var(--txt2);background:var(--sur3);border-radius:var(--rs);padding:.625rem .875rem;margin-bottom:.75rem;line-height:1.5"></div>
+      <label class="label">새 연상법</label>
+      <input id="mn-new" type="text" placeholder="새 연상법 입력..." class="mb-3">
+      <button class="btn btn-gold btn-full" onclick="saveMnemonic()">저장</button>
+      <div id="mn-msg" style="font-size:12px;min-height:16px;margin-top:.5rem;text-align:center"></div>
+    </div>
+  </div>
+
+  <div class="card card-sm">
+    <p class="sec-title mb-35">📋 저장된 커스텀 연상법</p>
+    <div id="mn-list"><div class="empty">아직 편집한 연상법이 없습니다</div></div>
+  </div>
+</div>
+
+<!-- ══ 설정 탭 ══ -->
+
+<div class="tsec" id="ts-danger">
+  <div class="card card-sm" style="margin-top:1.5rem;border:1px solid var(--red-bdr)">
+    <p class="sec-title mb-2">⚠ 위험 구역 · 취약단어 초기화</p>
+    <p style="font-size:12px;color:var(--txt2);margin-bottom:.75rem">단어 데이터 오류 등으로 잘못 쌓인 취약단어를 초기화합니다.</p>
+    <div class="row-gap8">
+      <select id="clear-weak-target" style="flex:1;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:6px 8px;color:var(--txt);font-size:13px">
+        <option value="">대상 선택…</option>
+        <option value="all">전체 학생 초기화</option>
+      </select>
+      <button class="btn btn-danger btn-sm" onclick="clearWeakWords()">초기화</button>
+    </div>
+    <div id="clear-weak-msg" style="font-size:11px;min-height:14px;margin-top:6px;color:var(--grn,#4caf50)"></div>
+  </div>
 </div>
 
 </div><!-- .app -->
@@ -902,7 +910,7 @@ function renderStudents() {
   // 취약단어 초기화 select 업데이트
   var cwSel = document.getElementById('clear-weak-target');
   if (cwSel) {
-    cwSel.innerHTML = '<option value="all">전체 학생 초기화</option>' +
+    cwSel.innerHTML = '<option value="">대상 선택…</option><option value="all">전체 학생 초기화</option>' +
       arr.map(function(s){ return '<option value="' + s.id + '">' + s.name + '</option>'; }).join('');
   }
   if (!arr.length) { list.innerHTML = '<div class="empty">학생이 없습니다</div>'; return; }
@@ -924,7 +932,7 @@ function renderStudents() {
     var msgBadge = '<span id="msg-badge-' + s.id + '" style="font-size:10px;margin-left:4px"></span>';
     var lvBadge = '<span id="lv-badge-' + s.id + '" style="font-size:10px;color:var(--txt3);margin-left:4px"></span><span id="mock-badge-' + s.id + '" style="font-size:10px;margin-left:4px"></span>';
     var card = '<div class="stu-card" data-id="' + s.id + '">' +
-      '<div style="flex:1"><div class="stu-name">' + s.name + alertBadge + msgBadge + lvBadge + '</div>' +
+      '<div class="flex-1"><div class="stu-name">' + s.name + alertBadge + msgBadge + lvBadge + '</div>' +
       '<div class="stu-meta">' + metaText + '</div>' + memoText + '</div>' +
       '<span style="margin-left:8px;font-size:18px;color:var(--txt3)">›</span>' +
       '</div>';
@@ -957,10 +965,10 @@ async function loadMockOverview(arr) {
     if (b) b.innerHTML = last ? '<span style="color:var(--gold);font-weight:700">시험 ' + esc(last.score) + '점</span>' : '';
   }));
   rows.sort(function(a,b){ return String((b.last && b.last.date) || '').localeCompare(String((a.last && a.last.date) || '')); });
-  if (!rows.some(function(r){ return r.n; })) { box.innerHTML = '<div class="empty" style="padding:.5rem 0">아직 응시한 학생이 없어요</div>'; return; }
+  if (!rows.some(function(r){ return r.n; })) { box.innerHTML = '<div class="empty py-2">아직 응시한 학생이 없어요</div>'; return; }
   box.innerHTML = rows.map(function(r) {
     return '<div class="list-item"><span style="font-weight:700">' + esc(r.name) + '</span><span style="font-size:12px;color:var(--txt2)">' +
-      (r.last ? esc(String(r.last.date).slice(5,10)) + ' · <b style="color:var(--gold)">' + esc(r.last.score) + '점</b> · ' + r.n + '회 · 평균 ' + r.avg + '점' : '응시 기록 없음') + '</span></div>';
+      (r.last ? esc(String(r.last.date).slice(5,10)) + ' · <b class="c-gold">' + esc(r.last.score) + '점</b> · ' + r.n + '회 · 평균 ' + r.avg + '점' : '응시 기록 없음') + '</span></div>';
   }).join('');
 }
 
@@ -985,7 +993,7 @@ async function loadStuMessageBadges(arr) {
         if (!lastMsg.read) {
           badgeEl.innerHTML = '<span style="color:var(--red,#e53935);font-weight:700">✉ 안읽음</span>';
         } else {
-          badgeEl.innerHTML = '<span style="color:var(--txt3)">✉ 읽음</span>';
+          badgeEl.innerHTML = '<span class="c-txt3">✉ 읽음</span>';
         }
       }
     } catch(e) {}
@@ -1012,7 +1020,7 @@ function updateStuCardBadge(stuId, isRead) {
   var badgeEl = document.getElementById('msg-badge-' + stuId);
   if (!badgeEl) return;
   if (isRead) {
-    badgeEl.innerHTML = '<span style="color:var(--txt3)">✉ 읽음</span>';
+    badgeEl.innerHTML = '<span class="c-txt3">✉ 읽음</span>';
   } else {
     badgeEl.innerHTML = '<span style="color:var(--red,#e53935);font-weight:700">✉ 안읽음</span>';
   }
@@ -1037,7 +1045,7 @@ async function addStudent() {
 async function loadStuExtras(stuId) {
   var box = document.getElementById('detail-extras');
   if (!box) return;
-  box.innerHTML = '<div class="empty" style="padding:.5rem 0">불러오는 중…</div>';
+  box.innerHTML = '<div class="empty py-2">불러오는 중…</div>';
   function esc(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   try {
     var res = await Promise.all([DB.getResults(stuId), DB.getBookmarks(stuId), DB.getMyWords(stuId)]);
@@ -1046,7 +1054,7 @@ async function loadStuExtras(stuId) {
     var wk = results.filter(function(r){ return r.date && new Date(r.date).getTime() >= weekAgo; });
     var days = {}; wk.forEach(function(r){ days[String(r.date).slice(0,10)] = 1; });
     var wkAvg = wk.length ? Math.round(wk.reduce(function(a,r){ return a + (r.score||0); }, 0) / wk.length) : 0;
-    var html = '<p class="sec-title" style="margin-bottom:.625rem">이번 주 요약 (최근 7일)</p>' +
+    var html = '<p class="sec-title mb-25">이번 주 요약 (최근 7일)</p>' +
       '<div class="metrics">' +
       '<div class="metric"><div class="metric-lbl">학습일</div><div class="metric-val mv-gold">' + Object.keys(days).length + '일</div></div>' +
       '<div class="metric"><div class="metric-lbl">시험 횟수</div><div class="metric-val mv-grn">' + wk.length + '</div></div>' +
@@ -1058,13 +1066,13 @@ async function loadStuExtras(stuId) {
     }).join('') : '<div class="empty" style="padding:.25rem 0">아직 응시 기록이 없어요</div>');
     var mine = Object.keys(my).map(function(k){ return my[k]; }).filter(function(x){ return x && x.word; });
     mine.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
-    html += '<details style="margin-top:1rem"><summary style="cursor:pointer;font-size:13px;font-weight:700;min-height:44px">내 단어 ' + mine.length + '개 (학생이 직접 등록)</summary>' +
+    html += '<details class="mt-4"><summary style="cursor:pointer;font-size:13px;font-weight:700;min-height:44px">내 단어 ' + mine.length + '개 (학생이 직접 등록)</summary>' +
       (mine.length ? mine.slice(0, 100).map(function(x){
         return '<div class="list-item"><span style="font-weight:700">' + esc(x.word) + '</span><span style="font-size:12px;color:var(--txt2)">' + esc(x.ko || '') + '</span></div>';
-      }).join('') : '<div class="empty" style="padding:.5rem 0">등록한 단어가 없어요</div>') + '</details>';
+      }).join('') : '<div class="empty py-2">등록한 단어가 없어요</div>') + '</details>';
     box.innerHTML = html;
   } catch (e) {
-    box.innerHTML = '<div class="empty" style="padding:.5rem 0">요약을 불러오지 못했어요</div>';
+    box.innerHTML = '<div class="empty py-2">요약을 불러오지 못했어요</div>';
   }
 }
 
@@ -1099,7 +1107,7 @@ async function showStuDetail(stuId) {
     }
     if (weak.length) {
       document.getElementById('detail-weak').innerHTML =
-        '<p class="sec-title" style="margin-bottom:.625rem">취약 단어 TOP10</p>' +
+        '<p class="sec-title mb-25">취약 단어 TOP10</p>' +
         weak.slice(0,10).map(function(w) {
           return '<div class="list-item">' +
             '<span style="font-family:var(--font-display);font-style:italic">' + w.word + '</span>' +
@@ -1108,7 +1116,7 @@ async function showStuDetail(stuId) {
         }).join('');
     }
   } catch(e) {
-    document.getElementById('detail-metrics').innerHTML = '<div class="empty" style="padding:.5rem 0">Firebase 연결 필요</div>';
+    document.getElementById('detail-metrics').innerHTML = '<div class="empty py-2">Firebase 연결 필요</div>';
   }
 
   loadStuExtras(stuId);
@@ -1361,9 +1369,9 @@ async function openExportPanel() {
     var tbody = document.getElementById('export-table-body');
     tbody.innerHTML = exportWords.map(function(w, i) {
       var tag = w.isWeak ? '<span class="tag-weak">취약</span>' : '<span class="tag-study">학습</span>';
-      var wrongStr = w.wrong > 0 ? '<span style="color:var(--red)">' + w.wrong + '회</span>' : '-';
+      var wrongStr = w.wrong > 0 ? '<span class="c-red">' + w.wrong + '회</span>' : '-';
       return '<tr>' +
-        '<td style="color:var(--txt3);font-size:11px">' + (i+1) + '</td>' +
+        '<td class="muted-sm">' + (i+1) + '</td>' +
         '<td style="font-family:var(--font-display);font-style:italic;font-weight:500">' + w.word + '</td>' +
         '<td style="color:var(--txt2)">' + (w.ko||'-') + '</td>' +
         '<td>' + tag + '</td>' +
@@ -1603,9 +1611,9 @@ async function renderWeakWordAnalysis() {
     sorted.forEach(function(w, i) {
       var pct = Math.round(w.wrong / maxWrong * 100);
       var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1) + '.';
-      html += '<div style="margin-bottom:.625rem">' +
+      html += '<div class="mb-25">' +
         '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">' +
-          '<span>' + medal + ' <b>' + w.word + '</b> <span style="color:var(--txt3)">' + w.ko + '</span></span>' +
+          '<span>' + medal + ' <b>' + w.word + '</b> <span class="c-txt3">' + w.ko + '</span></span>' +
           '<span style="color:var(--red,#ef4444)">' + w.wrong + '회 오답 · ' + w.stuCount + '명</span>' +
         '</div>' +
         '<div style="background:var(--sur2);border-radius:99px;height:5px;overflow:hidden">' +
@@ -1618,7 +1626,7 @@ async function renderWeakWordAnalysis() {
     // 출제용 단어 저장
     window._weakAnalysisWords = sorted;
   } catch(e) {
-    el.innerHTML = '<div style="color:var(--red)">오류: ' + e.message + '</div>';
+    el.innerHTML = '<div class="c-red">오류: ' + e.message + '</div>';
   }
 }
 
@@ -1666,7 +1674,7 @@ async function renderScoreDist() {
       var val = buckets[label];
       var h = Math.round(val / maxVal * 72);
       html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">' +
-        '<span style="font-size:9px;color:var(--txt3)">' + (val||'') + '</span>' +
+        '<span class="muted-2xs">' + (val||'') + '</span>' +
         '<div style="width:100%;height:' + (h||2) + 'px;background:' + colors[label] + ';border-radius:3px 3px 0 0;min-height:2px"></div>' +
       '</div>';
     });
@@ -1678,7 +1686,7 @@ async function renderScoreDist() {
     html += '</div>';
     el.innerHTML = html;
   } catch(e) {
-    el.innerHTML = '<div style="color:var(--red)">오류: ' + e.message + '</div>';
+    el.innerHTML = '<div class="c-red">오류: ' + e.message + '</div>';
   }
 }
 
@@ -1689,8 +1697,10 @@ async function renderScoreDist() {
 async function clearWeakWords() {
   var sel = document.getElementById('clear-weak-target');
   var msg = document.getElementById('clear-weak-msg');
-  var target = sel ? sel.value : 'all';
-  var label = sel ? sel.options[sel.selectedIndex].text : '전체';
+  var target = sel ? sel.value : '';
+  var label = sel ? sel.options[sel.selectedIndex].text : '';
+  if (!target) { if (msg) { msg.style.color = 'var(--red)'; msg.textContent = '초기화할 대상을 먼저 선택하세요'; } return; }
+  if (target === 'all' && !confirm('전체 학생의 취약단어가 모두 삭제됩니다. 되돌릴 수 없어요. 계속할까요?')) return;
 
   if (!confirm(label + '\uC758 \uCDE8\uC57D\uB2E8\uC5B4\uB97C \uBAA8\uB450 \uC0AD\uC81C\uD560\uAE4C\uC694?')) return;
 
@@ -1711,7 +1721,7 @@ async function clearWeakWords() {
 async function loadPointsRank() {
   var el = document.getElementById('points-rank-content');
   if (!el) return;
-  el.innerHTML = '<span style="color:var(--txt3)">집계 중...</span>';
+  el.innerHTML = '<span class="c-txt3">집계 중...</span>';
   try {
     var stuList = Object.values(students);
     if (!stuList.length) { el.innerHTML = '학생 없음'; return; }
@@ -1731,11 +1741,11 @@ async function loadPointsRank() {
     var maxXP = rankData[0].xp || 1;
     el.innerHTML = rankData.slice(0,8).map(function(d,i) {
       var pct = Math.round(d.xp / maxXP * 100);
-      return '<div style="margin-bottom:.5rem">' +
+      return '<div class="mb-2">' +
         '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">' +
           '<span>' + (medals[i]||' '+(i+1)+'.') + ' <b>' + d.name + '</b>' +
-          ' <span style="font-size:10px;color:var(--txt3)">Lv.' + d.lv + '</span></span>' +
-          '<span style="color:var(--gold)">' + d.pts.toLocaleString() + 'P</span>' +
+          ' <span class="muted-xs">Lv.' + d.lv + '</span></span>' +
+          '<span class="c-gold">' + d.pts.toLocaleString() + 'P</span>' +
         '</div>' +
         '<div style="background:var(--sur2);border-radius:99px;height:5px;overflow:hidden">' +
           '<div style="width:' + pct + '%;height:100%;background:var(--gold);border-radius:99px"></div>' +
@@ -1748,7 +1758,7 @@ async function loadPointsRank() {
 async function loadStudyTimeRank() {
   var el = document.getElementById('study-time-rank');
   if (!el) return;
-  el.innerHTML = '<span style="color:var(--txt3)">집계 중...</span>';
+  el.innerHTML = '<span class="c-txt3">집계 중...</span>';
 
   try {
     var stuList = Object.values(students);
@@ -1789,10 +1799,10 @@ async function loadStudyTimeRank() {
       var hrs = Math.floor(d.mins/60);
       var mins = d.mins % 60;
       var timeStr = hrs > 0 ? hrs+'시간 '+mins+'분' : mins+'분';
-      return '<div style="margin-bottom:.5rem">' +
+      return '<div class="mb-2">' +
         '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">' +
           '<span>' + (medals[i]||'  '+(i+1)+'.') + ' <b>' + d.name + '</b></span>' +
-          '<span style="color:var(--gold)">' + timeStr + ' · ' + d.count + '회</span>' +
+          '<span class="c-gold">' + timeStr + ' · ' + d.count + '회</span>' +
         '</div>' +
         '<div style="background:var(--sur2);border-radius:99px;height:5px;overflow:hidden">' +
           '<div style="width:'+pct+'%;height:100%;background:var(--gold);border-radius:99px"></div>' +
@@ -1807,15 +1817,15 @@ async function loadStudyTimeRank() {
 async function loadMVP() {
   var el = document.getElementById('mvp-content');
   if (!el) return;
-  el.innerHTML = '<span style="color:var(--txt3)">집계 중...</span>';
+  el.innerHTML = '<span class="c-txt3">집계 중...</span>';
   var mvpData = await computeWeeklyMVP();
   if (!mvpData.length) { el.innerHTML = '이번 주 학습 데이터가 없습니다'; return; }
   var medals = ['🥇','🥈','🥉'];
   el.innerHTML = mvpData.slice(0,3).map(function(d,i) {
     return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0">' +
       '<span style="font-size:18px">' + (medals[i]||'') + '</span>' +
-      '<span style="font-weight:600">' + d.name + '</span>' +
-      '<span style="color:var(--txt3);font-size:11px">' + d.count + '회 · ' + d.total + '개 정답</span>' +
+      '<span class="fw-6">' + d.name + '</span>' +
+      '<span class="muted-sm">' + d.count + '회 · ' + d.total + '개 정답</span>' +
     '</div>';
   }).join('');
   // Firebase에 MVP 저장 (학생 홈에서 읽기 위해)
@@ -1911,9 +1921,9 @@ async function loadStats() {
       for (var h = s.range[0]; h <= s.range[1]; h++) count += hourMap[h];
       var pct = Math.round(count / Math.max(1, totalSessions) * 100);
       var barW = Math.round(count / maxH * 100);
-      return '<div style="margin-bottom:.5rem">' +
+      return '<div class="mb-2">' +
         '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">' +
-        '<span>' + s.label + '</span><span style="color:var(--txt3)">' + count + '회 (' + pct + '%)</span></div>' +
+        '<span>' + s.label + '</span><span class="c-txt3">' + count + '회 (' + pct + '%)</span></div>' +
         '<div style="height:6px;background:var(--sur3);border-radius:3px;overflow:hidden">' +
         '<div style="width:' + barW + '%;height:100%;background:' + s.color + ';border-radius:3px;transition:width .4s"></div></div></div>';
     }).join('');
@@ -2183,11 +2193,11 @@ async function loadStudentDetail() {
     var trendText = trend > 5 ? '↑ 상승 중' : trend < -5 ? '↓ 하락 중' : '→ 유지 중';
     var lastColor = daysSinceLast === 0 ? 'var(--grn,#4caf50)' : daysSinceLast <= 3 ? 'var(--gold)' : 'var(--red,#e53935)';
 
-    var html = '<div style="margin-bottom:1rem">' +
+    var html = '<div class="mb-4">' +
       '<div style="font-size:15px;font-weight:700;margin-bottom:.625rem">' + stu.name + ' 학생</div>' +
 
       // 핵심 지표 4개
-      '<div class="metrics" style="margin-bottom:.875rem">' +
+      '<div class="metrics mb-35">' +
         '<div class="metric"><div class="metric-lbl">전체 평균</div><div class="metric-val ' + (avg>=70?'mv-grn':'mv-red') + '">' + avg + '%</div></div>' +
         '<div class="metric"><div class="metric-lbl">최근 트렌드</div><div class="metric-val" style="color:' + trendColor + ';font-size:13px">' + trendText + '</div></div>' +
         '<div class="metric"><div class="metric-lbl">출석일</div><div class="metric-val mv-gold">' + uniqueDays + '일</div></div>' +
@@ -2208,7 +2218,7 @@ async function loadStudentDetail() {
 
     // 성장 그래프
     if (recent15.length >= 2) {
-      html += '<div style="margin-bottom:.75rem">' +
+      html += '<div class="mb-3">' +
         '<div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">최근 점수 추이</div>' +
         '<canvas id="student-score-chart" style="width:100%;height:70px"></canvas>' +
       '</div>';
@@ -2217,7 +2227,7 @@ async function loadStudentDetail() {
     // 모드별 성적
     if (Object.keys(modeStats).length) {
       var modeLabels = { quiz:'타이핑 퀴즈', choice:'4지선다', speed:'속도인식', flip:'카드연습', blank:'빈칸채우기', weak:'취약단어' };
-      html += '<div style="margin-bottom:.75rem">' +
+      html += '<div class="mb-3">' +
         '<div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">모드별 평균 점수</div>' +
         Object.entries(modeStats).map(function(e) {
           var m = e[0], s = e[1];
@@ -2279,7 +2289,7 @@ async function loadStudentDetail() {
           return '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bdr);font-size:12px">' +
             '<div><span style="font-style:italic;font-weight:600">' + w.word + '</span>' +
             '<span style="color:var(--txt3);margin-left:6px;font-size:11px">' + (w.ko||'') + '</span></div>' +
-            '<div style="display:flex;align-items:center;gap:8px">' +
+            '<div class="row-center">' +
             streakDots +
             '<span style="color:var(--red,#e53935);font-size:11px">' + w.wrong + '회 틀림</span></div></div>';
         }).join('') +
@@ -2385,16 +2395,16 @@ async function loadWeeklyReports() {
         html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:.375rem">' +
           '<div style="background:var(--sur2);border-radius:6px;padding:6px;text-align:center">' +
             '<div style="font-size:14px;font-weight:700;color:' + scColor + '">' + avgSc + '%</div>' +
-            '<div style="font-size:10px;color:var(--txt3)">기간 평균</div></div>' +
+            '<div class="muted-xs">기간 평균</div></div>' +
           '<div style="background:var(--sur2);border-radius:6px;padding:6px;text-align:center">' +
             '<div style="font-size:14px;font-weight:700;color:var(--gold)">' + uniqDays + '일</div>' +
-            '<div style="font-size:10px;color:var(--txt3)">출석</div></div>' +
+            '<div class="muted-xs">출석</div></div>' +
           '<div style="background:var(--sur2);border-radius:6px;padding:6px;text-align:center">' +
             '<div style="font-size:13px;font-weight:700;color:' + trendColor + '">' + trendText + '</div>' +
-            '<div style="font-size:10px;color:var(--txt3)">트렌드</div></div>' +
+            '<div class="muted-xs">트렌드</div></div>' +
         '</div>';
         if (weak && weak.length) {
-          html += '<div style="font-size:11px;color:var(--txt3)">취약단어 ' + weak.length + '개 | 최고 ' + bestSc + '%</div>';
+          html += '<div class="muted-sm">취약단어 ' + weak.length + '개 | 최고 ' + bestSc + '%</div>';
         }
       }
       html += '</div>';
@@ -2439,7 +2449,7 @@ async function loadWeakWordMatrix() {
       .slice(0, 15);
 
     if (!sharedWeak.length) {
-      el.innerHTML = '<div style="color:var(--txt3);font-size:12px">2명 이상 공통으로 틀린 단어가 없습니다</div>';
+      el.innerHTML = '<div class="muted-md">2명 이상 공통으로 틀린 단어가 없습니다</div>';
       return;
     }
 
@@ -2460,7 +2470,7 @@ async function loadWeakWordMatrix() {
       html += '<tr style="background:' + (rowIdx%2===0?'var(--sur2)':'transparent') + '">' +
         '<td style="padding:5px 8px;border-bottom:1px solid var(--bdr)">' +
           '<b>' + w.word + '</b>' +
-          '<div style="font-size:9px;color:var(--txt3)">' + w.ko + '</div>' +
+          '<div class="muted-2xs">' + w.ko + '</div>' +
         '</td>';
       stuNames.forEach(function(n) {
         var wrongCnt = w.students[n] || 0;
@@ -2477,7 +2487,7 @@ async function loadWeakWordMatrix() {
     html += '<div style="font-size:10px;color:var(--txt3);margin-top:.5rem">🔴 5회↑ · 🟡 2~4회 · 🟢 1회 · — 없음</div>';
     el.innerHTML = html;
   } catch(e) {
-    el.innerHTML = '<div style="color:var(--red)">오류: ' + e.message + '</div>';
+    el.innerHTML = '<div class="c-red">오류: ' + e.message + '</div>';
   }
 }
 
@@ -2523,7 +2533,7 @@ async function loadListeningProgressReport() {
     html += '</tbody></table></div>';
     el.innerHTML = html;
   } catch(e) {
-    el.innerHTML = '<div style="color:var(--red)">오류: ' + e.message + '</div>';
+    el.innerHTML = '<div class="c-red">오류: ' + e.message + '</div>';
   }
 }
 
@@ -2535,7 +2545,7 @@ async function loadExamRangeProgress() {
   try {
     var range = await DB.getExamRange();
     if (!range || !range.setId) {
-      el.innerHTML = '<div style="color:var(--txt3)">설정 탭에서 시험 범위를 먼저 설정하세요.</div>';
+      el.innerHTML = '<div class="c-txt3">설정 탭에서 시험 범위를 먼저 설정하세요.</div>';
       return;
     }
 
@@ -2574,9 +2584,9 @@ async function loadExamRangeProgress() {
         var pct = weekWords.length ? Math.round(studiedWords.size / weekWords.length * 100) : 0;
         var barColor = pct >= 80 ? 'var(--grn,#4caf50)' : pct >= 50 ? 'var(--gold)' : 'var(--red,#e53935)';
 
-        html += '<div style="margin-bottom:.625rem">' +
+        html += '<div class="mb-25">' +
           '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">' +
-            '<span style="font-weight:600">' + stu.name + '</span>' +
+            '<span class="fw-6">' + stu.name + '</span>' +
             '<span style="color:' + barColor + '">' + studiedWords.size + '/' + weekWords.length + ' (' + pct + '%)</span>' +
           '</div>' +
           '<div style="background:var(--sur2);border-radius:99px;height:6px;overflow:hidden">' +
@@ -2586,7 +2596,7 @@ async function loadExamRangeProgress() {
     }
     el.innerHTML = html;
   } catch(e) {
-    el.innerHTML = '<div style="color:var(--red)">오류: ' + e.message + '</div>';
+    el.innerHTML = '<div class="c-red">오류: ' + e.message + '</div>';
   }
 }
 
@@ -2706,7 +2716,7 @@ function toggleMemoOverview() {
   if (el.style.display !== 'none') { el.style.display = 'none'; if(btn) btn.textContent='보기'; return; }
   // 메모 있는 학생만 표시
   var arr = Object.values(students).filter(function(s){ return s.memo && s.memo.trim(); });
-  if (!arr.length) { el.innerHTML = '<div class="empty" style="padding:.5rem 0">메모가 없습니다</div>'; }
+  if (!arr.length) { el.innerHTML = '<div class="empty py-2">메모가 없습니다</div>'; }
   else {
     el.innerHTML = arr.map(function(s) {
       return '<div style="padding:.5rem 0;border-bottom:1px solid var(--bdr)">' +
@@ -2876,15 +2886,33 @@ async function saveSettings() {
 }
 
 // -- Tabs --
+var _analysisSub = 'progress';
 function switchT(tab) {
+  // 구 탭 이름 호환: progress/stats/report → 분석, mnemonic → 설정
+  var sub = null;
+  if (tab === 'progress' || tab === 'stats' || tab === 'report') { sub = tab; _analysisSub = tab; tab = 'analysis'; }
+  else if (tab === 'analysis') { sub = _analysisSub; }
+  else if (tab === 'mnemonic') { tab = 'settings'; }
   document.querySelectorAll('.tsec').forEach(function(el){ el.classList.remove('active'); });
   document.querySelectorAll('.tabs .tab').forEach(function(el){ el.classList.remove('active'); });
-  document.getElementById('ts-'+tab).classList.add('active');
-  document.getElementById('tt-'+tab).classList.add('active');
-  if (tab === 'stats') loadStats();
-  if (tab === 'progress') loadProgress();
-  if (tab === 'report') loadWeeklyReports();
-  if (tab === 'settings') initExamSetSelect();
+  document.querySelectorAll('#analysis-seg .seg-btn').forEach(function(el){ el.classList.remove('active'); });
+  var tb = document.getElementById('tt-' + tab); if (tb) tb.classList.add('active');
+  var seg = document.getElementById('analysis-seg');
+  if (seg) seg.style.display = (tab === 'analysis') ? 'flex' : 'none';
+  function on(id) { var e = document.getElementById(id); if (e) e.classList.add('active'); }
+  if (tab === 'analysis') {
+    on('ts-' + sub);
+    var sb = document.getElementById('sg-' + sub); if (sb) sb.classList.add('active');
+    if (sub === 'stats') loadStats();
+    if (sub === 'progress') loadProgress();
+    if (sub === 'report') loadWeeklyReports();
+  } else if (tab === 'settings') {
+    on('ts-settings'); on('ts-mnemonic'); on('ts-danger');
+    initExamSetSelect();
+  } else {
+    on('ts-' + tab);
+    if (tab === 'exam') initExamSetSelect();
+  }
 }
 
 function initExamSetSelect() {
@@ -2978,6 +3006,21 @@ function renderMnemonicList() {
       '<button class="btn btn-ghost btn-sm" data-w="' + safeWord + '" onclick="editMnemonic(this.dataset.w)">편집</button>' +
       '</div>';
   }).join('');
+}
+
+async function saveMnemonic() {
+  var box = document.getElementById('mn-result'), msg = document.getElementById('mn-msg');
+  var word = box && box.dataset.word, val = (document.getElementById('mn-new') || {}).value;
+  if (!word) return;
+  val = (val || '').trim();
+  if (!val) { if (msg) { msg.textContent = '연상법을 입력해 주세요'; msg.style.color = 'var(--red)'; } return; }
+  try {
+    await DB.saveMnemonic(word, val);
+    allMnemonics[word] = val;
+    document.getElementById('mn-current').textContent = val;
+    renderMnemonicList();
+    if (msg) { msg.textContent = '✓ 저장됐어요'; msg.style.color = 'var(--grn)'; setTimeout(function(){ msg.textContent = ''; }, 2000); }
+  } catch (e) { if (msg) { msg.textContent = '저장에 실패했어요. 다시 시도해 주세요'; msg.style.color = 'var(--red)'; } }
 }
 
 function searchMnemonic() {
@@ -3133,10 +3176,10 @@ async function loadProgress() {
         var nameChips = doneNames.map(function(n){ return '<span style="font-size:10px;background:rgba(75,181,67,.15);color:var(--grn,#4caf50);border-radius:99px;padding:1px 7px;margin:1px">' + n + '</span>'; }).join('') +
           notDoneNames.map(function(n){ return '<span style="font-size:10px;background:var(--sur2);color:var(--txt3);border-radius:99px;padding:1px 7px;margin:1px">' + n + '</span>'; }).join('');
 
-        weekHtml += '<div style="margin-bottom:1rem">' +
+        weekHtml += '<div class="mb-4">' +
           '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:.25rem">' +
-            '<span style="font-weight:600">' + wk + '</span>' +
-            '<span style="color:var(--txt3)">' + done + '/' + total + '명 · 평균 ' + avgScore + '점</span>' +
+            '<span class="fw-6">' + wk + '</span>' +
+            '<span class="c-txt3">' + done + '/' + total + '명 · 평균 ' + avgScore + '점</span>' +
           '</div>' +
           '<div style="background:var(--sur2);border-radius:99px;height:8px;overflow:hidden;margin-bottom:.375rem">' +
             '<div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:99px;transition:width .4s"></div>' +

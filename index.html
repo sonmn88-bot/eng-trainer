@@ -157,9 +157,9 @@
 <div id="screen-home" class="screen active">
   <!-- 연결 오류 배너 -->
   <div id="conn-error-banner" style="display:none;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);border-radius:var(--rs);padding:.625rem 1rem;margin-bottom:.75rem;display:none">
-    <div style="display:flex;align-items:center;gap:8px">
+    <div class="row-center">
       <span style="font-size:16px">⚠️</span>
-      <div style="flex:1">
+      <div class="flex-1">
         <div style="font-size:12px;font-weight:600;color:var(--red,#f87171)">서버 연결 실패</div>
         <div style="font-size:11px;color:var(--txt2)">인터넷 연결을 확인하고 다시 시도해주세요</div>
       </div>
@@ -224,8 +224,8 @@
         <div style="font-size:12px;font-weight:600;color:var(--txt);margin-bottom:.375rem">📱 앱으로 설치하기</div>
         <div style="font-size:11px;color:var(--txt3);line-height:1.6;margin-bottom:.625rem">홈 화면에 추가하면 앱처럼 사용할 수 있어요</div>
         <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="showInstallGuide('ios')" style="font-size:11px">🍎 아이폰 설치법</button>
-          <button class="btn btn-ghost btn-sm" onclick="showInstallGuide('android')" style="font-size:11px">🤖 안드로이드 설치법</button>
+          <button class="btn btn-ghost btn-sm fs-11" onclick="showInstallGuide('ios')">🍎 아이폰 설치법</button>
+          <button class="btn btn-ghost btn-sm fs-11" onclick="showInstallGuide('android')">🤖 안드로이드 설치법</button>
         </div>
         <div id="install-guide" style="display:none;margin-top:.625rem;font-size:11px;color:var(--txt2);line-height:1.8;text-align:left;background:var(--sur);border-radius:var(--rs);padding:.625rem .75rem"></div>
       </div>
@@ -254,7 +254,7 @@
       </div>
       <div style="margin-left:auto;text-align:right;line-height:1.6">
         <div style="font-size:12px;color:var(--gold);font-weight:500" id="streak-msg"></div>
-        <div style="font-size:10px;color:var(--txt3)" id="streak-max-msg"></div>
+        <div id="streak-max-msg" class="muted-xs"></div>
       </div>
     </div>
 
@@ -269,7 +269,7 @@
     <div id="notice-banner" style="display:none;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem">
       <div style="display:flex;align-items:flex-start;gap:8px">
         <span style="font-size:16px;flex-shrink:0">📢</span>
-        <div style="flex:1">
+        <div class="flex-1">
           <div style="font-size:11px;color:var(--txt3);margin-bottom:2px">선생님 공지</div>
           <div style="font-size:13px;color:var(--txt);line-height:1.6" id="notice-text"></div>
         </div>
@@ -281,7 +281,7 @@
     <div id="review-alert" style="display:none;background:var(--gold-bg);border:1px solid var(--gold-bdr);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem;cursor:pointer">
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:22px">🔔</span>
-        <div style="flex:1">
+        <div class="flex-1">
           <div style="font-size:13px;font-weight:600;color:var(--gold)" id="review-alert-title">오늘의 복습</div>
           <div style="font-size:12px;color:var(--txt2);margin-top:2px" id="review-alert-msg"></div>
         </div>
@@ -291,7 +291,7 @@
 
     <!-- 취약단어 긴급 알림 -->
     <div id="weak-alert" style="display:none;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:.625rem 1rem;margin-bottom:1rem">
-      <div style="display:flex;align-items:center;gap:8px">
+      <div class="row-center">
         <span style="font-size:16px">⚡</span>
         <div style="font-size:12px;color:var(--txt2)" id="weak-alert-msg"></div>
       </div>
@@ -305,7 +305,7 @@
 
     <!-- 추천 단어장 + 시험 일정 배너 -->
     <div id="rec-set-banner" style="display:none;background:rgba(200,242,90,.08);border:1px solid rgba(200,242,90,.2);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;cursor:pointer" onclick="goToRecommendedSet()">
-      <div style="display:flex;align-items:center;gap:8px">
+      <div class="row-center">
         <span style="font-size:18px">📌</span>
         <div>
           <div style="font-size:12px;font-weight:700;color:var(--gold)" id="rec-set-title">이번 주 추천</div>
@@ -315,7 +315,7 @@
       </div>
     </div>
     <div id="exam-schedule-banner" style="display:none;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem">
-      <div style="display:flex;align-items:center;gap:8px">
+      <div class="row-center">
         <span style="font-size:18px">📝</span>
         <div>
           <div style="font-size:12px;font-weight:700;color:var(--red,#f87171)" id="exam-schedule-dday"></div>
@@ -326,7 +326,7 @@
 
     <!-- 오늘의 미션 -->
     <div id="daily-mission-card" style="display:none;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rx);padding:.875rem 1rem;margin-bottom:1rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+      <div class="row-between mb-25">
         <div style="font-size:13px;font-weight:700" id="mission-header">⚡ 오늘의 미션</div>
         <span id="mission-xp-badge" class="badge b-gold" style="font-size:10px"></span>
       </div>
@@ -336,7 +336,7 @@
 
     <!-- 주간 목표 달성률 -->
     <div id="weekly-goal-card" style="display:none;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rx);padding:.875rem 1rem;margin-bottom:1rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+      <div class="row-between mb-25">
         <div style="font-size:13px;font-weight:700">📊 이번 주 학습 현황</div>
         <span id="weekly-goal-pct" style="font-size:12px;font-weight:700;color:var(--gold)"></span>
       </div>
@@ -374,7 +374,7 @@
             <span id="profile-xp-pct" style="font-size:10px;color:var(--txt3);min-width:28px;text-align:right">0%</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
-            <span id="profile-xp-num" style="font-size:10px;color:var(--txt3)">XP 0</span>
+            <span id="profile-xp-num" class="muted-xs">XP 0</span>
             <span id="profile-xp-next" style="font-size:10px;color:var(--gold);font-weight:600"></span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1px">
@@ -388,7 +388,7 @@
 
     <!-- 내 현황 -->
     <div class="card card-sm" id="my-stats" style="display:none">
-      <p class="sec-title" style="margin-bottom:.875rem">내 현황</p>
+      <p class="sec-title mb-35">내 현황</p>
       <div class="metrics" id="stats-grid"></div>
     </div>
 
@@ -449,7 +449,7 @@
       <input type="password" id="pw-input" placeholder="비밀번호"
              style="text-align:center;margin-bottom:6px" onkeydown="if(event.key==='Enter')doLogin()">
       <div style="font-size:12px;color:var(--red);min-height:18px;margin-bottom:10px" id="pw-err"></div>
-      <div style="display:flex;gap:8px">
+      <div class="row-gap8">
         <button class="btn btn-full" onclick="showHome()">취소</button>
         <button class="btn btn-gold btn-full" onclick="doLogin()">입장 →</button>
       </div>
@@ -491,7 +491,7 @@
       <div class="ob-dot" id="ob-dot-2" style="width:8px;height:8px;border-radius:50%;background:var(--sur3);transition:all .2s"></div>
       <div class="ob-dot" id="ob-dot-3" style="width:8px;height:8px;border-radius:50%;background:var(--sur3);transition:all .2s"></div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div class="row-gap8">
       <button id="ob-skip-btn" class="btn btn-ghost btn-full" onclick="closeOnboarding()" style="font-size:12px">건너뛰기</button>
       <button id="ob-next-btn" class="btn btn-gold btn-full" onclick="nextOnboardSlide()">다음 →</button>
     </div>
@@ -566,10 +566,10 @@
     </div>
     <div id="pw-current-status" style="font-size:11px;margin-bottom:.75rem;padding:.5rem .75rem;background:var(--sur2);border-radius:var(--rs)"></div>
     <input type="password" id="pw-new-input" placeholder="새 비밀번호 (비우면 삭제)"
-      style="margin-bottom:.5rem" maxlength="20">
+      maxlength="20" class="mb-2">
     <input type="password" id="pw-confirm-input" placeholder="비밀번호 확인"
-      style="margin-bottom:.75rem" maxlength="20"
-      onkeydown="if(event.key==='Enter')savePwSetting()">
+      maxlength="20"
+      onkeydown="if(event.key==='Enter')savePwSetting()" class="mb-3">
     <div id="pw-setting-msg" style="font-size:11px;min-height:16px;margin-bottom:.5rem;text-align:center"></div>
     <button class="btn btn-gold btn-full" onclick="savePwSetting()">저장</button>
   </div>
@@ -628,10 +628,10 @@
 <!-- 배지 도감 팝업 -->
 <div id="badge-docs-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9996;align-items:flex-start;justify-content:center;padding-top:20px;overflow-y:auto">
   <div style="background:var(--sur);border-radius:20px 20px 0 0;padding:1.25rem;width:100%;max-width:480px;min-height:80vh">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div class="row-between mb-4">
       <div>
         <div style="font-size:16px;font-weight:700">🏆 배지 도감</div>
-        <div id="badge-docs-count" style="font-size:12px;color:var(--txt3)"></div>
+        <div id="badge-docs-count" class="muted-md"></div>
       </div>
       <button onclick="closeBadgeDocs()" style="background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
     </div>
@@ -665,7 +665,7 @@
 <!-- 프로필 편집 팝업 -->
 <div id="profile-edit-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9995;align-items:flex-end;justify-content:center">
   <div style="background:var(--sur);border-radius:20px 20px 0 0;padding:1.25rem;width:100%;max-width:480px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div class="row-between mb-4">
       <div style="font-size:15px;font-weight:700">프로필 편집</div>
       <button onclick="closeProfileEdit()" style="background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
     </div>
@@ -677,22 +677,22 @@
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem" id="color-grid">
       <button onclick="selectAvatarColor('#C8F25A')" data-color="#C8F25A" style="width:32px;height:32px;border-radius:50%;background:#C8F25A;border:2px solid transparent;cursor:pointer"></button>
       <button onclick="selectAvatarColor('#A78BFA')" data-color="#A78BFA" style="width:32px;height:32px;border-radius:50%;background:#A78BFA;border:2px solid transparent;cursor:pointer"></button>
-      <button onclick="selectAvatarColor('#60A5FA')" data-color="#60A5FA" style="width:32px;height:32px;border-radius:50%;background:#60A5FA;border:2px solid transparent;cursor:pointer"></button>
-      <button onclick="selectAvatarColor('#4ADE80')" data-color="#4ADE80" style="width:32px;height:32px;border-radius:50%;background:#4ADE80;border:2px solid transparent;cursor:pointer"></button>
-      <button onclick="selectAvatarColor('#F87171')" data-color="#F87171" style="width:32px;height:32px;border-radius:50%;background:#F87171;border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#60A5FA')" data-color="#60A5FA" style="width:32px;height:32px;border-radius:50%;background:var(--blue);border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#4ADE80')" data-color="#4ADE80" style="width:32px;height:32px;border-radius:50%;background:var(--grn);border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#F87171')" data-color="#F87171" style="width:32px;height:32px;border-radius:50%;background:var(--red);border:2px solid transparent;cursor:pointer"></button>
       <button onclick="selectAvatarColor('#FB923C')" data-color="#FB923C" style="width:32px;height:32px;border-radius:50%;background:#FB923C;border:2px solid transparent;cursor:pointer"></button>
       <button onclick="selectAvatarColor('#E879F9')" data-color="#E879F9" style="width:32px;height:32px;border-radius:50%;background:#E879F9;border:2px solid transparent;cursor:pointer"></button>
       <button onclick="selectAvatarColor('#94A3B8')" data-color="#94A3B8" style="width:32px;height:32px;border-radius:50%;background:#94A3B8;border:2px solid transparent;cursor:pointer"></button>
     </div>
     <!-- 칭호 선택 -->
-    <div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">칭호 선택 <span style="color:var(--txt3);font-size:11px">(획득한 칭호만)</span></div>
+    <div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">칭호 선택 <span class="muted-sm">(획득한 칭호만)</span></div>
     <div id="title-grid" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem"></div>
     <button class="btn btn-gold btn-full" onclick="saveProfileEdit()">저장하기</button>
   </div>
 </div>
 <div id="weekly-report-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9997;align-items:flex-start;justify-content:center;padding-top:60px;overflow-y:auto">
   <div style="background:var(--sur);border-radius:20px;padding:1.5rem;max-width:320px;width:90%;position:relative">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div class="row-between mb-4">
       <div>
         <div style="font-size:11px;color:var(--txt3);margin-bottom:2px">지난 주 학습 요약</div>
         <div style="font-size:17px;font-weight:700;color:var(--txt)">📊 주간 리포트</div>
@@ -700,7 +700,7 @@
       <button onclick="closeWeeklyReport()" style="background:none;border:none;color:var(--txt3);font-size:20px;cursor:pointer">×</button>
     </div>
     <div id="weekly-report-content"></div>
-    <button class="btn btn-gold btn-full" style="margin-top:1rem" onclick="closeWeeklyReport()">이번 주도 화이팅! 💪</button>
+    <button class="btn btn-gold btn-full mt-4" onclick="closeWeeklyReport()">이번 주도 화이팅! 💪</button>
   </div>
 </div>
 <div id="sticker-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center">
@@ -956,7 +956,7 @@ async function predictStudyGoal(daysLeft) {
     var predictedWords = Math.round(avgCorrect * avgPerDay * daysLeft);
     var el = document.getElementById('dday-words-needed');
     if (el && predicted > 0) {
-      el.innerHTML = '📈 현재 페이스면 <b style="color:var(--gold)">' + predictedWords.toLocaleString() + '개</b> 단어 학습 예정 (' + predicted + '회)';
+      el.innerHTML = '📈 현재 페이스면 <b class="c-gold">' + predictedWords.toLocaleString() + '개</b> 단어 학습 예정 (' + predicted + '회)';
       document.getElementById('dday-goal-wrap').style.display = 'block';
     }
   } catch(e) {}
@@ -1046,7 +1046,7 @@ async function doStuLogin() {
   // 세션 토큰 (중복 로그인 감지)
   var _token = Date.now() + '_' + Math.random().toString(36).slice(2,8);
   sessionStorage.setItem('session_token', _token);
-  try { DB.saveStudent(id, { lastSeen: new Date().toISOString(), sessionToken: _token }); } catch(e) {}
+  try { DB.saveStudent(id, { lastSeen: new Date().toISOString(), sessionToken: _token }); } catch(e) { console.warn('저장 실패', e); }
   showMain();
 }
 
@@ -1160,9 +1160,9 @@ async function showMain() {
         examBanner = document.createElement('div');
         examBanner.id = 'exam-range-banner';
         examBanner.style.cssText = 'background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:.625rem 1rem;margin-bottom:1rem;cursor:pointer';
-        examBanner.innerHTML = '<div style="display:flex;align-items:center;gap:8px">' +
+        examBanner.innerHTML = '<div class="row-center">' +
           '<span style="font-size:16px">📝</span>' +
-          '<div><div style="font-size:12px;color:var(--txt3)">이번 주 시험 범위</div>' +
+          '<div><div class="muted-md">이번 주 시험 범위</div>' +
           '<div id="exam-banner-text" style="font-size:13px;font-weight:600;color:var(--txt)"></div></div>' +
           '<span style="margin-left:auto;font-size:14px;color:var(--txt3)">›</span></div>';
         examBanner.onclick = function() {
@@ -1358,16 +1358,16 @@ function showWeeklyReport(results, weakList, weekKey) {
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem">' +
     '<div style="background:var(--sur2);border-radius:var(--rs);padding:.75rem;text-align:center">' +
     '<div style="font-size:22px;font-weight:700;color:' + scoreColor + '">' + avgScore + '%</div>' +
-    '<div style="font-size:11px;color:var(--txt3)">평균 점수</div></div>' +
+    '<div class="muted-sm">평균 점수</div></div>' +
     '<div style="background:var(--sur2);border-radius:var(--rs);padding:.75rem;text-align:center">' +
     '<div style="font-size:22px;font-weight:700;color:var(--gold)">' + days + '일</div>' +
-    '<div style="font-size:11px;color:var(--txt3)">출석일</div></div>' +
+    '<div class="muted-sm">출석일</div></div>' +
     '<div style="background:var(--sur2);border-radius:var(--rs);padding:.75rem;text-align:center">' +
     '<div style="font-size:22px;font-weight:700;color:var(--txt)">' + totalQuiz + '회</div>' +
-    '<div style="font-size:11px;color:var(--txt3)">시험 횟수</div></div>' +
+    '<div class="muted-sm">시험 횟수</div></div>' +
     '<div style="background:var(--sur2);border-radius:var(--rs);padding:.75rem;text-align:center">' +
     '<div style="font-size:22px;font-weight:700;color:var(--grn,#4caf50)">' + bestScore + '%</div>' +
-    '<div style="font-size:11px;color:var(--txt3)">최고 점수</div></div>' +
+    '<div class="muted-sm">최고 점수</div></div>' +
     '</div>' +
     '<div style="font-size:13px;font-weight:600;text-align:center;color:var(--txt2);margin-bottom:.75rem">' + scoreMsg + '</div>';
 
@@ -2602,7 +2602,7 @@ function showInstallGuide(platform) {
   el.dataset.platform = platform;
   if (platform === 'ios') {
     el.innerHTML =
-      '<b style="color:var(--gold)">🍎 아이폰/아이패드 설치 방법</b><br>' +
+      '<b class="c-gold">🍎 아이폰/아이패드 설치 방법</b><br>' +
       '1️⃣ 사파리(Safari) 브라우저로 접속<br>' +
       '2️⃣ 하단 가운데 <b>공유 버튼(□↑)</b> 탭<br>' +
       '3️⃣ 스크롤해서 <b>"홈 화면에 추가"</b> 선택<br>' +
@@ -2610,7 +2610,7 @@ function showInstallGuide(platform) {
       '✅ 홈 화면에 앱 아이콘이 생겨요!';
   } else {
     el.innerHTML =
-      '<b style="color:var(--gold)">🤖 안드로이드 설치 방법</b><br>' +
+      '<b class="c-gold">🤖 안드로이드 설치 방법</b><br>' +
       '1️⃣ 크롬(Chrome) 브라우저로 접속<br>' +
       '2️⃣ 주소창 옆 <b>⋮ 메뉴</b> 탭<br>' +
       '3️⃣ <b>"홈 화면에 추가"</b> 또는 <b>"앱 설치"</b> 선택<br>' +
@@ -2731,7 +2731,7 @@ async function renderStatusShop(el) {
     var html = '<div style="padding:.25rem 0">';
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem;padding:.625rem .75rem;background:var(--sur2);border-radius:10px">';
     html += '<div><div style="font-size:12px;font-weight:700;color:var(--gold)">총 XP: ' + xp.toLocaleString() + '</div>';
-    html += '<div style="font-size:10px;color:var(--txt3)">XP로 아이템 잠금 해제</div></div>';
+    html += '<div class="muted-xs">XP로 아이템 잠금 해제</div></div>';
     html += '<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:var(--gold)">💰 ' + goldAmt + ' 골드</div>';
     html += '<button onclick="openGoldShop()" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);cursor:pointer;margin-top:2px">골드 상점</button></div>';
     html += '</div>';
@@ -2774,7 +2774,7 @@ async function renderStatusShop(el) {
     });
     html += '</div></div>';
     el.innerHTML = html;
-  } catch(e) { if(el) el.innerHTML = '<div style="color:var(--red)">오류</div>'; }
+  } catch(e) { if(el) el.innerHTML = '<div class="c-red">오류</div>'; }
 }
 
 function switchStatusTab(tab) {
@@ -2815,7 +2815,7 @@ function renderBadgesTab() {
     return '<div style="margin-bottom:1.25rem">' +
       '<div style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:.5rem;display:flex;justify-content:space-between">' +
         cat.label +
-        '<span style="font-size:10px;color:var(--txt3)">' + earned + '/' + catBadges.length + '</span>' +
+        '<span class="muted-xs">' + earned + '/' + catBadges.length + '</span>' +
       '</div>' +
       '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">' +
         catBadges.map(function(b) {
@@ -2877,8 +2877,8 @@ function renderTitlesTab() {
     return i.type === 'title' && owned[i.id];
   });
 
-  var html = '<div style="margin-bottom:1rem">';
-  html += '<div style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:.625rem">🏅 배지 퀘스트 칭호 <span style="font-size:10px;color:var(--txt3)">(' + badgeTitles.filter(function(t){return t.earned;}).length + '/' + badgeTitles.length + ')</span></div>';
+  var html = '<div class="mb-4">';
+  html += '<div style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:.625rem">🏅 배지 퀘스트 칭호 <span class="muted-xs">(' + badgeTitles.filter(function(t){return t.earned;}).length + '/' + badgeTitles.length + ')</span></div>';
 
   html += badgeTitles.map(function(t) {
     var isActive = currentTitle === t.title;
@@ -2887,9 +2887,9 @@ function renderTitlesTab() {
       'border:1px solid ' + (isActive?'var(--gold-bdr)':'var(--bdr)') + ';' +
       'opacity:' + (t.earned?'1':'.5') + '">' +
       '<span style="font-size:20px">' + t.title.split(' ')[0] + '</span>' +
-      '<div style="flex:1">' +
+      '<div class="flex-1">' +
         '<div style="font-size:13px;font-weight:600;color:' + (t.earned?'var(--txt)':'var(--txt3)') + '">' + t.title + '</div>' +
-        '<div style="font-size:10px;color:var(--txt3)">' + (t.earned ? t.desc : '🔒 배지 미획득') + '</div>' +
+        '<div class="muted-xs">' + (t.earned ? t.desc : '🔒 배지 미획득') + '</div>' +
       '</div>' +
       (t.earned ? '<button onclick="setTitle(\'' + t.title.replace(/'/g,"\'") + '\')" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--bdr);background:' + (isActive?'var(--gold)':'var(--sur3)') + ';color:' + (isActive?'#111':'var(--txt)') + ';cursor:pointer;font-weight:600">' + (isActive?'착용중':'착용') + '</button>' : '') +
     '</div>';
@@ -2901,8 +2901,8 @@ function renderTitlesTab() {
       var isActive = currentTitle === item.value;
       return '<div style="display:flex;align-items:center;gap:10px;padding:.625rem .75rem;border-radius:10px;margin-bottom:4px;background:' + (isActive?'var(--gold-bg)':'var(--sur2)') + ';border:1px solid ' + (isActive?'var(--gold-bdr)':'var(--bdr)') + '">' +
         '<span style="font-size:20px">' + item.icon + '</span>' +
-        '<div style="flex:1"><div style="font-size:13px;font-weight:600">' + item.value + '</div>' +
-        '<div style="font-size:10px;color:var(--txt3)">' + item.desc + '</div></div>' +
+        '<div class="flex-1"><div style="font-size:13px;font-weight:600">' + item.value + '</div>' +
+        '<div class="muted-xs">' + item.desc + '</div></div>' +
         '<button onclick="setTitle(\'' + item.value.replace(/'/g,"\'") + '\')" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--bdr);background:' + (isActive?'var(--gold)':'var(--sur3)') + ';color:' + (isActive?'#111':'var(--txt)') + ';cursor:pointer;font-weight:600">' + (isActive?'착용중':'착용') + '</button>' +
       '</div>';
     }).join('');
@@ -2937,15 +2937,15 @@ function renderItemsTab() {
   });
   return Object.entries(grouped).map(function(entry) {
     var key = entry[0], items = entry[1];
-    return '<div style="margin-bottom:1rem">' +
+    return '<div class="mb-4">' +
       '<div style="font-size:11px;font-weight:700;color:var(--txt3);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.06em">' + (cats[key]||key) + '</div>' +
       items.map(function(item) {
         var earnedAt = owned[item.id] && owned[item.id].unlockedAt ? new Date(owned[item.id].unlockedAt).toLocaleDateString('ko') : '';
         return '<div style="display:flex;align-items:center;gap:10px;padding:.625rem .75rem;border-radius:10px;margin-bottom:4px;background:var(--sur2);border:1px solid var(--bdr)">' +
           '<span style="font-size:22px">' + item.icon + '</span>' +
-          '<div style="flex:1">' +
+          '<div class="flex-1">' +
             '<div style="font-size:13px;font-weight:600">' + item.name + '</div>' +
-            '<div style="font-size:10px;color:var(--txt3)">' + item.desc + (earnedAt?' · '+earnedAt:'') + '</div>' +
+            '<div class="muted-xs">' + item.desc + (earnedAt?' · '+earnedAt:'') + '</div>' +
           '</div>' +
           '<button onclick="applyShopItem({type:\'' + item.type + '\',value:\'' + item.value + '\',id:\'' + item.id + '\',name:\'' + item.name + '\'})" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);cursor:pointer;font-weight:600">적용</button>' +
         '</div>';
@@ -3030,7 +3030,7 @@ function renderAnalysisTab() {
         return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
           '<span style="font-size:11px;color:var(--txt3);min-width:16px">' + (i+1) + '</span>' +
           '<span style="font-family:var(--font-display);font-style:italic;font-weight:600;flex:1">' + w.word + '</span>' +
-          '<span style="font-size:10px;color:var(--txt3)">' + (w.ko||'') + '</span>' +
+          '<span class="muted-xs">' + (w.ko||'') + '</span>' +
           '<span style="font-size:10px;color:var(--red,#f87171);font-weight:700">' + (w.wrong||0) + '회</span>' +
         '</div>';
       }).join('') +
@@ -3104,16 +3104,16 @@ var GOLD_ITEMS = [
 async function openGoldShop() {
   var g = await DB.getGold(state.stuId);
   var content = '<div style="padding:1rem">' +
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">' +
+    '<div class="row-between mb-4">' +
       '<div style="font-size:15px;font-weight:700">💰 골드 상점</div>' +
       '<div style="font-size:14px;font-weight:700;color:var(--gold)">보유 ' + (g.amount||0) + ' 골드</div>' +
     '</div>' +
     GOLD_ITEMS.map(function(item) {
       var canBuy = (g.amount||0) >= item.price;
       return '<div style="display:flex;align-items:center;gap:10px;padding:.75rem;background:var(--sur2);border-radius:10px;margin-bottom:6px">' +
-        '<div style="flex:1">' +
+        '<div class="flex-1">' +
           '<div style="font-size:13px;font-weight:600">' + item.name + '</div>' +
-          '<div style="font-size:11px;color:var(--txt3)">' + item.desc + '</div>' +
+          '<div class="muted-sm">' + item.desc + '</div>' +
         '</div>' +
         '<button data-gid="' + item.id + '" onclick="buyGoldItem(this.dataset.gid)" ' +
           'style="padding:6px 14px;border-radius:8px;border:1px solid var(--gold-bdr);background:' + (canBuy?'var(--gold)':'var(--sur3)') + ';color:' + (canBuy?'#111':'var(--txt3)') + ';font-size:12px;font-weight:700;cursor:' + (canBuy?'pointer':'default') + '">' +
@@ -3195,7 +3195,7 @@ function openPasswordSetting(forced) {
   var statusEl = document.getElementById('pw-current-status');
   if (statusEl) {
     if (forced) {
-      statusEl.innerHTML = '<span style="color:var(--gold);font-weight:600">⚠️ 처음 접속 시 비밀번호를 설정해야 해요!</span><br><span style="font-size:10px;color:var(--txt3)">비밀번호는 본인만 알 수 있어요. 선생님은 초기화만 가능합니다.</span>';
+      statusEl.innerHTML = '<span style="color:var(--gold);font-weight:600">⚠️ 처음 접속 시 비밀번호를 설정해야 해요!</span><br><span class="muted-xs">비밀번호는 본인만 알 수 있어요. 선생님은 초기화만 가능합니다.</span>';
     } else {
       var stu = state.students[state.stuId];
       statusEl.innerHTML = (stu && stu.password) ? '🔒 현재 비밀번호 설정됨' : '🔓 현재 비밀번호 없음';
@@ -3333,7 +3333,7 @@ async function retryConnection() {
     hideConnError();
     init();
   } catch(e) {
-    if (el) el.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span>⚠️</span><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--red,#f87171)">여전히 연결 실패</div><div style="font-size:11px;color:var(--txt2)">잠시 후 다시 시도해주세요</div></div><button onclick="retryConnection()" class="btn btn-sm" style="font-size:11px">재시도</button></div>';
+    if (el) el.innerHTML = '<div class="row-center"><span>⚠️</span><div class="flex-1"><div style="font-size:12px;font-weight:600;color:var(--red,#f87171)">여전히 연결 실패</div><div style="font-size:11px;color:var(--txt2)">잠시 후 다시 시도해주세요</div></div><button onclick="retryConnection()" class="btn btn-sm fs-11">재시도</button></div>';
   }
 }
 
@@ -3455,6 +3455,7 @@ function logout() {
   if (chk) chk.checked = !!localStorage.getItem('auto_stuId');
 }
 
+function showToast(msg) { showToastGlobal(msg); }
 function showToastGlobal(msg) {
   var el = document.createElement('div');
   el.textContent = msg;
@@ -3525,11 +3526,11 @@ init();
     </div>
     <!-- 볼륨 -->
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
-      <span style="font-size:11px">🔈</span>
+      <span class="fs-11">🔈</span>
       <input type="range" id="bgm-volume" min="0" max="100" value="30"
         oninput="setBGMVolume(this.value)"
         style="flex:1;accent-color:var(--gold);height:3px">
-      <span style="font-size:11px">🔊</span>
+      <span class="fs-11">🔊</span>
     </div>
     <!-- 사운드 선택 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
