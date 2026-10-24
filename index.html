@@ -2638,19 +2638,30 @@ function toggleMore(on) {
 async function renderTodayHero() {
   var sub = document.getElementById('today-sub'), btn = document.getElementById('today-go');
   if (!sub || !btn) return;
-  var words = [];
+  var items = [], hadKey = 'had_bm_' + state.stuId;
   try {
     var bm = await DB.getBookmarks(state.stuId) || {};
-    words = Object.keys(bm).map(function(k){ return (bm[k] && bm[k].word) || k; }).filter(Boolean);
+    items = Object.keys(bm).map(function(k){ var o = bm[k] || {}; return { w: o.word || k, t: o.addedAt || 0 }; }).filter(function(x){ return x.w; });
   } catch (e) {}
-  if (!words.length) {
-    sub.textContent = '북마크한 단어가 아직 없어요. 단어 학습 중 ★를 눌러 모으면 여기서 매일 랜덤으로 복습해요.';
-    btn.textContent = '단어 학습 시작'; btn.disabled = false;
-    btn.onclick = function(){ goTab('vocab'); };
+  if (!items.length) {
+    var had = false; try { had = localStorage.getItem(hadKey) === '1'; } catch (e) {}
+    if (had) {
+      sub.textContent = '북마크한 단어를 모두 외웠어요. 새로 외울 단어를 단어장에서 북마크해 보세요.';
+      btn.textContent = '새 단어 고르러 가기';
+    } else {
+      sub.textContent = '북마크한 단어가 아직 없어요. 단어 학습 중 ★를 눌러 모으면 여기서 매일 랜덤으로 복습해요.';
+      btn.textContent = '단어 학습 시작';
+    }
+    btn.disabled = false; btn.onclick = function(){ goTab('vocab'); };
     return;
   }
-  var pick = words.slice().sort(function(){ return Math.random() - .5; }).slice(0, 20);
-  sub.textContent = '북마크 ' + words.length + '개 중 ' + pick.length + '개를 랜덤으로 뽑았어요.';
+  try { localStorage.setItem(hadKey, '1'); } catch (e) {}
+  items.sort(function(a, b){ return a.t - b.t; });           // 오래된 북마크 순
+  var n = Math.min(20, items.length), oldN = Math.ceil(n / 2);
+  var pick = items.slice(0, oldN);                           // 오래된 것 절반
+  var rest = items.slice(oldN).sort(function(){ return Math.random() - .5; }).slice(0, n - oldN); // 나머지는 랜덤
+  pick = pick.concat(rest).map(function(x){ return x.w; });
+  sub.textContent = '북마크 ' + items.length + '개 중 ' + pick.length + '개를 뽑았어요. 오래 남아 있던 단어가 먼저 나와요.';
   btn.textContent = '시작하기'; btn.disabled = false;
   btn.onclick = function(){ location.href = 'vocab.html?' + _stuQS() + '&mode=review&bm=1&words=' + encodeURIComponent(pick.join(',')); };
 }

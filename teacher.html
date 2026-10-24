@@ -129,6 +129,7 @@
       </div>
       <div class="metrics" id="detail-metrics"></div>
       <div id="detail-weak" style="margin-top:.5rem"></div>
+      <div id="detail-extras" style="margin-top:1rem"></div>
       <div id="detail-score-chart" style="margin-top:.875rem;display:none">
         <div style="font-size:12px;font-weight:600;margin-bottom:.5rem">📈 최근 점수 추이</div>
         <div id="detail-score-bars" style="display:flex;align-items:flex-end;gap:3px;height:60px;margin-bottom:4px"></div>
@@ -999,6 +1000,42 @@ async function addStudent() {
   } catch(e) { err.textContent = 'Firebase 연결 오류: ' + e.message; }
 }
 
+
+// ── 학생 상세 보강: 이번 주 요약 / 모의시험 기록 / 북마크 수 / 내 단어 ──
+async function loadStuExtras(stuId) {
+  var box = document.getElementById('detail-extras');
+  if (!box) return;
+  box.innerHTML = '<div class="empty" style="padding:.5rem 0">불러오는 중…</div>';
+  function esc(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  try {
+    var res = await Promise.all([DB.getResults(stuId), DB.getBookmarks(stuId), DB.getMyWords(stuId)]);
+    var results = res[0] || [], bm = res[1] || {}, my = res[2] || {};
+    var weekAgo = Date.now() - 7 * 86400000;
+    var wk = results.filter(function(r){ return r.date && new Date(r.date).getTime() >= weekAgo; });
+    var days = {}; wk.forEach(function(r){ days[String(r.date).slice(0,10)] = 1; });
+    var wkAvg = wk.length ? Math.round(wk.reduce(function(a,r){ return a + (r.score||0); }, 0) / wk.length) : 0;
+    var html = '<p class="sec-title" style="margin-bottom:.625rem">이번 주 요약 (최근 7일)</p>' +
+      '<div class="metrics">' +
+      '<div class="metric"><div class="metric-lbl">학습일</div><div class="metric-val mv-gold">' + Object.keys(days).length + '일</div></div>' +
+      '<div class="metric"><div class="metric-lbl">시험 횟수</div><div class="metric-val mv-grn">' + wk.length + '</div></div>' +
+      '<div class="metric"><div class="metric-lbl">평균 점수</div><div class="metric-val mv-grn">' + wkAvg + '%</div></div>' +
+      '<div class="metric"><div class="metric-lbl">북마크</div><div class="metric-val mv-red">' + Object.keys(bm).length + '</div></div></div>';
+    var mocks = results.filter(function(r){ return r.mock; }).slice(-5).reverse();
+    html += '<p class="sec-title" style="margin:1rem 0 .5rem">주간 모의시험 기록</p>' + (mocks.length ? mocks.map(function(r){
+      return '<div class="list-item"><span>' + esc(String(r.date).slice(0,10)) + '</span><span class="badge b-gold">' + esc(r.score) + '점 · ' + esc(r.total) + '문항</span></div>';
+    }).join('') : '<div class="empty" style="padding:.25rem 0">아직 응시 기록이 없어요</div>');
+    var mine = Object.keys(my).map(function(k){ return my[k]; }).filter(function(x){ return x && x.word; });
+    mine.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+    html += '<details style="margin-top:1rem"><summary style="cursor:pointer;font-size:13px;font-weight:700;min-height:44px">내 단어 ' + mine.length + '개 (학생이 직접 등록)</summary>' +
+      (mine.length ? mine.slice(0, 100).map(function(x){
+        return '<div class="list-item"><span style="font-weight:700">' + esc(x.word) + '</span><span style="font-size:12px;color:var(--txt2)">' + esc(x.ko || '') + '</span></div>';
+      }).join('') : '<div class="empty" style="padding:.5rem 0">등록한 단어가 없어요</div>') + '</details>';
+    box.innerHTML = html;
+  } catch (e) {
+    box.innerHTML = '<div class="empty" style="padding:.5rem 0">요약을 불러오지 못했어요</div>';
+  }
+}
+
 async function showStuDetail(stuId) {
   selectedStuId = stuId;
   const s = students[stuId];
@@ -1041,6 +1078,8 @@ async function showStuDetail(stuId) {
   } catch(e) {
     document.getElementById('detail-metrics').innerHTML = '<div class="empty" style="padding:.5rem 0">Firebase 연결 필요</div>';
   }
+
+  loadStuExtras(stuId);
 
   // 메모 불러오기
   try {
