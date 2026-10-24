@@ -433,11 +433,6 @@ const DB = {
     return snap.exists() ? snap.val() : null;
   },
 
-  async markStickerRead(stuId) {
-    const { db, ref, update } = await initDB();
-    await update(ref(db, `stickers/${stuId}`), { read: true });
-  },
-
   async saveExamRange(setId, setName, week) {
     const { db, ref, set } = await initDB();
     await set(ref(db, 'examRange'), { setId, setName, week, updatedAt: Date.now() });
