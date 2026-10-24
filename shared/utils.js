@@ -259,4 +259,34 @@ const Utils = {
     }
     return null;
   },
+
+  // ── 가로모드 강제 전환 (버튼 토글) ──
+  toggleLandscape() {
+    var isOn = document.documentElement.classList.toggle('force-landscape');
+    localStorage.setItem('force_landscape', isOn ? '1' : '0');
+    // 지원 기기는 실제 화면 방향도 시도 (실패해도 무시 - CSS 회전이 대체)
+    try {
+      if (isOn && screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(function(){});
+      } else if (!isOn && screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    } catch(e) {}
+    var btn = document.querySelector('.rotate-btn');
+    if (btn) btn.textContent = isOn ? '📱' : '🔄';
+  },
+
+  applyLandscapePref() {
+    var saved = localStorage.getItem('force_landscape');
+    if (saved === '1') {
+      document.documentElement.classList.add('force-landscape');
+      var btn = document.querySelector('.rotate-btn');
+      if (btn) btn.textContent = '📱';
+    }
+    // 모바일/태블릿에서만 버튼 표시
+    var isTouchDevice = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    if (isTouchDevice) {
+      document.querySelectorAll('.rotate-btn').forEach(function(b){ b.style.display = 'flex'; });
+    }
+  },
 };
