@@ -16,7 +16,7 @@ async function initDB() {
   const { getDatabase, ref, get, set, update, push, remove, serverTimestamp }
     = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
   const app = initializeApp(FIREBASE_CONFIG);
-  _db = { db: getDatabase(app), ref, get, set, update, push, serverTimestamp };
+  _db = { db: getDatabase(app), ref, get, set, update, push, remove, serverTimestamp };
   return _db;
 }
 
