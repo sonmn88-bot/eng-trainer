@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="English Trainer">
-<meta name="theme-color" content="#C9A961">
+<meta name="theme-color" content="#0E1116">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
 <title>리스닝 학습</title>
@@ -110,7 +110,7 @@
       </div>
       <!-- A-B 바 -->
       <div id="ab-track" style="position:relative;height:14px;background:var(--sur3);border-radius:7px;cursor:pointer;display:none" onclick="seekAudioFromAb(event)">
-        <div id="ab-range" style="position:absolute;height:100%;background:rgba(201,169,97,.3);border-radius:7px;left:0;width:0"></div>
+        <div id="ab-range" style="position:absolute;height:100%;background:rgba(200,242,90,.3);border-radius:7px;left:0;width:0"></div>
         <div id="ab-handle-a" style="position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;background:var(--gold);border-radius:50%;display:none;cursor:pointer"></div>
         <div id="ab-handle-b" style="position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;background:var(--gold2,#F59E0B);border-radius:50%;display:none;cursor:pointer"></div>
         <div id="ab-cur-pos" style="position:absolute;top:0;width:2px;height:100%;background:var(--txt3);border-radius:1px;pointer-events:none;left:0"></div>
@@ -920,5 +920,7 @@ function quickGoTeacherFromPage() {
 }
 
 </script>
+<button class="rotate-btn" onclick="Utils.toggleLandscape()" title="가로 화면 전환">🔄</button>
+<script>if (window.Utils && Utils.applyLandscapePref) Utils.applyLandscapePref();</script>
 </body>
 </html>

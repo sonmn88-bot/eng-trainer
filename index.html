@@ -7,23 +7,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="English Trainer">
-<meta name="theme-color" content="#C9A961">
+<meta name="theme-color" content="#0E1116">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>English Trainer</title>
 <link rel="stylesheet" href="shared/theme.css">
 <style>
 /* 홈 배경 개선 */
 .app {
-  background: radial-gradient(ellipse at 20% 0%, rgba(201,169,97,.06) 0%, transparent 50%),
+  background: radial-gradient(ellipse at 20% 0%, rgba(200,242,90,.06) 0%, transparent 50%),
               radial-gradient(ellipse at 80% 100%, rgba(96,165,250,.04) 0%, transparent 50%),
               var(--bg);
 }
 .hero-title {
-  filter: drop-shadow(0 0 32px rgba(201,169,97,.15));
+  filter: drop-shadow(0 0 32px rgba(200,242,90,.15));
 }
 .streak-bar {
-  background: linear-gradient(135deg, rgba(201,169,97,.08) 0%, rgba(201,169,97,.03) 100%);
-  border: 1px solid rgba(201,169,97,.15);
+  background: linear-gradient(135deg, rgba(200,242,90,.08) 0%, rgba(200,242,90,.03) 100%);
+  border: 1px solid rgba(200,242,90,.15);
   border-radius: var(--rx);
   padding: .75rem 1rem;
 }
@@ -71,7 +71,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 0%, var(--accent-color, rgba(201,169,97,.1)), transparent 70%);
+  background: radial-gradient(circle at 50% 0%, var(--accent-color, rgba(200,242,90,.1)), transparent 70%);
   opacity: 0;
   transition: opacity .25s;
 }
@@ -241,53 +241,10 @@
         font-size:11px;color:var(--gold);cursor:pointer;margin-right:6px">
         ← 선생님 모드
       </button>
-      <button onclick="quickGoTeacher()"
-        style="background:none;border:1px solid var(--bdr);border-radius:99px;padding:4px 12px;
-        font-size:11px;color:var(--txt3);cursor:pointer;display:flex;align-items:center;gap:4px">
-        🎓 선생님 모드
-      </button>
     </div>
-    <!-- 프로필 카드 -->
-    <div id="profile-card" style="display:none;background:var(--sur);border-radius:16px;padding:1rem;margin-bottom:1rem;position:relative;overflow:hidden">
-      <div id="profile-card-border" style="position:absolute;inset:0;border-radius:16px;pointer-events:none"></div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <!-- 프로필 이미지 -->
-        <div style="position:relative;flex-shrink:0">
-          <div id="profile-avatar-ring" style="width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative">
-            <div id="profile-avatar-img" style="width:58px;height:58px;border-radius:50%;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;z-index:1"></div>
-          </div>
-        </div>
-        <!-- 이름 + 칭호 + 레벨 -->
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-            <span id="profile-name" style="font-size:15px;font-weight:700;color:var(--txt)"></span>
-            <button onclick="openProfileEdit()" style="background:none;border:none;font-size:11px;color:var(--txt3);cursor:pointer;padding:0">✏️</button>
-          </div>
-          <div id="profile-title-tag" style="display:inline-block;padding:3px 12px;border-radius:99px;font-size:11px;font-weight:600;margin-bottom:6px"></div>
-          <!-- XP 바 -->
-          <div style="display:flex;align-items:center;gap:6px">
-            <span id="profile-lv" style="font-size:11px;color:var(--txt3);min-width:28px">Lv.1</span>
-            <div style="flex:1;height:6px;background:var(--sur2);border-radius:3px;overflow:hidden">
-              <div id="profile-xp-bar" style="height:100%;border-radius:3px;transition:width .6s;width:0%"></div>
-            </div>
-            <span id="profile-xp-pct" style="font-size:10px;color:var(--txt3);min-width:28px;text-align:right">0%</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
-            <span id="profile-xp-num" style="font-size:10px;color:var(--txt3)">XP 0</span>
-            <span id="profile-xp-next" style="font-size:10px;color:var(--gold);font-weight:600"></span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1px">
-            <button onclick="openBadgeDocs()" style="background:none;border:none;font-size:11px;color:var(--txt3);cursor:pointer;padding:0" id="profile-badge-count">🏆 0/40</button>
-          </div>
-        </div>
-      </div>
-      <!-- 최근 획득 배지 미리보기 -->
-      <div id="profile-badges-row" style="display:flex;gap:6px;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--bdr)"></div>
-    </div>
-
     <!-- 골드 표시 -->
     <div id="gold-bar" style="display:none;align-items:center;justify-content:flex-end;margin-bottom:.5rem">
-      <span id="gold-display" style="display:none;background:rgba(201,169,97,.1);border:1px solid rgba(201,169,97,.25);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer" onclick="openGoldShop()" title="골드 현황">💰 0</span>
+      <span id="gold-display" style="display:none;background:rgba(200,242,90,.1);border:1px solid rgba(200,242,90,.25);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer" onclick="openGoldShop()" title="골드 현황">💰 0</span>
     </div>
     <div id="streak-bar" class="streak-bar" style="display:none">
       <span style="font-size:22px">🔥</span>
@@ -302,6 +259,11 @@
     </div>
 
     <div class="greeting" id="greeting"></div>
+    <section class="today-hero" id="today-hero" aria-live="polite">
+      <h2 class="th-title">오늘의 단어</h2>
+      <p class="th-sub" id="today-sub">불러오는 중…</p>
+      <button class="th-go" id="today-go" type="button" disabled>시작하기</button>
+    </section>
 
     <!-- 선생님 공지 배너 -->
     <div id="notice-banner" style="display:none;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem">
@@ -336,13 +298,13 @@
     </div>
 
     <!-- 주간 MVP 배너 -->
-    <div id="mvp-banner" style="display:none;background:linear-gradient(135deg,rgba(201,169,97,.1),rgba(201,169,97,.04));border:1px solid rgba(201,169,97,.25);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;text-align:center">
+    <div id="mvp-banner" style="display:none;background:linear-gradient(135deg,rgba(200,242,90,.1),rgba(200,242,90,.04));border:1px solid rgba(200,242,90,.25);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;text-align:center">
       <div style="font-size:11px;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">이번 주 MVP 🏆</div>
       <div style="font-size:15px;font-weight:700;color:var(--gold)" id="mvp-name"></div>
     </div>
 
     <!-- 추천 단어장 + 시험 일정 배너 -->
-    <div id="rec-set-banner" style="display:none;background:rgba(201,169,97,.08);border:1px solid rgba(201,169,97,.2);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;cursor:pointer" onclick="goToRecommendedSet()">
+    <div id="rec-set-banner" style="display:none;background:rgba(200,242,90,.08);border:1px solid rgba(200,242,90,.2);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;cursor:pointer" onclick="goToRecommendedSet()">
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:18px">📌</span>
         <div>
@@ -385,13 +347,58 @@
       <div style="margin-top:.5rem;font-size:11px;color:var(--txt3)" id="weekly-goal-detail"></div>
     </div>
 
-    <p class="sec-title">학습 시작</p>
+    <details class="home-fold" id="home-profile"><summary>내 프로필 · 현황</summary>
+    <!-- 프로필 카드 -->
+    <div id="profile-card" style="display:none;background:var(--sur);border-radius:16px;padding:1rem;margin-bottom:1rem;position:relative;overflow:hidden">
+      <div id="profile-card-border" style="position:absolute;inset:0;border-radius:16px;pointer-events:none"></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <!-- 프로필 이미지 -->
+        <div style="position:relative;flex-shrink:0">
+          <div id="profile-avatar-ring" style="width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative">
+            <div id="profile-avatar-img" style="width:58px;height:58px;border-radius:50%;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;z-index:1"></div>
+          </div>
+        </div>
+        <!-- 이름 + 칭호 + 레벨 -->
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span id="profile-name" style="font-size:15px;font-weight:700;color:var(--txt)"></span>
+            <button onclick="openProfileEdit()" style="background:none;border:none;font-size:11px;color:var(--txt3);cursor:pointer;padding:0">✏️</button>
+          </div>
+          <div id="profile-title-tag" style="display:inline-block;padding:3px 12px;border-radius:99px;font-size:11px;font-weight:600;margin-bottom:6px"></div>
+          <!-- XP 바 -->
+          <div style="display:flex;align-items:center;gap:6px">
+            <span id="profile-lv" style="font-size:11px;color:var(--txt3);min-width:28px">Lv.1</span>
+            <div style="flex:1;height:6px;background:var(--sur2);border-radius:3px;overflow:hidden">
+              <div id="profile-xp-bar" style="height:100%;border-radius:3px;transition:width .6s;width:0%"></div>
+            </div>
+            <span id="profile-xp-pct" style="font-size:10px;color:var(--txt3);min-width:28px;text-align:right">0%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
+            <span id="profile-xp-num" style="font-size:10px;color:var(--txt3)">XP 0</span>
+            <span id="profile-xp-next" style="font-size:10px;color:var(--gold);font-weight:600"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1px">
+            <button onclick="openBadgeDocs()" style="background:none;border:none;font-size:11px;color:var(--txt3);cursor:pointer;padding:0" id="profile-badge-count">🏆 0/40</button>
+          </div>
+        </div>
+      </div>
+      <!-- 최근 획득 배지 미리보기 -->
+      <div id="profile-badges-row" style="display:flex;gap:6px;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--bdr)"></div>
+    </div>
+
+    <!-- 내 현황 -->
+    <div class="card card-sm" id="my-stats" style="display:none">
+      <p class="sec-title" style="margin-bottom:.875rem">내 현황</p>
+      <div class="metrics" id="stats-grid"></div>
+    </div>
+
+    </details>
 
 
 
-    <div class="module-grid">
+    <div class="module-grid" style="display:none" aria-hidden="true">
       <a class="module-card" href="vocab.html" id="mod-vocab"
-         style="--accent-color:rgba(201,169,97,.1);--accent-bdr:var(--gold-bdr)">
+         style="--accent-color:rgba(200,242,90,.1);--accent-bdr:var(--gold-bdr)">
         <span class="module-icon">📖</span>
         <div class="module-name">단어</div>
         <div class="module-desc">Vocabulary</div>
@@ -406,12 +413,6 @@
       </a>
     </div>
 
-    <!-- 내 현황 -->
-    <div class="card card-sm" id="my-stats" style="display:none">
-      <p class="sec-title" style="margin-bottom:.875rem">내 현황</p>
-      <div class="metrics" id="stats-grid"></div>
-    </div>
-
     <!-- 상점은 STATUS 창에서 접근 -->
     <div id="shop-grid" style="display:none"></div>
     <div id="shop-msg" style="display:none"></div>
@@ -419,12 +420,22 @@
 
 
 
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:1.5rem;flex-wrap:wrap">
-      <button class="btn btn-ghost btn-sm" onclick="logout()">← 나가기</button>
-      <button class="btn btn-ghost btn-sm" onclick="showHelp('home')">❓ 도움말</button>
-      <button class="btn btn-ghost btn-sm" onclick="openPasswordSetting()">🔑 비밀번호</button>
-    </div>
 
+    <nav class="tabbar" id="tabbar" aria-label="메뉴">
+      <button type="button" class="tab on" onclick="window.scrollTo({top:0,behavior:'smooth'})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>홈</button>
+      <button type="button" class="tab" onclick="goTab('vocab')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19a2 2 0 0 1 2-2h13"/></svg>단어</button>
+      <button type="button" class="tab" onclick="goTab('mywords')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>내 단어</button>
+      <button type="button" class="tab" onclick="toggleMore(true)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>더보기</button>
+    </nav>
+    <div class="sheet-bg" id="more-bg" onclick="toggleMore(false)"></div>
+    <div class="sheet" id="more-sheet" role="dialog" aria-label="더보기">
+      <button type="button" class="sheet-item" onclick="toggleMore(false);openStatus()">내 STATUS · 상점</button>
+      <button type="button" class="sheet-item" onclick="goTab('listen')">리스닝</button>
+      <button type="button" class="sheet-item" onclick="toggleMore(false);showHelp('home')">도움말</button>
+      <button type="button" class="sheet-item" onclick="toggleMore(false);openPasswordSetting()">비밀번호 설정</button>
+      <button type="button" class="sheet-item" onclick="quickGoTeacher()">선생님 모드</button>
+      <button type="button" class="sheet-item danger" onclick="toggleMore(false);logout()">나가기</button>
+    </div>
   </div>
 </div>
 
@@ -502,7 +513,7 @@
 <div id="status-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10010;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto">
   <div style="background:var(--sur);border-radius:20px;width:100%;max-width:480px;margin:auto;overflow:hidden">
     <!-- 헤더 -->
-    <div style="background:linear-gradient(135deg,rgba(201,169,97,.15),rgba(201,169,97,.05));padding:1.25rem 1.25rem .875rem;border-bottom:1px solid var(--bdr);position:relative">
+    <div style="background:linear-gradient(135deg,rgba(200,242,90,.15),rgba(200,242,90,.05));padding:1.25rem 1.25rem .875rem;border-bottom:1px solid var(--bdr);position:relative">
       <button onclick="document.getElementById('status-popup').style.display='none'" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
       <div style="display:flex;align-items:center;gap:12px">
         <div id="status-avatar" style="width:56px;height:56px;border-radius:50%;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--gold-bdr)">🐱</div>
@@ -664,7 +675,7 @@
     <!-- 배경 색상 선택 -->
     <div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem">아바타 배경 색상</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem" id="color-grid">
-      <button onclick="selectAvatarColor('#C9A961')" data-color="#C9A961" style="width:32px;height:32px;border-radius:50%;background:#C9A961;border:2px solid transparent;cursor:pointer"></button>
+      <button onclick="selectAvatarColor('#C8F25A')" data-color="#C8F25A" style="width:32px;height:32px;border-radius:50%;background:#C8F25A;border:2px solid transparent;cursor:pointer"></button>
       <button onclick="selectAvatarColor('#A78BFA')" data-color="#A78BFA" style="width:32px;height:32px;border-radius:50%;background:#A78BFA;border:2px solid transparent;cursor:pointer"></button>
       <button onclick="selectAvatarColor('#60A5FA')" data-color="#60A5FA" style="width:32px;height:32px;border-radius:50%;background:#60A5FA;border:2px solid transparent;cursor:pointer"></button>
       <button onclick="selectAvatarColor('#4ADE80')" data-color="#4ADE80" style="width:32px;height:32px;border-radius:50%;background:#4ADE80;border:2px solid transparent;cursor:pointer"></button>
@@ -1068,6 +1079,7 @@ async function showMain() {
   // 링크에 stuId 파라미터 전달
   document.getElementById('mod-vocab').href   = `vocab.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
   document.getElementById('mod-listen').href  = `listening.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
+  renderTodayHero();
 
   // 오늘의 미션 + 주간 목표
   loadDailyMission().catch(function(){});
@@ -2222,7 +2234,7 @@ function checkD100Event(diff) {
 }
 
 function launchD100Confetti() {
-  var colors = ['#C9A961','#F0D080','#FF6B6B','#6BCB77','#4D96FF','#FFD93D'];
+  var colors = ['#C8F25A','#DDF98F','#FF6B6B','#6BCB77','#4D96FF','#FFD93D'];
   for (var i=0;i<80;i++) {
     (function(i) {
       setTimeout(function() {
@@ -2362,10 +2374,10 @@ function renderShopGrid(currentXP, owned) {
 
   // 현재 탭 아이템 필터링
   var items = SHOP_ITEMS.filter(function(i){ return i.category === activeTab; });
-  var rarityColors = { common:'var(--txt3)', rare:'#60A5FA', epic:'#A78BFA', legendary:'#C9A961' };
+  var rarityColors = { common:'var(--txt3)', rare:'#60A5FA', epic:'#A78BFA', legendary:'#C8F25A' };
   var rarityLabels = { common:'일반', rare:'레어', epic:'에픽', legendary:'전설' };
-  var rarityBgs    = { common:'var(--sur2)', rare:'rgba(96,165,250,.08)', epic:'rgba(167,139,250,.08)', legendary:'rgba(201,169,97,.08)' };
-  var rarityBdr    = { common:'var(--bdr)', rare:'rgba(96,165,250,.25)', epic:'rgba(167,139,250,.25)', legendary:'rgba(201,169,97,.3)' };
+  var rarityBgs    = { common:'var(--sur2)', rare:'rgba(96,165,250,.08)', epic:'rgba(167,139,250,.08)', legendary:'rgba(200,242,90,.08)' };
+  var rarityBdr    = { common:'var(--bdr)', rare:'rgba(96,165,250,.25)', epic:'rgba(167,139,250,.25)', legendary:'rgba(200,242,90,.3)' };
 
   var itemsHtml = items.map(function(item) {
     var isOwned = !!owned[item.id];
@@ -2385,7 +2397,7 @@ function renderShopGrid(currentXP, owned) {
       statusBtn = '<button data-iid="' + item.id + '" onclick="buyShopItem(this.dataset.iid)" style="width:100%;padding:5px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;margin-top:2px">잠금 해제</button>';
     }
 
-    return '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:12px;padding:.625rem .5rem;position:relative;' + (isOwned?'box-shadow:0 0 8px rgba(201,169,97,.15)':'') + '">' +
+    return '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:12px;padding:.625rem .5rem;position:relative;' + (isOwned?'box-shadow:0 0 8px rgba(200,242,90,.15)':'') + '">' +
       '<div style="position:absolute;top:6px;right:6px;font-size:9px;font-weight:700;color:' + rc + ';letter-spacing:.04em">' + rl.toUpperCase() + '</div>' +
       '<div style="font-size:24px;text-align:center;margin-bottom:2px;' + (!isUnlocked&&!isOwned?'filter:grayscale(1);opacity:.4':'') + '">' + item.icon + '</div>' +
       '<div style="font-size:11px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:2px">' + item.name + '</div>' +
@@ -2613,6 +2625,35 @@ function showInstallGuide(platform) {
 var _statusTab = 'badges';
 var _statusData = null;
 
+// ── 리뉴얼: 오늘의 단어(북마크 랜덤) + 탭 이동 ──
+function _stuQS() { return 'stu=' + state.stuId + '&name=' + encodeURIComponent(state.stuName); }
+function goTab(t) {
+  if (t === 'listen') { location.href = 'listening.html?' + _stuQS(); return; }
+  location.href = 'vocab.html?' + _stuQS() + (t === 'mywords' ? '&go=mywords' : '');
+}
+function toggleMore(on) {
+  document.getElementById('more-sheet').classList.toggle('open', !!on);
+  document.getElementById('more-bg').classList.toggle('open', !!on);
+}
+async function renderTodayHero() {
+  var sub = document.getElementById('today-sub'), btn = document.getElementById('today-go');
+  if (!sub || !btn) return;
+  var words = [];
+  try {
+    var bm = await DB.getBookmarks(state.stuId) || {};
+    words = Object.keys(bm).map(function(k){ return (bm[k] && bm[k].word) || k; }).filter(Boolean);
+  } catch (e) {}
+  if (!words.length) {
+    sub.textContent = '북마크한 단어가 아직 없어요. 단어 학습 중 ★를 눌러 모으면 여기서 매일 랜덤으로 복습해요.';
+    btn.textContent = '단어 학습 시작'; btn.disabled = false;
+    btn.onclick = function(){ goTab('vocab'); };
+    return;
+  }
+  var pick = words.slice().sort(function(){ return Math.random() - .5; }).slice(0, 20);
+  sub.textContent = '북마크 ' + words.length + '개 중 ' + pick.length + '개를 랜덤으로 뽑았어요.';
+  btn.textContent = '시작하기'; btn.disabled = false;
+  btn.onclick = function(){ location.href = 'vocab.html?' + _stuQS() + '&mode=review&bm=1&words=' + encodeURIComponent(pick.join(',')); };
+}
 async function openStatus() {
   var popup = document.getElementById('status-popup');
   if (popup) popup.style.display = 'flex';
@@ -2696,9 +2737,9 @@ async function renderStatusShop(el) {
 
     // 아이템 목록
     var items = (window.SHOP_ITEMS||[]).filter(function(i){return i.category===activeShopTab;});
-    var rarityColors = {common:'var(--txt3)',rare:'#60A5FA',epic:'#A78BFA',legendary:'#C9A961'};
-    var rarityBgs = {common:'var(--sur2)',rare:'rgba(96,165,250,.08)',epic:'rgba(167,139,250,.08)',legendary:'rgba(201,169,97,.08)'};
-    var rarityBdr = {common:'var(--bdr)',rare:'rgba(96,165,250,.25)',epic:'rgba(167,139,250,.25)',legendary:'rgba(201,169,97,.3)'};
+    var rarityColors = {common:'var(--txt3)',rare:'#60A5FA',epic:'#A78BFA',legendary:'#C8F25A'};
+    var rarityBgs = {common:'var(--sur2)',rare:'rgba(96,165,250,.08)',epic:'rgba(167,139,250,.08)',legendary:'rgba(200,242,90,.08)'};
+    var rarityBdr = {common:'var(--bdr)',rare:'rgba(96,165,250,.25)',epic:'rgba(167,139,250,.25)',legendary:'rgba(200,242,90,.3)'};
 
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
     items.forEach(function(item) {
@@ -2755,7 +2796,7 @@ function renderBadgesTab() {
     { key:'skill',    label:'🎮 스킬' },
     { key:'special',  label:'⭐ 특별' },
   ];
-  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'#C9A961', hidden:'#6B7280' };
+  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'#C8F25A', hidden:'#6B7280' };
 
   return cats.map(function(cat) {
     var catBadges = defs.filter(function(b){ return b.cat === cat.key; });
@@ -2793,7 +2834,7 @@ function showBadgeDetail(badgeId) {
   var isEarned = !!badges[b.id];
   var isHidden = b.grade === 'hidden';
   var titleReward = window.BADGE_TITLES && window.BADGE_TITLES[b.id];
-  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'#C9A961', hidden:'#6B7280' };
+  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'#C8F25A', hidden:'#6B7280' };
   var gc = gradeColors[b.grade] || '#6B7280';
 
   var msg = b.icon + ' ' + b.name + '\n\n';
@@ -3022,7 +3063,7 @@ function showGoldInfo() {
 
 function showGoldToast(msg) {
   var el = document.createElement('div');
-  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a0a;border:1px solid #C9A961;border-radius:99px;padding:8px 18px;font-size:13px;color:#C9A961;font-weight:700;z-index:9999;pointer-events:none;animation:fadeup .3s ease';
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a0a;border:1px solid #C8F25A;border-radius:99px;padding:8px 18px;font-size:13px;color:#C8F25A;font-weight:700;z-index:9999;pointer-events:none;animation:fadeup .3s ease';
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 2500);

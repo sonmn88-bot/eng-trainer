@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="English Trainer">
-<meta name="theme-color" content="#C9A961">
+<meta name="theme-color" content="#0E1116">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
 <title>단어 학습</title>
@@ -54,7 +54,7 @@
   border-left: 2px solid var(--gold-bdr);
 }
 .fc-grade-dot { width:8px;height:8px;border-radius:50%;background:var(--sur3); }
-.fc-grade-dot.filled-s { background:#C9A961; }
+.fc-grade-dot.filled-s { background:#C8F25A; }
 .fc-grade-dot.filled-a { background:#60A5FA; }
 .fc-grade-dot.filled-b { background:#4ADE80; }
 .fc-grade-dot.filled-c { background:var(--sur3); }
@@ -406,9 +406,9 @@
     </div>
     <!-- 셀프평가 (카드 뒤집은 후 표시) -->
     <div id="self-eval-row" style="display:none;gap:8px;margin-top:.75rem">
-      <button class="btn btn-full" style="border-color:rgba(239,68,68,.5);color:var(--red,#ef4444);font-size:12px" onclick="selfEval('no')">😅 몰라요</button>
-      <button class="btn btn-full" style="border-color:rgba(245,158,11,.5);color:var(--amb,#f59e0b);font-size:12px" onclick="selfEval('blur')">🤔 애매해요</button>
-      <button class="btn btn-full" style="border-color:rgba(74,222,128,.4);color:var(--grn,#4ade80);font-size:12px" onclick="selfEval('yes')">😊 알아요</button>
+      <button class="btn btn-full ev ev-no" onclick="selfEval('no')">✕ 몰라요</button>
+      <button class="btn btn-full ev ev-blur" onclick="selfEval('blur')">△ 애매해요</button>
+      <button class="btn btn-full ev ev-yes" onclick="selfEval('yes')">✓ 알아요</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:.75rem">
       <button class="btn btn-full" onclick="flashPrev()">← 이전</button>
@@ -980,7 +980,7 @@ function renderFlipCards() {
           'onclick="event.stopPropagation();doFlipBookmark(this)" ' +
           'style="flex:0 0 36px;border-radius:0 0 var(--rs) 0;border:none;font-size:14px;cursor:pointer;' +
           (isBm
-            ? 'background:rgba(201,169,97,.25);color:#C9A961;'
+            ? 'background:rgba(200,242,90,.25);color:#C8F25A;'
             : 'background:rgba(0,0,0,.35);color:rgba(255,255,255,.4);') +
           '">' + (isBm ? '⭐' : '☆') + '</button>' +
       '</div>' +
@@ -1329,7 +1329,7 @@ async function shareCalendar() {
     svg.push('<rect width="' + w + '" height="' + h + '" fill="#111111" rx="12"/>');
 
     // 제목
-    svg.push('<text x="' + (w/2) + '" y="' + (pad+16) + '" text-anchor="middle" fill="#C9A961" font-size="14" font-family="sans-serif" font-weight="bold">' +
+    svg.push('<text x="' + (w/2) + '" y="' + (pad+16) + '" text-anchor="middle" fill="#C8F25A" font-size="14" font-family="sans-serif" font-weight="bold">' +
       (calTitle ? calTitle.textContent : '학습 기록') + '</text>');
     svg.push('<text x="' + (w/2) + '" y="' + (pad+32) + '" text-anchor="middle" fill="#888" font-size="10" font-family="sans-serif">' + STU_NAME + ' · English Trainer</text>');
 
@@ -1401,7 +1401,7 @@ function copyCalendarText() {
 }
 
 function launchConfetti() {
-  var colors = ['#C9A961','#F0D080','#FF6B6B','#6BCB77','#4D96FF','#C77DFF','#FFD93D'];
+  var colors = ['#C8F25A','#DDF98F','#FF6B6B','#6BCB77','#4D96FF','#C77DFF','#FFD93D'];
   var container = document.body;
   for (var i = 0; i < 60; i++) {
     (function(i) {
@@ -1847,7 +1847,7 @@ function renderConfuseLearn() {
   var cards = document.getElementById('confuse-learn-cards');
   if (cards) {
     cards.innerHTML =
-      '<div style="background:rgba(201,169,97,.08);border:2px solid rgba(201,169,97,.3);border-radius:14px;padding:1rem;text-align:center">' +
+      '<div style="background:rgba(200,242,90,.08);border:2px solid rgba(200,242,90,.3);border-radius:14px;padding:1rem;text-align:center">' +
         '<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.08em;margin-bottom:.5rem">단어 A</div>' +
         '<div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:.5rem;font-style:italic">' + pair[0] + '</div>' +
         '<div style="font-size:13px;color:var(--gold);font-weight:600">' + pair[1] + '</div>' +
@@ -2423,7 +2423,7 @@ async function renderFlash() {
   // 등급 뱃지 + 난이도 막대
   var grade = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
   var gradeConfig = {
-    'S': { label:'S급', bg:'#C9A961', color:'#fff', dots:4 },
+    'S': { label:'S급', bg:'#C8F25A', color:'#0E1116', dots:4 },
     'A': { label:'A급', bg:'#60A5FA', color:'#fff', dots:3 },
     'B': { label:'B급', bg:'#4ADE80', color:'#fff', dots:2 },
     'C': { label:'C급', bg:'var(--sur3)', color:'var(--txt3)', dots:1 }
@@ -2451,7 +2451,7 @@ async function renderFlash() {
   document.getElementById('flash-prog').textContent = `${flash.idx + 1} / ${flash.words.length}`;
   // 등급 뱃지
   var _grade = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
-  var _gradeColors = {S:'#C9A961',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
+  var _gradeColors = {S:'#C8F25A',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
   var _gradeEl = document.getElementById('fc-grade-badge');
   if (_gradeEl) { if (_grade) { _gradeEl.textContent=_grade; _gradeEl.style.background=_gradeColors[_grade]||'#9CA3AF'; _gradeEl.style.color='#fff'; _gradeEl.style.display='inline-block'; } else _gradeEl.style.display='none'; }
 
@@ -2690,13 +2690,13 @@ function renderQuiz() {
   if (_bmBtn) _bmBtn.textContent = isBookmarked(w[0]) ? '⭐' : '☆';
   var _qg = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
   var _qgEl = document.getElementById('quiz-grade-badge');
-  var _qgC = {S:'#C9A961',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
+  var _qgC = {S:'#C8F25A',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
   if (_qgEl) { if(_qg){_qgEl.textContent=_qg;_qgEl.style.background=_qgC[_qg]||'#9CA3AF';_qgEl.style.display='inline-block';}else _qgEl.style.display='none'; }
   updateBookmarkBtn(w[0]);
 
   // 등급 뱃지
   var grade = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
-  var gradeStyles = { 'S':'#C9A961,#fff', 'A':'#60A5FA,#fff', 'B':'#4ADE80,#fff', 'C':'var(--sur3),var(--txt3)' };
+  var gradeStyles = { 'S':'#C8F25A,#0E1116', 'A':'#60A5FA,#fff', 'B':'#4ADE80,#fff', 'C':'var(--sur3),var(--txt3)' };
   var qBadge = document.getElementById('quiz-grade-badge');
   if (grade && qBadge) {
     var parts = (gradeStyles[grade]||'var(--sur3),var(--txt3)').split(',');
@@ -3645,7 +3645,7 @@ async function requestAIFeedback() {
     btn.disabled = false;
   }
 }
-initLibrary();
+initLibrary().then(function(){ if (params.get('go') === 'mywords') { selectSet('personal').then(function(){ setTimeout(function(){ selectRange('mywords'); }, 200); }); } });
 
 // URL에 ?mode=review 있으면 바로 해당 단어들로 퀴즈 시작
 (async function() {
@@ -3661,7 +3661,9 @@ initLibrary();
       var weakList2 = await DB.getAllWeakWords(STU_ID);
       var weakMap = {};
       (weakList2 || []).forEach(function(w){ weakMap[w.word.toLowerCase()] = w.ko || ''; });
-      words = wordList.map(function(w){ return [w, weakMap[w.toLowerCase()] || '']; });
+      var bmKo = {};
+      if (params.get('bm') === '1') { try { var bmAll = await DB.getBookmarks(STU_ID) || {}; Object.keys(bmAll).forEach(function(k){ var o = bmAll[k] || {}; bmKo[(o.word || k).toLowerCase()] = o.ko || ''; }); } catch(e) {} }
+      words = wordList.map(function(w){ return [w, weakMap[w.toLowerCase()] || bmKo[w.toLowerCase()] || '']; });
     } else {
       // URL에 단어 없으면 DB에서 복습 대상 계산
       var weakList = await DB.getWeakWords(STU_ID);
@@ -4033,20 +4035,20 @@ function shareResultCard() {
     '<stop offset="100%" stop-color="#1A1A2E"/>',
     '</linearGradient>',
     '<linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">',
-    '<stop offset="0%" stop-color="#C9A961"/>',
-    '<stop offset="100%" stop-color="#E8C97A"/>',
+    '<stop offset="0%" stop-color="#C8F25A"/>',
+    '<stop offset="100%" stop-color="#DDF98F"/>',
     '</linearGradient>',
     '</defs>',
     '<rect width="320" height="200" rx="16" fill="url(#bg)"/>',
-    '<rect width="320" height="200" rx="16" fill="none" stroke="#C9A961" stroke-width="1" stroke-opacity=".3"/>',
+    '<rect width="320" height="200" rx="16" fill="none" stroke="#C8F25A" stroke-width="1" stroke-opacity=".3"/>',
 
     // 앱 이름
-    '<text x="20" y="28" font-family="sans-serif" font-size="10" fill="#C9A961" opacity=".7" letter-spacing="2">ENGLISH TRAINER</text>',
+    '<text x="20" y="28" font-family="sans-serif" font-size="10" fill="#C8F25A" opacity=".7" letter-spacing="2">ENGLISH TRAINER</text>',
 
     // 이모지 + 점수
     '<text x="20" y="80" font-family="sans-serif" font-size="40">' + emoji + '</text>',
-    '<text x="80" y="68" font-family="sans-serif" font-size="42" font-weight="900" fill="#C9A961">' + score + '</text>',
-    '<text x="80" y="68" font-family="sans-serif" font-size="42" font-weight="900" fill="#C9A961" dx="' + (score>=100?74:score>=10?58:40) + '">%</text>',
+    '<text x="80" y="68" font-family="sans-serif" font-size="42" font-weight="900" fill="#C8F25A">' + score + '</text>',
+    '<text x="80" y="68" font-family="sans-serif" font-size="42" font-weight="900" fill="#C8F25A" dx="' + (score>=100?74:score>=10?58:40) + '">%</text>',
 
     // 정답/전체
     '<text x="80" y="88" font-family="sans-serif" font-size="12" fill="#9996A0">' + correct + '개 정답 / ' + total + '문제 · ' + modeName + '</text>',
@@ -4600,7 +4602,7 @@ function updateBookmarkBtn(word) {
     if (!btn) return;
     var marked = isBookmarked(word);
     btn.textContent = marked ? '⭐' : '☆ 북마크';
-    btn.style.color = marked ? '#C9A961' : '';
+    btn.style.color = marked ? '#C8F25A' : '';
   });
 }
 
@@ -4614,7 +4616,7 @@ async function doFlipBookmark(btn) {
     if (added) {
       bookmarks[key] = { word, ko: ko||'', addedAt: Date.now() };
       btn.textContent = '⭐';
-      btn.style.color = '#C9A961';
+      btn.style.color = '#C8F25A';
       setTimeout(function(){ addToFolderPopup(word, ko||''); }, 100);
     } else {
       delete bookmarks[key];
@@ -4704,7 +4706,7 @@ function showComboToast(count) {
   if (!t) {
     t = document.createElement('div');
     t.id = 'combo-toast';
-    t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%) scale(0.8);background:linear-gradient(135deg,#C9A961,#F59E0B);color:#fff;padding:.5rem 1.25rem;border-radius:99px;font-size:14px;font-weight:700;z-index:9999;pointer-events:none;opacity:0;transition:all .25s cubic-bezier(.175,.885,.32,1.275);white-space:nowrap';
+    t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%) scale(0.8);background:linear-gradient(135deg,#C8F25A,#9BC02E);color:#0E1116;padding:.5rem 1.25rem;border-radius:99px;font-size:14px;font-weight:700;z-index:9999;pointer-events:none;opacity:0;transition:all .25s cubic-bezier(.175,.885,.32,1.275);white-space:nowrap';
     document.body.appendChild(t);
   }
   t.textContent = msg;

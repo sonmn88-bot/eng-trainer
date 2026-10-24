@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="English Trainer">
-<meta name="theme-color" content="#C9A961">
+<meta name="theme-color" content="#0E1116">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
 <title>선생님 모드</title>
@@ -389,8 +389,8 @@
       <span>적음</span>
       <div style="display:flex;gap:2px">
         <div style="width:10px;height:10px;border-radius:2px;background:var(--sur3)"></div>
-        <div style="width:10px;height:10px;border-radius:2px;background:rgba(201,169,97,.3)"></div>
-        <div style="width:10px;height:10px;border-radius:2px;background:rgba(201,169,97,.6)"></div>
+        <div style="width:10px;height:10px;border-radius:2px;background:rgba(200,242,90,.3)"></div>
+        <div style="width:10px;height:10px;border-radius:2px;background:rgba(200,242,90,.6)"></div>
         <div style="width:10px;height:10px;border-radius:2px;background:var(--gold)"></div>
       </div>
       <span>많음</span>
@@ -1831,7 +1831,7 @@ async function loadStats() {
     var slots = [
       { label: '새벽 (0~6시)', range: [0,6], color: '#60A5FA' },
       { label: '오전 (7~11시)', range: [7,11], color: '#4ADE80' },
-      { label: '오후 (12~17시)', range: [12,17], color: '#C9A961' },
+      { label: '오후 (12~17시)', range: [12,17], color: '#C8F25A' },
       { label: '저녁 (18~21시)', range: [18,21], color: '#F87171' },
       { label: '밤 (22~23시)', range: [22,23], color: '#A78BFA' }
     ];
@@ -2238,7 +2238,7 @@ async function loadStudentDetail() {
           ctx.fillStyle='rgba(128,128,128,0.5)'; ctx.font='8px sans-serif'; ctx.fillText(v,0,y+3);
         });
         // 선
-        ctx.strokeStyle='#C9A961'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.beginPath();
+        ctx.strokeStyle='#C8F25A'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.beginPath();
         sc15.forEach(function(s,i){
           var x = padL+(i/(n-1)*gW);
           var y = padT+gH-(s/100*gH);
@@ -2249,7 +2249,7 @@ async function loadStudentDetail() {
         sc15.forEach(function(s,i){
           var x = padL+(i/(n-1)*gW);
           var y = padT+gH-(s/100*gH);
-          ctx.fillStyle='#C9A961'; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+          ctx.fillStyle='#C8F25A'; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
         });
         // 날짜 라벨 (처음/마지막)
         ctx.fillStyle='rgba(128,128,128,0.6)'; ctx.font='8px sans-serif';
@@ -2585,7 +2585,7 @@ async function renderHeatmap() {
   var grid = '<div style="display:grid;grid-template-columns:repeat(' + cols + ',12px);grid-template-rows:repeat(7,12px);gap:2px">';
   cells.forEach(function(c) {
     var alpha = c.count === 0 ? 0 : c.count === 1 ? 0.3 : c.count <= 3 ? 0.6 : 1;
-    var bg = c.count === 0 ? 'var(--sur3)' : 'rgba(201,169,97,' + alpha + ')';
+    var bg = c.count === 0 ? 'var(--sur3)' : 'rgba(200,242,90,' + alpha + ')';
     grid += '<div title="' + c.key + ': ' + c.count + '회" style="width:12px;height:12px;border-radius:2px;background:' + bg + '"></div>';
   });
   grid += '</div>';
@@ -3366,7 +3366,7 @@ function drawScoreChart(results) {
 
   // 라인
   ctx.beginPath();
-  ctx.strokeStyle = '#C9A961';
+  ctx.strokeStyle = '#C8F25A';
   ctx.lineWidth = 2;
   scores.forEach(function(s, i) {
     var x = i * step;
@@ -3381,7 +3381,7 @@ function drawScoreChart(results) {
     var y = h - (s/max)*h;
     ctx.beginPath();
     ctx.arc(x, y, 3, 0, Math.PI*2);
-    ctx.fillStyle = '#C9A961';
+    ctx.fillStyle = '#C8F25A';
     ctx.fill();
   });
 }
