@@ -1448,7 +1448,8 @@ function goBack() {
 }
 
 function backToSet() {
-  window._mockTest = false;
+  window._mockTest = false; window._gateTest = false;
+  if (window._prevSelected) { window._selectedWords = window._prevSelected; window._prevSelected = null; }
   clearInterval(quiz.timer);
   // 음성 복습 중이면 정지
   if (window._audioReviewPlaying) {
@@ -1621,7 +1622,8 @@ function showModePanel(words) {
 }
 
 function startMode(mode) {
-  window._mockTest = false;
+  window._mockTest = false; window._gateTest = false;
+  if (window._prevSelected) { window._selectedWords = window._prevSelected; window._prevSelected = null; }
   currentMode = mode;
   // 퀴즈 수 패널 표시 여부
   var qPanel = document.getElementById('quiz-count-panel');
@@ -2397,6 +2399,7 @@ function guessPOS(ko, en) {
 
 // ── Flash Card ─────────────────────────────────
 async function goFlash() {
+  if (needFlashTest()) { showFlashGate(); return; }
   var words = Utils.shuffle([...window._selectedWords]);
   flash.words = words;
   flash.idx = 0;
@@ -2598,7 +2601,7 @@ function flashNext() {
       localStorage.setItem(_pk, flash.idx);
     } catch(e) {}
   }
-  else backToSet();
+  else { flashSessionDone(); if (needFlashTest()) showFlashGate(); else backToSet(); }
 }
 
 // ── Quiz ───────────────────────────────────────
@@ -3481,9 +3484,12 @@ function showResult(score, total, skipSave) {
         elapsed: quiz.elapsed || 0,
         date: new Date().toISOString(),
         words: (window._selectedWords || []).map(function(w){ return w[0]; }),
-        mock: !!window._mockTest
+        mock: !!window._mockTest,
+        gate: !!window._gateTest
       });
       window._mockTest = false;
+      if (window._gateTest) { clearFlashPending(); window._gateTest = false; }
+      if (window._prevSelected) { window._selectedWords = window._prevSelected; window._prevSelected = null; }
     } catch(e) {}
   }
 }
@@ -5254,6 +5260,46 @@ function startMockTest() {
   window._mockTest = true;
   currentMode = 'choice';
   goChoiceQuiz();
+}
+</script>
+<script>
+// ── 플래시 학습 N회 후 시험 필수 (게이트) ──
+var FLASH_BEFORE_TEST = 2;   // 플래시 학습 몇 번 끝낸 뒤 시험을 보게 할지 (2~3 권장)
+function _fpKey() { return 'flashpend_' + STU_ID; }
+function _fpLoad() { try { return JSON.parse(localStorage.getItem(_fpKey()) || '{"n":0,"words":[]}'); } catch (e) { return { n: 0, words: [] }; } }
+function _fpSave(d) { try { localStorage.setItem(_fpKey(), JSON.stringify(d)); } catch (e) {} }
+function clearFlashPending() { try { localStorage.removeItem(_fpKey()); } catch (e) {} }
+function flashSessionDone() {
+  if (STU_ID === 'guest') return;
+  var d = _fpLoad(), seen = {};
+  d.words.forEach(function(w) { seen[w[0].toLowerCase()] = 1; });
+  (flash.words || []).forEach(function(w) { if (!seen[w[0].toLowerCase()]) { d.words.push([w[0], w[1] || '']); seen[w[0].toLowerCase()] = 1; } });
+  if (d.words.length > 300) d.words = d.words.slice(-300);
+  d.n = (d.n || 0) + 1;
+  _fpSave(d);
+}
+function needFlashTest() {
+  if (STU_ID === 'guest') return false;
+  var d = _fpLoad();
+  return d.n >= FLASH_BEFORE_TEST && d.words.length >= 4;
+}
+function showFlashGate() {
+  var old = document.getElementById('flash-gate'); if (old) old.remove();
+  var d = _fpLoad(), cnt = Math.min(30, d.words.length);
+  var g = document.createElement('div'); g.id = 'flash-gate';
+  g.style.cssText = 'position:fixed;inset:0;z-index:9500;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1.5rem';
+  g.innerHTML = '<div style="max-width:420px;width:100%;text-align:center"><div style="font-size:24px;font-weight:900;margin-bottom:.5rem">시험 먼저 볼까요?</div>' +
+    '<p style="font-size:15px;color:var(--txt2);line-height:1.7;margin-bottom:1.5rem">플래시 학습 ' + d.n + '번을 마쳤어요.<br>외운 단어를 확인하는 4지선다 ' + cnt + '문제를 풀면 다음 학습을 이어갈 수 있어요.</p>' +
+    '<button type="button" id="flash-gate-go" class="btn btn-gold btn-full" style="min-height:56px;font-size:17px;font-weight:900;border-radius:16px">시험 시작 (' + cnt + '문제)</button></div>';
+  document.body.appendChild(g);
+  document.getElementById('flash-gate-go').onclick = function() {
+    var pick = Utils.shuffle(d.words.slice()).slice(0, 30);
+    g.remove();
+    window._prevSelected = window._selectedWords;
+    window._selectedWords = pick;
+    window._gateTest = true;
+    startMockTest();
+  };
 }
 </script>
 </body>

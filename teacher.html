@@ -92,6 +92,13 @@
   </div>
 
   <div class="card card-sm">
+    <details open>
+      <summary style="cursor:pointer;font-size:14px;font-weight:800;min-height:44px">모의시험 결과 (전체 학생)</summary>
+      <div id="mock-overview" style="margin-top:.5rem"><div class="empty" style="padding:.5rem 0">불러오는 중…</div></div>
+    </details>
+  </div>
+
+  <div class="card card-sm">
     <p class="sec-title" style="margin-bottom:.875rem">등록 학생 <span id="stu-count" class="badge b-gold" style="vertical-align:middle"></span></p>
     <div id="stu-list"><div class="empty">학생이 없습니다</div></div>
   </div>
@@ -915,7 +922,7 @@ function renderStudents() {
     var memoText = s.memo ? '<div style="font-size:10px;color:var(--txt3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">📝 ' + s.memo + '</div>' : '';
     // 메시지 뱃지 (초기엔 비어있고 loadStuMessageBadges로 채워짐)
     var msgBadge = '<span id="msg-badge-' + s.id + '" style="font-size:10px;margin-left:4px"></span>';
-    var lvBadge = '<span id="lv-badge-' + s.id + '" style="font-size:10px;color:var(--txt3);margin-left:4px"></span>';
+    var lvBadge = '<span id="lv-badge-' + s.id + '" style="font-size:10px;color:var(--txt3);margin-left:4px"></span><span id="mock-badge-' + s.id + '" style="font-size:10px;margin-left:4px"></span>';
     var card = '<div class="stu-card" data-id="' + s.id + '">' +
       '<div style="flex:1"><div class="stu-name">' + s.name + alertBadge + msgBadge + lvBadge + '</div>' +
       '<div class="stu-meta">' + metaText + '</div>' + memoText + '</div>' +
@@ -930,6 +937,31 @@ function renderStudents() {
   // 메시지 읽음 상태 + 레벨 비동기 로드
   loadStuMessageBadges(arr);
   loadStuLevelBadges(arr);
+  loadMockOverview(arr);
+}
+
+// 모의시험 결과: 학생 목록 배지 + 전체 표
+async function loadMockOverview(arr) {
+  var box = document.getElementById('mock-overview');
+  if (!box) return;
+  function esc(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  var rows = [];
+  await Promise.all(arr.map(async function(s) {
+    var mocks = [];
+    try { mocks = (await DB.getResults(s.id) || []).filter(function(r){ return r.mock; }); } catch (e) {}
+    mocks.sort(function(a,b){ return String(a.date).localeCompare(String(b.date)); });
+    var last = mocks[mocks.length - 1];
+    var avg = mocks.length ? Math.round(mocks.reduce(function(a,r){ return a + (r.score||0); }, 0) / mocks.length) : null;
+    rows.push({ name: s.name, last: last, n: mocks.length, avg: avg });
+    var b = document.getElementById('mock-badge-' + s.id);
+    if (b) b.innerHTML = last ? '<span style="color:var(--gold);font-weight:700">시험 ' + esc(last.score) + '점</span>' : '';
+  }));
+  rows.sort(function(a,b){ return String((b.last && b.last.date) || '').localeCompare(String((a.last && a.last.date) || '')); });
+  if (!rows.some(function(r){ return r.n; })) { box.innerHTML = '<div class="empty" style="padding:.5rem 0">아직 응시한 학생이 없어요</div>'; return; }
+  box.innerHTML = rows.map(function(r) {
+    return '<div class="list-item"><span style="font-weight:700">' + esc(r.name) + '</span><span style="font-size:12px;color:var(--txt2)">' +
+      (r.last ? esc(String(r.last.date).slice(5,10)) + ' · <b style="color:var(--gold)">' + esc(r.last.score) + '점</b> · ' + r.n + '회 · 평균 ' + r.avg + '점' : '응시 기록 없음') + '</span></div>';
+  }).join('');
 }
 
 async function loadStuMessageBadges(arr) {
