@@ -76,12 +76,21 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 #weak-alert { padding: 0 !important; border-radius: var(--r) !important; margin-bottom: 12px !important; }
 #weak-alert .callout { padding: 12px 16px; }
 #weak-alert .callout-ico { background: var(--gold-bg); }
-.mission-item { padding: 6px 0; }
-.mission-item + .mission-item { border-top: 1px solid var(--bdr); padding-top: 10px; margin-top: 4px; }
-.mi-top { display: flex; align-items: center; gap: 12px; }
-.mi-prog { display: flex; align-items: center; gap: 10px; margin: 6px 0 2px 52px; }
+.mission-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.mission-item + .mission-item { border-top: 1px solid var(--bdr); }
+.mission-item:last-child { padding-bottom: 0; }
+.mi-body { flex: 1; min-width: 0; }
+.mi-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mi-title { font-size: 15px; font-weight: 700; line-height: 1.35; }
+.mi-xp { font-size: 13px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+.mi-desc { font-size: 13px; color: var(--txt2); line-height: 1.4; margin-top: 1px; }
+.mi-prog { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.mi-bar { flex: 1; height: 4px; background: var(--sur2); border-radius: 2px; overflow: hidden; }
+.mi-bar > div { height: 100%; border-radius: 2px; transition: width .4s; }
+.mi-cnt { font-size: 12px; color: var(--txt3); font-variant-numeric: tabular-nums; flex-shrink: 0; min-width: 40px; text-align: right; }
 .mission-item .callout-ico { width: 40px; height: 40px; font-size: 20px; }
-#daily-mission-card { border-radius: var(--r) !important; padding: 14px 16px !important; }
+#daily-mission-card { border-radius: var(--r) !important; padding: 14px 16px 14px !important; }
+#mission-complete-msg:not([style*="block"]) { display: none; }
 #mission-header { display: flex; align-items: center; gap: 6px; font-size: 15px !important; }
 #daily-mission-card .mb-25 { margin-bottom: 6px !important; }
 #mission-list { gap: 0 !important; }
@@ -1857,19 +1866,17 @@ async function loadDailyMission() {
     var done = prog >= m.target;
     var pct = Math.round(prog / m.target * 100);
     return '<div class="mission-item" style="' + (done?'opacity:.7':'') + '">' +
-      '<div class="mi-top">' +
-        '<span class="callout-ico">' + (done ? '✅' : m.icon) + '</span>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-size:15px;font-weight:700;line-height:1.4;color:' + (done?'var(--grn,#4ade80)':'var(--txt)') + '">' + m.title + '</div>' +
-          '<div style="font-size:13px;color:var(--txt2);line-height:1.4">' + m.desc + '</div>' +
+      '<span class="callout-ico">' + (done ? '✅' : m.icon) + '</span>' +
+      '<div class="mi-body">' +
+        '<div class="mi-head">' +
+          '<span class="mi-title" style="color:' + (done?'var(--grn,#4ade80)':'var(--txt)') + '">' + m.title + '</span>' +
+          '<span class="mi-xp">+' + m.xp + 'XP</span>' +
         '</div>' +
-        '<span style="color:var(--gold);font-weight:700;font-size:13px;flex-shrink:0">+' + m.xp + 'XP</span>' +
-      '</div>' +
-      '<div class="mi-prog">' +
-        '<div style="flex:1;height:4px;background:var(--sur2);border-radius:2px;overflow:hidden">' +
-          '<div style="height:100%;width:' + pct + '%;background:' + (done?'var(--grn,#4ade80)':'var(--gold)') + ';border-radius:2px;transition:width .4s"></div>' +
+        '<div class="mi-desc">' + m.desc + '</div>' +
+        '<div class="mi-prog">' +
+          '<div class="mi-bar"><div style="width:' + pct + '%;background:' + (done?'var(--grn,#4ade80)':'var(--gold)') + '"></div></div>' +
+          '<span class="mi-cnt">' + prog + ' / ' + m.target + '</span>' +
         '</div>' +
-        '<span style="font-size:11px;color:var(--txt3);font-variant-numeric:tabular-nums;flex-shrink:0;min-width:44px;text-align:right">' + prog + ' / ' + m.target + '</span>' +
       '</div>' +
     '</div>';
   }).join('');
