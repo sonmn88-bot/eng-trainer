@@ -40,6 +40,9 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 .install-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .install-btns .btn { min-height: 44px; font-size: 14px; }
 #screen-home { position: relative; }
+#gold-display { align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px !important; line-height: 1; }
+#gold-display .gold-ico { width: 18px; height: 18px; color: var(--amb); display: block; }
+#gold-display .gold-num { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
 #gold-bar { position: absolute; top: 8px; left: 0; height: 44px; margin: 0 !important; z-index: 100; }
 .greeting { margin: 0 0 1rem !important; font-size: 14px !important; line-height: 1.6; }
 .today-hero { border-radius: var(--r) !important; }
@@ -3143,7 +3146,7 @@ async function loadGoldDisplay() {
     var g = await DB.getGold(state.stuId);
     var el = document.getElementById('gold-display');
     if (el) {
-      el.textContent = '💰 ' + (g.amount || 0);
+      el.innerHTML = Icon('coins-duotone', 'gold-ico') + '<span class="gold-num">' + (g.amount || 0).toLocaleString() + '</span>';
       el.style.display = 'inline-flex';
     }
   } catch(e) {}
