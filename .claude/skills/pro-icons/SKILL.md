@@ -21,6 +21,16 @@ description: 앱·웹 화면에 아이콘을 넣거나 바꿀 때 — 이모지�
 4. HTML: `<i data-icon="moon"></i>` → 자동으로 SVG로 바뀜. JS 문자열: `Icon('bookmark-simple-fill')`.
 - 동적으로 넣은 HTML에 `data-icon`을 쓰면 `Icon.hydrate(그요소)`를 호출. 가능하면 JS에서는 `Icon()`을 직접 쓴다.
 
+## 2-1. 이모지 자동 교체 (기존 앱 정리용)
+- `emoji_map.txt`에 "이모지 아이콘[:weight] 톤"을 적고 `build_icons.py ph/package/assets icons.txt emoji_map.txt > shared/icons.js`.
+- icons.js가 화면에 그려지는 텍스트(정적 HTML·innerHTML·textContent·DB에서 온 칭호까지)를 감시해 이모지를 컬러 아이콘으로 바꾼다. 데이터·소스는 그대로 둬도 됨.
+- 제외: input·textarea·option·title, `data-no-icon` 붙은 영역, 표에 없는 이모지(캐릭터 등 콘텐츠).
+- 검사: 화면 텍스트 노드에서 이모지를 찾는 스크립트로 남은 것을 확인(체크·화살표 기호는 글자로 둬도 됨).
+
+## 2-2. 색감 (선만 있으면 허전할 때)
+- 의미 있는 자리(섹션 제목, 미션, 모드 타일, 보상)는 duotone + 톤 색. 톤은 의미별로 고정: lime 주기능 · amber 보상 · green 성공 · blue 학습도구 · purple 음악/놀이 · pink 축하 · red 경고 · muted 보조.
+- 버튼 안·툴바는 단색 regular. 한 줄에 톤 3가지 이상 섞지 않는다.
+
 ## 3. 굵기 규칙 (한 화면 안에서 지킴)
 | 자리 | 굵기 |
 |---|---|

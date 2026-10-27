@@ -13,6 +13,38 @@
 <link rel="stylesheet" href="shared/theme.css">
 <script src="shared/icons.js"></script>
 <style>
+/* ── 홈 간격·정렬 (DESIGN.md: 4px 단위, 섹션 간 16/24) ── */
+.hero { padding: 2.25rem 0 1.5rem !important; }
+.hero-title { font-size: clamp(28px, 8.4vw, 40px) !important; line-height: 1.15 !important; text-wrap: balance; word-break: keep-all; }
+.hero-sub { margin-top: .125rem; }
+.hero-quote { margin-top: 1rem !important; max-width: 26em; text-wrap: pretty; word-break: keep-all; }
+.dday-row { align-items: center !important; gap: 8px !important; height: 44px; padding: 0 20px !important; margin-top: 1.25rem !important; }
+#dday-detail { font-size: 13px !important; font-weight: 500; color: var(--txt2) !important; }
+#dday-count { font-family: var(--font-body) !important; font-size: 20px !important; font-weight: 800 !important; letter-spacing: -.01em !important; }
+#dday-goal-wrap { margin-top: .75rem !important; }
+#dday-goal-select { width: auto !important; min-height: 40px !important; padding: 0 16px !important; border-radius: 99px !important; text-align: center; }
+body:has(#view-main[style*="block"]) .hero-mark,
+body:has(#view-main[style*="block"]) .hero-quote { display: none; }
+body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !important; }
+#view-login .card { padding: 1.25rem; }
+#view-login .inp-wrap { margin-bottom: 0; }
+#stu-err { margin: .5rem 0 0 !important; min-height: 0 !important; }
+#stu-err:empty { display: none; }
+#stu-pw-wrap { margin: .5rem 0 0 !important; }
+.auto-login-row { display: flex; align-items: center; gap: 8px; margin: .75rem 0 1rem; }
+.auto-login-row label { font-size: 14px !important; }
+.install-box { display: block !important; margin-top: 1rem !important; padding: 1rem !important; }
+.install-head { display: flex; gap: 12px; align-items: center; margin-bottom: .875rem; }
+.install-title { font-size: 14px; font-weight: 600; color: var(--txt); }
+.install-desc { font-size: 12px; color: var(--txt3); margin-top: 1px; }
+.install-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.install-btns .btn { min-height: 44px; font-size: 14px; }
+#screen-home { position: relative; }
+#gold-bar { position: absolute; top: 8px; left: 0; height: 44px; margin: 0 !important; z-index: 100; }
+.greeting { margin: 0 0 1rem !important; font-size: 14px !important; line-height: 1.6; }
+.today-hero { border-radius: var(--r) !important; }
+.th-title { font-size: 20px !important; font-weight: 800 !important; }
+.th-go { border-radius: 12px !important; font-size: 16px !important; font-weight: 800 !important; min-height: 52px !important; }
 /* 홈 배경 개선 */
 .app {
   background: radial-gradient(ellipse 90% 340px at 50% 0%, rgba(200,242,90,.10), transparent 70%), var(--bg);
@@ -159,8 +191,8 @@
 .badge-doc-card.locked { opacity:.45;filter:grayscale(0.5); }
 .badge-doc-icon { font-size:28px;margin-bottom:4px;line-height:1.2; }
 .badge-doc-name { font-size:12px;font-weight:600;margin-bottom:2px;color:var(--txt); }
-.badge-doc-label { font-size:9px;letter-spacing:.06em;font-weight:700; }
-.badge-doc-desc { font-size:10px;color:var(--txt3);margin-top:3px;line-height:1.4; }
+.badge-doc-label { font-size:11px;letter-spacing:.06em;font-weight:700; }
+.badge-doc-desc { font-size:11px;color:var(--txt3);margin-top:3px;line-height:1.4; }
 .badge-doc-prog { height:4px;border-radius:2px;background:var(--sur2);margin-top:5px;overflow:hidden; }
 .badge-doc-prog-fill { height:100%;border-radius:2px;transition:width .4s; }
 /* 동물 선택 버튼 */
@@ -230,23 +262,27 @@
                style="text-align:center" onkeydown="if(event.key==='Enter')doStuLogin()">
       </div>
       <div id="stu-err" style="color:var(--red);font-size:12px;text-align:center;margin-bottom:.5rem;min-height:16px"></div>
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:.625rem">
+      <div class="auto-login-row">
         <input type="checkbox" id="auto-login-chk" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
         <label for="auto-login-chk" style="font-size:12px;color:var(--txt2);cursor:pointer">자동 로그인</label>
       </div>
       <button class="btn btn-gold btn-full" onclick="doStuLogin()" style="min-height:52px;font-size:15px">입장하기</button>
-      <p style="text-align:center;margin-top:1rem">
-        <button class="btn btn-ghost btn-sm" onclick="goTeacher()">선생님 모드</button>
+      <p style="text-align:center;margin-top:.5rem">
+        <button class="btn btn-ghost" onclick="goTeacher()" style="font-size:13px;color:var(--txt3)">선생님 모드</button>
       </p>
       <div class="install-box">
-        <div class="install-ico"><i data-icon="device-mobile"></i></div>
-        <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:.125rem">앱으로 설치하기</div>
-        <div style="font-size:11px;color:var(--txt3);line-height:1.6;margin-bottom:.625rem">홈 화면에 추가하면 앱처럼 사용할 수 있어요</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-sm fs-11" onclick="showInstallGuide('ios')">아이폰 설치법</button>
-          <button class="btn btn-sm fs-11" onclick="showInstallGuide('android')">안드로이드 설치법</button>
+        <div class="install-head">
+          <div class="install-ico"><i data-icon="device-mobile"></i></div>
+          <div>
+            <div class="install-title">앱으로 설치하기</div>
+            <div class="install-desc">홈 화면에 추가하면 앱처럼 열 수 있어요</div>
+          </div>
         </div>
+        <div class="install-btns">
+          <button class="btn" onclick="showInstallGuide('ios')">아이폰</button>
+          <button class="btn" onclick="showInstallGuide('android')">안드로이드</button>
+        </div>
+        <div>
         <div id="install-guide" style="display:none;margin-top:.625rem;font-size:11px;color:var(--txt2);line-height:1.8;text-align:left;background:var(--sur);border-radius:var(--rs);padding:.625rem .75rem"></div>
         </div>
       </div>
@@ -271,7 +307,7 @@
       <span class="ub5ef8">🔥</span>
       <div>
         <div class="streak-num" id="streak-num">0</div>
-        <div style="font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:.08em">연속 출석일</div>
+        <div style="font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:.08em">연속 출석일</div>
       </div>
       <div style="margin-left:auto;text-align:right;line-height:1.6">
         <div style="font-size:12px;color:var(--gold);font-weight:500" id="streak-msg"></div>
@@ -349,7 +385,7 @@
     <div id="daily-mission-card" style="display:none;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rx);padding:.875rem 1rem;margin-bottom:1rem">
       <div class="row-between mb-25">
         <div style="font-size:13px;font-weight:700" id="mission-header">⚡ 오늘의 미션</div>
-        <span id="mission-xp-badge" class="badge b-gold" style="font-size:10px"></span>
+        <span id="mission-xp-badge" class="badge b-gold" style="font-size:11px"></span>
       </div>
       <div id="mission-list" style="display:flex;flex-direction:column;gap:6px"></div>
       <div id="mission-complete-msg" style="display:none;text-align:center;padding:.5rem;font-size:13px;color:var(--gold);font-weight:600">🎉 오늘 미션 완료! 보너스 XP 지급!</div>
@@ -392,11 +428,11 @@
             <div style="flex:1;height:6px;background:var(--sur2);border-radius:3px;overflow:hidden">
               <div id="profile-xp-bar" style="height:100%;border-radius:3px;transition:width .6s;width:0%"></div>
             </div>
-            <span id="profile-xp-pct" style="font-size:10px;color:var(--txt3);min-width:28px;text-align:right">0%</span>
+            <span id="profile-xp-pct" style="font-size:11px;color:var(--txt3);min-width:28px;text-align:right">0%</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
             <span id="profile-xp-num" class="muted-xs">XP 0</span>
-            <span id="profile-xp-next" style="font-size:10px;color:var(--gold);font-weight:600"></span>
+            <span id="profile-xp-next" style="font-size:11px;color:var(--gold);font-weight:600"></span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1px">
             <button onclick="openBadgeDocs()" style="background:none;border:none;font-size:11px;color:var(--txt3);cursor:pointer;padding:0" id="profile-badge-count">🏆 0/40</button>
@@ -423,14 +459,14 @@
         <span class="module-icon">📖</span>
         <div class="module-name">단어</div>
         <div class="module-desc">Vocabulary</div>
-        <div id="mod-vocab-last" style="font-size:9px;color:var(--txt3);margin-top:4px"></div>
+        <div id="mod-vocab-last" style="font-size:11px;color:var(--txt3);margin-top:4px"></div>
       </a>
       <a class="module-card" href="listening.html" id="mod-listen"
          style="--accent-color:rgba(96,165,250,.1);--accent-bdr:rgba(96,165,250,.25)">
         <span class="module-icon">🎧</span>
         <div class="module-name">리스닝</div>
         <div class="module-desc">Listening</div>
-        <div id="mod-listen-last" style="font-size:9px;color:var(--txt3);margin-top:4px"></div>
+        <div id="mod-listen-last" style="font-size:11px;color:var(--txt3);margin-top:4px"></div>
       </a>
     </div>
 
@@ -546,7 +582,7 @@
       </div>
       <!-- XP 바 -->
       <div style="margin-top:.875rem">
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);margin-bottom:3px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txt3);margin-bottom:3px">
           <span id="status-xp-label"></span>
           <span id="status-xp-next"></span>
         </div>
@@ -1526,7 +1562,7 @@ function renderProfileBadges() {
     var def=defs.find(function(d){return d.id===bid;}); if(!def) return '';
     var gc=(window.BADGE_GRADE||{})[def.grade]||{};
     return '<div style="width:36px;height:36px;border-radius:8px;background:'+(gc.bg||'#111')+';border:1.5px solid '+(gc.stroke||'#333')+';display:flex;align-items:center;justify-content:center;font-size:18px;" title="'+def.name+'">'+def.icon+'</div>';
-  }).join('') + (earned.length>5?'<div style="width:36px;height:36px;border-radius:8px;background:var(--sur2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--txt3)">+'+(earned.length-5)+'</div>':'');
+  }).join('') + (earned.length>5?'<div style="width:36px;height:36px;border-radius:8px;background:var(--sur2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--txt3)">+'+(earned.length-5)+'</div>':'');
 }
 
 // ── 레벨업 팡파레 ──────────────────────────────
@@ -1599,8 +1635,8 @@ function renderBadgeDocs(cat) {
       '<div class="badge-doc-name">'+(isHidden?'???':def.name)+'</div>'+
       '<div class="badge-doc-label" style="color:'+(gc.text||'#888')+'">'+(gc.label||'')+'</div>'+
       '<div class="badge-doc-desc">'+(isHidden?def.hint:def.desc)+'</div>'+
-      (isEarned?'<div style="font-size:9px;color:'+(gc.text||'#888')+';margin-top:3px">'+ds+' 획득</div>':'')+
-      (!isEarned&&!isHidden&&target?'<div class="badge-doc-prog"><div class="badge-doc-prog-fill" style="width:'+ppct+'%;background:'+(gc.stroke||'#555')+'"></div></div><div style="font-size:9px;color:var(--txt3);margin-top:2px">'+prog+' / '+target+'</div>':'')+
+      (isEarned?'<div style="font-size:11px;color:'+(gc.text||'#888')+';margin-top:3px">'+ds+' 획득</div>':'')+
+      (!isEarned&&!isHidden&&target?'<div class="badge-doc-prog"><div class="badge-doc-prog-fill" style="width:'+ppct+'%;background:'+(gc.stroke||'#555')+'"></div></div><div style="font-size:11px;color:var(--txt3);margin-top:2px">'+prog+' / '+target+'</div>':'')+
       '</div>';
   }).join('');
 }
@@ -1799,11 +1835,11 @@ async function loadDailyMission() {
           '<span style="font-weight:600;color:' + (done?'var(--grn,#4ade80)':'var(--txt)') + '">' + m.title + '</span>' +
           '<span style="color:var(--gold);font-weight:700;font-size:11px">+' + m.xp + 'XP</span>' +
         '</div>' +
-        '<div style="font-size:10px;color:var(--txt3);margin-bottom:3px">' + m.desc + '</div>' +
+        '<div style="font-size:11px;color:var(--txt3);margin-bottom:3px">' + m.desc + '</div>' +
         '<div style="height:4px;background:var(--sur2);border-radius:2px;overflow:hidden">' +
           '<div style="height:100%;width:' + pct + '%;background:' + (done?'var(--grn,#4ade80)':'var(--gold)') + ';border-radius:2px;transition:width .4s"></div>' +
         '</div>' +
-        '<div style="font-size:9px;color:var(--txt3);margin-top:2px">' + prog + ' / ' + m.target + '</div>' +
+        '<div style="font-size:11px;color:var(--txt3);margin-top:2px">' + prog + ' / ' + m.target + '</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -2410,20 +2446,20 @@ function renderShopGrid(currentXP, owned) {
 
     var statusBtn = '';
     if (isOwned) {
-      statusBtn = '<div style="font-size:10px;color:var(--grn,#4ade80);font-weight:700;text-align:center;padding:4px 0">✓ 보유중</div>';
+      statusBtn = '<div style="font-size:11px;color:var(--grn,#4ade80);font-weight:700;text-align:center;padding:4px 0">✓ 보유중</div>';
     } else if (!isUnlocked) {
       var needed = item.unlockXP - currentXP;
-      statusBtn = '<div style="font-size:9px;color:var(--txt3);text-align:center;padding:4px 0">🔒 ' + needed.toLocaleString() + ' XP 더 필요</div>';
+      statusBtn = '<div style="font-size:11px;color:var(--txt3);text-align:center;padding:4px 0">🔒 ' + needed.toLocaleString() + ' XP 더 필요</div>';
     } else {
       statusBtn = '<button data-iid="' + item.id + '" onclick="buyShopItem(this.dataset.iid)" style="width:100%;padding:5px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;margin-top:2px">잠금 해제</button>';
     }
 
     return '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:12px;padding:.625rem .5rem;position:relative;' + (isOwned?'box-shadow:0 0 8px rgba(200,242,90,.15)':'') + '">' +
-      '<div style="position:absolute;top:6px;right:6px;font-size:9px;font-weight:700;color:' + rc + ';letter-spacing:.04em">' + rl.toUpperCase() + '</div>' +
+      '<div style="position:absolute;top:6px;right:6px;font-size:11px;font-weight:700;color:' + rc + ';letter-spacing:.04em">' + rl.toUpperCase() + '</div>' +
       '<div style="font-size:24px;text-align:center;margin-bottom:2px;' + (!isUnlocked&&!isOwned?'filter:grayscale(1);opacity:.4':'') + '">' + item.icon + '</div>' +
       '<div style="font-size:11px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:2px">' + item.name + '</div>' +
-      '<div style="font-size:9px;color:var(--txt3);text-align:center;margin-bottom:4px;line-height:1.4">' + item.desc + '</div>' +
-      '<div style="font-size:9px;color:' + rc + ';text-align:center;margin-bottom:3px;font-weight:600">' + item.unlockXP.toLocaleString() + ' XP</div>' +
+      '<div style="font-size:11px;color:var(--txt3);text-align:center;margin-bottom:4px;line-height:1.4">' + item.desc + '</div>' +
+      '<div style="font-size:11px;color:' + rc + ';text-align:center;margin-bottom:3px;font-weight:600">' + item.unlockXP.toLocaleString() + ' XP</div>' +
       statusBtn +
     '</div>';
   }).join('');
@@ -2734,7 +2770,7 @@ function renderStatusHeader(prof, results, weak) {
   ].map(function(s) {
     return '<div style="background:var(--sur2);border-radius:8px;padding:.5rem;text-align:center">' +
       '<div style="font-size:16px;font-weight:800;color:' + s.color + '">' + s.val + '</div>' +
-      '<div style="font-size:9px;color:var(--txt3);margin-top:1px;text-transform:uppercase;letter-spacing:.06em">' + s.label + '</div>' +
+      '<div style="font-size:11px;color:var(--txt3);margin-top:1px;text-transform:uppercase;letter-spacing:.06em">' + s.label + '</div>' +
     '</div>';
   }).join('');
 }
@@ -2754,7 +2790,7 @@ async function renderStatusShop(el) {
     html += '<div><div style="font-size:12px;font-weight:700;color:var(--gold)">총 XP: ' + xp.toLocaleString() + '</div>';
     html += '<div class="muted-xs">XP로 아이템 잠금 해제</div></div>';
     html += '<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:var(--gold)">💰 ' + goldAmt + ' 골드</div>';
-    html += '<button onclick="openGoldShop()" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);cursor:pointer;margin-top:2px">골드 상점</button></div>';
+    html += '<button onclick="openGoldShop()" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);cursor:pointer;margin-top:2px">골드 상점</button></div>';
     html += '</div>';
 
     // 탭 버튼
@@ -2781,16 +2817,16 @@ async function renderStatusShop(el) {
       var rb = rarityBgs[item.rarity]||'var(--sur2)';
       var rd = rarityBdr[item.rarity]||'var(--bdr)';
       var btn = isOwned
-        ? '<div style="font-size:10px;color:var(--grn,#4ade80);font-weight:700;text-align:center">✓ 보유</div>'
+        ? '<div style="font-size:11px;color:var(--grn,#4ade80);font-weight:700;text-align:center">✓ 보유</div>'
         : (!isUnlocked
-          ? '<div style="font-size:9px;color:var(--txt3);text-align:center">🔒 ' + (item.unlockXP-xp).toLocaleString() + ' XP 필요</div>'
-          : '<button data-iid="' + item.id + '" onclick="buyShopItem(this.dataset.iid)" style="width:100%;padding:4px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);font-size:10px;font-weight:700;cursor:pointer">잠금 해제</button>');
+          ? '<div style="font-size:11px;color:var(--txt3);text-align:center">🔒 ' + (item.unlockXP-xp).toLocaleString() + ' XP 필요</div>'
+          : '<button data-iid="' + item.id + '" onclick="buyShopItem(this.dataset.iid)" style="width:100%;padding:4px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer">잠금 해제</button>');
       html += '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:10px;padding:.5rem;position:relative">';
       html += '<div style="position:absolute;top:4px;right:4px;font-size:8px;font-weight:700;color:' + rc + '">' + (item.rarity==='legendary'?'전설':item.rarity==='epic'?'에픽':item.rarity==='rare'?'레어':'') + '</div>';
       html += '<div style="font-size:22px;text-align:center;margin-bottom:2px;' + (!isUnlocked&&!isOwned?'filter:grayscale(1);opacity:.4':'') + '">' + item.icon + '</div>';
-      html += '<div style="font-size:10px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:2px">' + item.name + '</div>';
+      html += '<div style="font-size:11px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:2px">' + item.name + '</div>';
       html += '<div style="font-size:8px;color:var(--txt3);text-align:center;margin-bottom:3px">' + item.desc + '</div>';
-      html += '<div style="font-size:9px;color:' + rc + ';text-align:center;margin-bottom:3px;font-weight:600">' + item.unlockXP.toLocaleString() + ' XP</div>';
+      html += '<div style="font-size:11px;color:' + rc + ';text-align:center;margin-bottom:3px;font-weight:600">' + item.unlockXP.toLocaleString() + ' XP</div>';
       html += btn + '</div>';
     });
     html += '</div></div>';
@@ -2912,7 +2948,7 @@ function renderTitlesTab() {
         '<div style="font-size:13px;font-weight:600;color:' + (t.earned?'var(--txt)':'var(--txt3)') + '">' + t.title + '</div>' +
         '<div class="muted-xs">' + (t.earned ? t.desc : '🔒 배지 미획득') + '</div>' +
       '</div>' +
-      (t.earned ? '<button onclick="setTitle(\'' + t.title.replace(/'/g,"\'") + '\')" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--bdr);background:' + (isActive?'var(--gold)':'var(--sur3)') + ';color:' + (isActive?'#111':'var(--txt)') + ';cursor:pointer;font-weight:600">' + (isActive?'착용중':'착용') + '</button>' : '') +
+      (t.earned ? '<button onclick="setTitle(\'' + t.title.replace(/'/g,"\'") + '\')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--bdr);background:' + (isActive?'var(--gold)':'var(--sur3)') + ';color:' + (isActive?'#111':'var(--txt)') + ';cursor:pointer;font-weight:600">' + (isActive?'착용중':'착용') + '</button>' : '') +
     '</div>';
   }).join('');
 
@@ -2924,7 +2960,7 @@ function renderTitlesTab() {
         '<span style="font-size:20px">' + item.icon + '</span>' +
         '<div class="flex-1"><div style="font-size:13px;font-weight:600">' + item.value + '</div>' +
         '<div class="muted-xs">' + item.desc + '</div></div>' +
-        '<button onclick="setTitle(\'' + item.value.replace(/'/g,"\'") + '\')" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--bdr);background:' + (isActive?'var(--gold)':'var(--sur3)') + ';color:' + (isActive?'#111':'var(--txt)') + ';cursor:pointer;font-weight:600">' + (isActive?'착용중':'착용') + '</button>' +
+        '<button onclick="setTitle(\'' + item.value.replace(/'/g,"\'") + '\')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--bdr);background:' + (isActive?'var(--gold)':'var(--sur3)') + ';color:' + (isActive?'#111':'var(--txt)') + ';cursor:pointer;font-weight:600">' + (isActive?'착용중':'착용') + '</button>' +
       '</div>';
     }).join('');
   }
@@ -2968,7 +3004,7 @@ function renderItemsTab() {
             '<div style="font-size:13px;font-weight:600">' + item.name + '</div>' +
             '<div class="muted-xs">' + item.desc + (earnedAt?' · '+earnedAt:'') + '</div>' +
           '</div>' +
-          '<button onclick="applyShopItem({type:\'' + item.type + '\',value:\'' + item.value + '\',id:\'' + item.id + '\',name:\'' + item.name + '\'})" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);cursor:pointer;font-weight:600">적용</button>' +
+          '<button onclick="applyShopItem({type:\'' + item.type + '\',value:\'' + item.value + '\',id:\'' + item.id + '\',name:\'' + item.name + '\'})" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);cursor:pointer;font-weight:600">적용</button>' +
         '</div>';
       }).join('') +
     '</div>';
@@ -3040,7 +3076,7 @@ function renderAnalysisTab() {
         var col = (r.score||0)>=80?'var(--grn,#4ade80)':(r.score||0)>=60?'var(--gold)':'var(--red,#f87171)';
         return '<div style="flex:1;height:'+h+'px;background:'+col+';border-radius:2px 2px 0 0;min-height:4px"></div>';
       }).join('') +
-    '</div><div style="font-size:9px;color:var(--txt3);text-align:center;margin-top:2px">최근 10회</div>' +
+    '</div><div style="font-size:11px;color:var(--txt3);text-align:center;margin-top:2px">최근 10회</div>' +
   '</div>';
 
   // 취약단어 패턴
@@ -3052,7 +3088,7 @@ function renderAnalysisTab() {
           '<span style="font-size:11px;color:var(--txt3);min-width:16px">' + (i+1) + '</span>' +
           '<span style="font-family:var(--font-display);font-style:italic;font-weight:600;flex:1">' + w.word + '</span>' +
           '<span class="muted-xs">' + (w.ko||'') + '</span>' +
-          '<span style="font-size:10px;color:var(--red,#f87171);font-weight:700">' + (w.wrong||0) + '회</span>' +
+          '<span style="font-size:11px;color:var(--red,#f87171);font-weight:700">' + (w.wrong||0) + '회</span>' +
         '</div>';
       }).join('') +
     '</div>';

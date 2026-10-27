@@ -51,3 +51,9 @@ CSS 토큰은 `shared/theme.css`의 `:root` / `[data-theme="light"]`에 있다. 
 - 똑같은 카드 그리드로 목록 나열 → 목록은 한 줄 행(row) + 1px 구분선
 - 모든 것을 카드로 감싸기, 모든 섹션 가운데 정렬
 - 100vh (→ 100dvh), 44px 미만 터치 영역, 16px 미만 입력 글자
+
+## 이모지 처리 (4차)
+- 화면의 이모지는 `shared/icons.js`가 그려질 때 자동으로 Phosphor 컬러 아이콘으로 바꾼다. 대응표: `.claude/skills/pro-icons/emoji_map.txt`.
+- 새 이모지를 쓰게 되면 대응표에 한 줄 추가 후 `build_icons.py` 재실행. 상점 캐릭터·테마처럼 이모지 자체가 콘텐츠인 것은 표에 넣지 않는다.
+- 톤: lime(주 기능) · amber(보상·불꽃) · green(성공·성장) · blue(학습 도구) · purple(음악·놀이) · pink(축하) · red(경고·삭제) · muted(보조).
+- 글자 최소 11px. 카드 라운드 16 / 버튼 10 / 칩 99.

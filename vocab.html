@@ -123,7 +123,7 @@
       <div class="logo-text-sub" id="page-sub">Vocabulary</div>
     </div>
   </div>
-  <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" title="테마 전환" aria-label="테마 전환" class="icon-btn"><i data-icon="moon"></i></button>
+  <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" title="테마 전환" aria-label="테마 전환" class="icon-btn"><i data-icon="moon" class="th-dark"></i><i data-icon="sun" class="th-light"></i></button>
         <button class="btn btn-ghost" id="back-btn" onclick="goBack()">← 홈</button>
   <button onclick="showVocabHelp()" class="icon-btn" title="도움말" aria-label="도움말"><i data-icon="question"></i></button>
   <button onclick="quickGoTeacherFromPage()" title="선생님 모드" aria-label="선생님 모드" class="icon-btn"><i data-icon="chalkboard-teacher"></i></button>
@@ -226,15 +226,15 @@
       </button>
       <button class="range-btn" id="rb-bookmark" onclick="selectRange('bookmark')"
         style="padding:.625rem .2rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:11px;font-weight:700;cursor:pointer;text-align:center">
-        <i data-icon="bookmark-simple" class="ico"></i><span style="font-size:9px;white-space:nowrap" id="rb-bm-cnt">북마크</span>
+        <i data-icon="bookmark-simple" class="ico"></i><span style="font-size:11px;white-space:nowrap" id="rb-bm-cnt">북마크</span>
       </button>
       <button class="range-btn" id="rb-weak" onclick="selectRange('weak')"
         style="padding:.625rem .2rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:11px;font-weight:700;cursor:pointer;text-align:center">
-        <i data-icon="flame" class="ico"></i><span style="font-size:9px;white-space:nowrap" id="rb-wk-cnt">취약단어</span>
+        <i data-icon="flame" class="ico"></i><span style="font-size:11px;white-space:nowrap" id="rb-wk-cnt">취약단어</span>
       </button>
       <button class="range-btn" id="rb-mywords" onclick="selectRange('mywords')"
         style="padding:.625rem .2rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:11px;font-weight:700;cursor:pointer;text-align:center">
-        <i data-icon="note-pencil" class="ico"></i><span style="font-size:9px;white-space:nowrap" id="rb-my-cnt">내 단어</span>
+        <i data-icon="note-pencil" class="ico"></i><span style="font-size:11px;white-space:nowrap" id="rb-my-cnt">내 단어</span>
       </button>
     </div>
 
@@ -259,7 +259,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
         <div id="mywords-summary" class="muted-sm">내가 등록한 단어</div>
         <div style="display:flex;gap:6px;align-items:center">
-          <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--txt3);cursor:pointer">
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--txt3);cursor:pointer">
             <input type="checkbox" id="myword-hide-mastered-chk" onchange="renderMyWordsList()" style="width:13px;height:13px;accent-color:var(--gold)">
             마스터 숨기기
           </label>
@@ -271,7 +271,7 @@
 
     <!-- 품사 필터 -->
     <div id="pos-filter-panel" style="display:none;padding-top:.5rem;border-top:1px solid var(--bdr);margin-top:.5rem">
-      <div style="font-size:10px;color:var(--txt3);margin-bottom:.375rem;letter-spacing:.04em">품사 필터</div>
+      <div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem;letter-spacing:.04em">품사 필터</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="pos-btn active" onclick="setPosFilter('all')" id="pos-all"
           style="padding:3px 10px;border-radius:99px;border:1px solid var(--gold);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:600;cursor:pointer">전체</button>
@@ -284,7 +284,7 @@
         <button class="pos-btn" onclick="setPosFilter('adv')" id="pos-adv"
           style="padding:3px 10px;border-radius:99px;border:1px solid var(--bdr);background:var(--sur2);color:var(--txt3);font-size:11px;cursor:pointer">부사</button>
       </div>
-      <div id="pos-count" style="font-size:10px;color:var(--txt3);margin-top:.375rem"></div>
+      <div id="pos-count" style="font-size:11px;color:var(--txt3);margin-top:.375rem"></div>
     </div>
   </div>
 
@@ -365,7 +365,7 @@
       ⚡ <span id="weak-cnt-msg"></span>
     </div>
     <button class="btn btn-gold btn-full" id="btn-start-quiz" style="font-size:14px;padding:.875rem">시작하기 →</button>
-    <button class="btn btn-full" id="btn-mock" style="margin-top:8px" onclick="startMockTest()">주간 모의시험 (4지선다 30문항 · 선생님께 기록)</button>
+    <button class="btn btn-full" id="btn-mock" style="margin-top:8px" onclick="startMockTest()">주간 모의시험 · 30문항</button>
   </div>
 
   <!-- 하위 호환용 숨김 요소 -->
@@ -408,7 +408,7 @@
           <div id="fc-img-wrap"></div>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:.25rem">
             <div class="fc-en m-0" id="fc-en"></div>
-            <div id="fc-grade-badge" style="display:none;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px"></div>
+            <div id="fc-grade-badge" style="display:none;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px"></div>
           </div>
           <div id="fc-grade-bar" style="display:none;display:flex;gap:2px;justify-content:center;margin-bottom:.25rem">
             <div class="fc-grade-dot"></div><div class="fc-grade-dot"></div>
@@ -522,7 +522,7 @@
         <div class="row-center">
           <span id="quiz-score" class="mono"></span>
           <!-- 집중 모드 토글 -->
-          <button id="focus-mode-btn" onclick="toggleFocusMode()" style="font-size:10px;padding:2px 8px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--txt3);cursor:pointer">집중</button>
+          <button id="focus-mode-btn" onclick="toggleFocusMode()" style="font-size:11px;padding:2px 8px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--txt3);cursor:pointer">집중</button>
         </div>
       </div>
       <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
@@ -530,14 +530,14 @@
     <!-- 취약단어 졸업 진행률 (취약모드에서만 표시) -->
     <div id="weak-streak-bar" style="display:none;background:var(--sur2);border-radius:var(--rs);padding:.5rem .75rem;margin-bottom:.5rem">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-size:10px;color:var(--txt3);letter-spacing:.04em">⚡ 졸업까지</span>
+        <span style="font-size:11px;color:var(--txt3);letter-spacing:.04em">⚡ 졸업까지</span>
         <span id="weak-streak-txt" style="font-size:11px;font-weight:700;color:var(--gold)"></span>
       </div>
       <div style="display:flex;gap:3px" id="weak-streak-dots"></div>
     </div>
     <div class="timer" id="quiz-timer"></div>
     <div style="text-align:center;margin-bottom:.25rem">
-      <span id="quiz-grade-badge" style="display:none;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px"></span>
+      <span id="quiz-grade-badge" style="display:none;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px"></span>
     </div>
     <div style="display:flex;align-items:center;justify-content:center;gap:8px">
       <div class="big-word m-0" id="quiz-word"></div>
@@ -950,7 +950,7 @@ function renderFlipSetButtons() {
     var end = Math.min((i + 1) * FLIP_SET_SIZE, flipSourceWords.length);
     if (start > flipSourceWords.length) break;
     html += '<div class="flip-set-btn' + (i === flipSetIdx ? ' active' : '') + '" onclick="loadFlipSet(' + i + ')">' +
-      'Set ' + (i + 1) + '<br><span style="font-size:10px;font-weight:400;color:var(--txt3)">' + start + '-' + end + '</span></div>';
+      'Set ' + (i + 1) + '<br><span style="font-size:11px;font-weight:400;color:var(--txt3)">' + start + '-' + end + '</span></div>';
   }
   grid.innerHTML = html;
 }
@@ -976,7 +976,7 @@ function renderFlipCards() {
   grid.innerHTML = flipWords.map(function(w, i) {
     var mn = Utils.getMnemonic(w[0].toLowerCase(), w[1]);
     var backContent = mn
-      ? '<div style="font-size:13px;font-weight:600;margin-bottom:4px">' + w[1] + '</div><div style="font-size:10px;color:rgba(255,255,255,.6);line-height:1.4">' + mn + '</div>'
+      ? '<div style="font-size:13px;font-weight:600;margin-bottom:4px">' + w[1] + '</div><div style="font-size:11px;color:rgba(255,255,255,.6);line-height:1.4">' + mn + '</div>'
       : '<div style="font-size:14px;font-weight:600">' + w[1] + '</div>';
     var isChecked = window._flipChecked[flipSetIdx + '_' + i];
     var isBm = isBookmarked(w[0]);
@@ -1883,13 +1883,13 @@ function renderConfuseLearn() {
   if (cards) {
     cards.innerHTML =
       '<div style="background:rgba(200,242,90,.08);border:2px solid rgba(200,242,90,.3);border-radius:14px;padding:1rem;text-align:center">' +
-        '<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.08em;margin-bottom:.5rem">단어 A</div>' +
+        '<div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.08em;margin-bottom:.5rem">단어 A</div>' +
         '<div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:.5rem;font-style:italic">' + pair[0] + '</div>' +
         '<div style="font-size:13px;color:var(--gold);font-weight:600">' + pair[1] + '</div>' +
         '<button data-w="' + pair[0] + '" onclick="Utils.speak(this.dataset.w)" style="margin-top:.5rem;background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">🔊</button>' +
       '</div>' +
       '<div style="background:rgba(96,165,250,.08);border:2px solid rgba(96,165,250,.3);border-radius:14px;padding:1rem;text-align:center">' +
-        '<div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.08em;margin-bottom:.5rem">단어 B</div>' +
+        '<div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.08em;margin-bottom:.5rem">단어 B</div>' +
         '<div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:.5rem;font-style:italic">' + pair[2] + '</div>' +
         '<div style="font-size:13px;color:var(--blue);font-weight:600">' + pair[3] + '</div>' +
         '<button data-w2="' + pair[2] + '" onclick="Utils.speak(this.dataset.w2)" style="margin-top:.5rem;background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer">🔊</button>' +
@@ -2090,7 +2090,7 @@ function doWordSearch(q) {
         '<span style="color:var(--txt3);font-size:11px;margin-left:6px">' + w.setIcon + ' ' + w.setName + (w.day?' · '+w.day:'') + '</span>' +
         '<div style="font-size:12px;color:var(--txt2);margin-top:1px">' + hi_ko + '</div>' +
       '</div>' +
-      (mnemonics[w.word.toLowerCase()] ? '<div style="font-size:10px;color:var(--txt3);max-width:80px;text-align:right;line-height:1.3;margin-right:4px">' + mnemonics[w.word.toLowerCase()].slice(0,24) + '</div>' : '') +
+      (mnemonics[w.word.toLowerCase()] ? '<div style="font-size:11px;color:var(--txt3);max-width:80px;text-align:right;line-height:1.3;margin-right:4px">' + mnemonics[w.word.toLowerCase()].slice(0,24) + '</div>' : '') +
       '<button id="sbm-' + w.word + '" onclick="toggleSearchBm(\'' + safeWord + '\',\'' + safeKo + '\')" style="background:none;border:none;font-size:18px;cursor:pointer;flex-shrink:0;padding:0 2px">' + (isBm?'⭐':'☆') + '</button>' +
     '</div>';
   }).join('');
@@ -2304,7 +2304,7 @@ function buildWeekGrid() {
 
   grid.innerHTML = Object.entries(weeks).map(([wk, info]) => {
     var isExam = examWk && parseInt(wk) === parseInt(examWk);
-    var examBadge = isExam ? '<div style="font-size:9px;color:var(--red,#e53935);font-weight:700;margin-top:1px">시험</div>' : '';
+    var examBadge = isExam ? '<div style="font-size:11px;color:var(--red,#e53935);font-weight:700;margin-top:1px">시험</div>' : '';
     var examStyle = isExam ? 'border-color:var(--red,#e53935);background:rgba(239,68,68,.06)' : '';
     return `<div class="week-card" onclick="selectWeek(${wk})" id="wk-${wk}" style="${examStyle}">
       <div class="week-card-num">${wk}주차</div>
@@ -3113,11 +3113,11 @@ async function submitAns() {
     var _synAnt = getWordSynAnt(w[0]);
     var _synHtml = '';
     if (_synAnt) {
-      if (_synAnt.syn && _synAnt.syn.length) _synHtml += '<div style="font-size:10px;margin-top:4px;color:var(--grn,#4ade80);opacity:.85">≈ 유의어: ' + _synAnt.syn.slice(0,3).join(', ') + '</div>';
-      if (_synAnt.ant && _synAnt.ant.length) _synHtml += '<div style="font-size:10px;margin-top:2px;color:var(--red,#f87171);opacity:.85">↔ 반의어: ' + _synAnt.ant.slice(0,3).join(', ') + '</div>';
+      if (_synAnt.syn && _synAnt.syn.length) _synHtml += '<div style="font-size:11px;margin-top:4px;color:var(--grn,#4ade80);opacity:.85">≈ 유의어: ' + _synAnt.syn.slice(0,3).join(', ') + '</div>';
+      if (_synAnt.ant && _synAnt.ant.length) _synHtml += '<div style="font-size:11px;margin-top:2px;color:var(--red,#f87171);opacity:.85">↔ 반의어: ' + _synAnt.ant.slice(0,3).join(', ') + '</div>';
     }
     var _related = getRelatedWords(w[0], w[1]);
-    var _relHtml = (!_synHtml && _related.length) ? '<div style="font-size:10px;color:var(--txt3);margin-top:4px">관련: ' + _related.join(' · ') + '</div>' : '';
+    var _relHtml = (!_synHtml && _related.length) ? '<div style="font-size:11px;color:var(--txt3);margin-top:4px">관련: ' + _related.join(' · ') + '</div>' : '';
     fb.innerHTML = result === 'close' ? '✓ 정답에 가깝습니다!<div style="font-size:12px;margin-top:3px;opacity:.8;line-height:1.4">' + w[1] + '</div>' + _synHtml + _relHtml : '✓ 정답!' + _synHtml + _relHtml;
     if (quiz.combo === 3 || quiz.combo === 5 || (quiz.combo >= 10 && quiz.combo % 5 === 0)) {
       showComboToast(quiz.combo);
@@ -3587,12 +3587,12 @@ function showWrong() {
     if (ex && ex.en) {
       exHtml = '<div style="margin-top:.5rem;padding:.375rem .625rem;background:var(--sur2);border-radius:var(--rs);border-left:2px solid var(--gold-bdr)">' +
         '<div style="font-size:11px;color:var(--txt3);font-style:italic;line-height:1.6">' + ex.en + '</div>' +
-        (ex.ko ? '<div style="font-size:10px;color:var(--txt3);margin-top:2px">' + ex.ko + '</div>' : '') +
+        (ex.ko ? '<div style="font-size:11px;color:var(--txt3);margin-top:2px">' + ex.ko + '</div>' : '') +
         '</div>';
     } else {
       // 예문 없으면 AI 생성 버튼
       exHtml = '<div id="ai-ex-wrap-' + ridx + '" style="margin-top:.375rem">' +
-        '<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px" ' +
+        '<button class="btn btn-ghost btn-sm" style="font-size:11px;padding:3px 8px" ' +
         'onclick="generateAIExample(\'' + safeWord + '\',\'' + (r.ko||'').replace(/'/g,"\\'") + '\',' + ridx + ')">✨ AI 예문 생성</button>' +
         '</div>';
     }
@@ -3601,8 +3601,8 @@ function showWrong() {
       '<div style="display:flex;align-items:center;gap:10px;width:100%">' +
       '<div><div class="wi-word">' + (r.word||'') + '</div>' +
       '<div style="display:flex;gap:4px;margin-top:4px">' +
-      '<button class="tts-btn" style="font-size:10px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
-      '<button class="tts-btn" style="font-size:10px;padding:3px 8px;color:var(--gold)" onclick="quickAddFromWrong(\'' + safeWord + '\',\'' + safeKo + '\')">📌 내 단어</button>' +
+      '<button class="tts-btn" style="font-size:11px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
+      '<button class="tts-btn" style="font-size:11px;padding:3px 8px;color:var(--gold)" onclick="quickAddFromWrong(\'' + safeWord + '\',\'' + safeKo + '\')">📌 내 단어</button>' +
       '</div></div>' +
       '<div><div class="wi-ko">' + (r.ko||'') + '</div>' +
       '<div class="wi-ans">내 답: ' + (r.input||'') + '</div></div>' +
@@ -3634,9 +3634,9 @@ async function generateAIExample(word, ko, idx) {
     var en = enMatch ? enMatch[1].trim() : text;
     var koTrans = koMatch ? koMatch[1].trim() : '';
     wrap.innerHTML = '<div style="margin-top:.375rem;padding:.375rem .625rem;background:var(--gold-bg);border-radius:var(--rs);border-left:2px solid var(--gold-bdr)">' +
-      '<div style="font-size:10px;color:var(--gold);font-weight:600;margin-bottom:2px">✨ AI 생성 예문</div>' +
+      '<div style="font-size:11px;color:var(--gold);font-weight:600;margin-bottom:2px">✨ AI 생성 예문</div>' +
       '<div style="font-size:11px;color:var(--txt2);font-style:italic;line-height:1.6">' + en + '</div>' +
-      (koTrans ? '<div style="font-size:10px;color:var(--txt3);margin-top:2px">' + koTrans + '</div>' : '') +
+      (koTrans ? '<div style="font-size:11px;color:var(--txt3);margin-top:2px">' + koTrans + '</div>' : '') +
       '</div>';
   } catch(e) {
     wrap.innerHTML = '<span style="font-size:11px;color:var(--red)">생성 실패</span>';
@@ -4213,7 +4213,7 @@ async function loadLevelData() {
       var earned = earnedStamps.has(s.id);
       return '<div title="' + s.desc + '" style="opacity:' + (earned ? '1' : '0.25') + '">' +
         '<div style="font-size:24px">' + s.icon + '</div>' +
-        '<div style="font-size:9px;color:var(--txt3);margin-top:2px">' + s.name + '</div>' +
+        '<div style="font-size:11px;color:var(--txt3);margin-top:2px">' + s.name + '</div>' +
       '</div>';
     }).join('');
 
@@ -4316,8 +4316,8 @@ function renderBookmarkDetail(words) {
         '<span style="color:var(--txt3);font-size:12px;margin-left:8px">' + (w.ko||'') + '</span>' +
       '</div>' +
       '<div style="display:flex;gap:6px">' +
-        '<button class="tts-btn" style="font-size:10px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
-        '<button class="tts-btn" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="removeBookmark(\'' + safeWord + '\')">✕</button>' +
+        '<button class="tts-btn" style="font-size:11px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
+        '<button class="tts-btn" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="removeBookmark(\'' + safeWord + '\')">✕</button>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -4395,8 +4395,8 @@ function renderFolderDetail(fid) {
       '<div><span style="font-family:var(--font-display);font-style:italic;font-weight:600">' + (w.word||'') + '</span>' +
       '<span style="color:var(--txt3);font-size:12px;margin-left:8px">' + (w.ko||'') + '</span></div>' +
       '<div style="display:flex;gap:6px">' +
-      '<button class="tts-btn" style="font-size:10px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
-      '<button class="tts-btn" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="removeFromFolder(\'' + safeWord + '\',\'' + fid + '\')">✕</button>' +
+      '<button class="tts-btn" style="font-size:11px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
+      '<button class="tts-btn" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="removeFromFolder(\'' + safeWord + '\',\'' + fid + '\')">✕</button>' +
       '</div></div>';
   }).join('');
 
@@ -4973,12 +4973,12 @@ async function renderMyWordsList() {
     var key = e[0], w = e[1];
     var safeKey = key.replace(/'/g,"\\'");
     var displayKo = w.aiKo && w.aiKo !== w.ko ? w.aiKo : w.ko;
-    var diffBadge = (w.aiKo && w.aiKo !== w.ko) ? '<span style="font-size:9px;color:var(--gold);margin-left:4px">🎯 수능뜻 반영</span>' : '';
+    var diffBadge = (w.aiKo && w.aiKo !== w.ko) ? '<span style="font-size:11px;color:var(--gold);margin-left:4px">🎯 수능뜻 반영</span>' : '';
     var streak = masteryMap[w.word.toLowerCase()] || 0;
     var isMastered = streak >= 5;
     var masterBadge = isMastered
-      ? '<span style="font-size:9px;color:var(--grn);margin-left:4px;font-weight:700">✅ 마스터</span>'
-      : (streak > 0 ? '<span style="font-size:9px;color:var(--txt3);margin-left:4px">' + streak + '/5</span>' : '');
+      ? '<span style="font-size:11px;color:var(--grn);margin-left:4px;font-weight:700">✅ 마스터</span>'
+      : (streak > 0 ? '<span style="font-size:11px;color:var(--txt3);margin-left:4px">' + streak + '/5</span>' : '');
     return '<div class="list-item" style="cursor:pointer' + (isMastered?';opacity:.55':'') + '" onclick="openMyWordDetail(\'' + safeKey + '\')">' +
       '<div>' +
         '<span style="font-family:var(--font-display);font-style:italic;font-weight:600">' + w.word + '</span>' +
@@ -5077,7 +5077,7 @@ function openMyWordDetail(key) {
   var html = '';
   if (w.aiKo && w.aiKo !== w.ko) {
     html += '<div style="background:var(--gold-bg);border-left:2px solid var(--gold-bdr);border-radius:8px;padding:.625rem .75rem;margin-bottom:.625rem">' +
-      '<div style="font-size:10px;color:var(--gold);font-weight:700;margin-bottom:2px">🎯 수능 빈출 뜻</div>' +
+      '<div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:2px">🎯 수능 빈출 뜻</div>' +
       '<div>' + w.aiKo + '</div></div>';
     html += '<div style="font-size:12px;color:var(--txt3);margin-bottom:.75rem">내가 입력한 뜻: ' + w.ko + '</div>';
   } else {

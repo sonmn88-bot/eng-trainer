@@ -979,3 +979,50 @@ body:has(.tabbar) .rotate-btn { bottom: 76px !important; }
 .fc-nav-row { display: grid; grid-template-columns: 1fr auto auto 1fr; gap: 8px; margin-top: .75rem; }
 .fc-nav-row .btn { min-width: 0; padding-left: 8px; padding-right: 8px; }
 .img-loading { width: 80px; height: 80px; border-radius: var(--rs); margin-bottom: .75rem; }
+
+/* ── 리뉴얼 4차: 이모지 대신 컬러 아이콘 (shared/icons.js가 자동 교체) ── */
+:root { --pur: #B79CFF; --pink: #FF9EC7; }
+[data-theme="light"] { --pur: #6D4FD1; --pink: #C2417A; --blue: #2563EB; }
+.ei { display: inline-block; width: 1.2em; height: 1.2em; vertical-align: -.22em; flex-shrink: 0; }
+.t-lime { color: var(--gold); } .t-amber { color: var(--amb); } .t-green { color: var(--grn); }
+.t-red { color: var(--red); } .t-blue { color: var(--blue); } .t-purple { color: var(--pur); }
+.t-pink { color: var(--pink); } .t-muted { color: inherit; opacity: .85; }
+.btn-gold .ei, .b-gold .ei, [style*="background:var(--gold)"] .ei { color: inherit; opacity: 1; }
+
+/* ── 리뉴얼 4차: 글자 크기 단계 정리 (최소 11px) ── */
+.muted-2xs, .muted-xs { font-size: 11px !important; }
+.ud9e14 { font-size: 11px !important; }
+.u3c9ad { font-size: 12px !important; line-height: 1.6; }
+.u62f6b { font-size: 13px !important; }
+.mode-sel-btn { display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 84px; }
+.mode-sel-btn[data-mode="confuse"] { flex-direction: row; min-height: 56px; gap: 10px !important; }
+.mode-sel-btn .u4fc59 { margin-bottom: 4px !important; }
+.range-btn { min-height: 60px; justify-content: center; padding: 8px 2px !important; gap: 4px !important; }
+.range-btn span { font-size: 11px !important; font-weight: 600; }
+.week-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 6px !important; }
+.week-card { padding: 10px 4px !important; }
+.week-card-num { font-size: 15px !important; }
+.week-card-cnt { font-size: 11px !important; letter-spacing: 0 !important; }
+/* 떠 있는 음악 버튼이 마지막 버튼을 가리지 않게 */
+.app { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
+#bgm-float-btn { width: 44px !important; height: 44px !important; }
+#weak-notice { font-size: 13px; color: var(--txt2); line-height: 1.5; margin: 0 0 .75rem; display: flex; gap: 6px; align-items: flex-start; }
+.badge:empty { display: none; }
+/* 카드 라운드 통일 (인라인 var(--rx)·var(--r) 모두 16px) */
+:root { --r: 16px; --rx: 16px; --rs: 10px; }
+/* 라이트 모드: 진한 초록 버튼 위 글자는 흰색 (대비 4.5:1 이상) */
+[data-theme="light"] { --on-gold: #FFFFFF; }
+[data-theme="light"] .btn-gold, [data-theme="light"] .btn-gold:hover { color: #FFFFFF; }
+[data-theme="light"] .hero-mark { color: #FFFFFF; }
+[data-theme="light"] .logo-mark { color: #FFFFFF; }
+.th-light { display: none; }
+[data-theme="light"] .th-light { display: inline; }
+[data-theme="light"] .th-dark { display: none; }
+/* 모드 타일: 모드별 톤 (pro-icons 2-2) */
+.mode-sel-btn[data-mode="flash"] .ico { color: var(--gold); }
+.mode-sel-btn[data-mode="flip"] .ico { color: var(--blue); }
+.mode-sel-btn[data-mode="quiz"] .ico { color: var(--pur); }
+.mode-sel-btn[data-mode="choice"] .ico { color: var(--grn); }
+.mode-sel-btn[data-mode="blank"] .ico { color: var(--amb); }
+.mode-sel-btn[data-mode="speed"] .ico { color: var(--amb); }
+.mode-sel-btn[data-mode="confuse"] .ico { color: var(--pink); }
