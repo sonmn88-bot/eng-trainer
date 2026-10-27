@@ -706,7 +706,7 @@ select option { background: var(--sur); }
 }
 .icon-btn:hover { background: var(--sur2); color: var(--txt); }
 .icon-btn:active { transform: scale(.96); }
-.icon-btn svg, .catalog-pin svg, .search-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn svg, .catalog-pin svg, .search-ico { width: 20px; height: 20px; }
 .search-wrap { position: relative; margin-bottom: .875rem; }
 .search-ico { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--txt3); pointer-events: none; width: 18px; height: 18px; }
 .search-wrap input { padding-left: 42px; padding-right: 44px; }
@@ -854,7 +854,7 @@ button, .btn, [role="button"] { min-height: 44px; }
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: var(--bg); border-top: 1px solid var(--bdr2); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 900; }
 .tabbar .tab { flex: 1; min-height: 56px; background: none; border: 0; color: var(--txt2); font: inherit; font-size: 12px; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; }
 .tabbar .tab.on { color: var(--gold); }
-.tabbar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar svg { width: 24px; height: 24px; }
 .sheet-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 950; }
 .sheet-bg.open { display: block; }
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--sur); border-radius: 24px 24px 0 0; padding: .75rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 960; transform: translateY(105%); transition: transform .2s; max-width: 720px; margin: 0 auto; }
@@ -959,8 +959,12 @@ body:has(.tabbar) .rotate-btn { bottom: 76px !important; }
 .ufbb62{font-size:13px !important;font-weight:700 !important;color:var(--txt) !important;margin-bottom:2px !important}
 
 /* ── 리뉴얼 2차: 학습 화면 (DESIGN.md) ── */
-.ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; flex-shrink: 0; }
-.u4fc59 .ico, .ub5ef8 .ico { width: 22px; height: 22px; }
+.ph { flex-shrink: 0; }
+.ico { width: 20px; height: 20px; vertical-align: middle; flex-shrink: 0; }
+.u4fc59 .ico, .ub5ef8 .ico { width: 26px; height: 26px; }
+.mode-sel-btn .ico { color: var(--gold); }
+.set-icon-big .ph { width: 26px; height: 26px; }
+.logo-mark .ph { width: 20px; height: 20px; }
 .u4fc59, .ub5ef8 { color: var(--txt2); line-height: 1; }
 .mode-sel-btn { color: var(--txt); }
 .range-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -968,7 +972,6 @@ body:has(.tabbar) .rotate-btn { bottom: 76px !important; }
 .start-mode-ico { width: 40px; height: 40px; border-radius: var(--rs); background: var(--sur2); color: var(--gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .tts-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; }
 .bm-on { color: var(--gold) !important; }
-.bm-on .ico { fill: currentColor; }
 /* 학습 화면은 카드 안에 카드를 넣지 않는다 */
 #view-flash > .card, #view-quiz > .card, #view-choice > .card, #view-blank > .card, #view-flip > .card, #view-speed > .card {
   background: transparent; border: 0; box-shadow: none; padding: 0;

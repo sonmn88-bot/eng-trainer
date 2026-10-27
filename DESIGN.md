@@ -30,7 +30,7 @@ CSS 토큰은 `shared/theme.css`의 `:root` / `[data-theme="light"]`에 있다. 
 - 라운드: `--rs` 9px(버튼·입력·작은 칩) / `--r` 14px(카드·목록 묶음) / `--rx` 20px(바텀시트만).
 
 ## 아이콘
-- UI 아이콘은 SVG, `stroke-width: 1.75`, `stroke="currentColor"`, 18~20px.
+- UI 아이콘은 Phosphor (regular 기본, 켜짐 상태 fill, 타일 duotone). 16·20·24px.
 - 이모지는 토스트·축하 문구·학생 데이터(단어장 아이콘 등 데이터 값)에만. 버튼 아이콘으로 쓰지 않는다.
 
 ## 모션
@@ -39,8 +39,15 @@ CSS 토큰은 `shared/theme.css`의 `:root` / `[data-theme="light"]`에 있다. 
 - 호버 시 떠오르기(translateY)·확대 금지. 무한 반복 애니메이션은 로딩 자리표시에만.
 - `prefers-reduced-motion`에서 모두 끈다(theme.css 하단).
 
+## 아이콘 세트
+- Phosphor Icons만 사용 (`shared/icons.js`, 스킬 `.claude/skills/pro-icons`). 직접 그린 SVG·이모지 아이콘 금지.
+- 단어장 구분은 색 점, 세트 헤더는 `books` duotone을 세트 색으로.
+
+## 예외 (사용자 취향으로 확정)
+- 로그인/메인 히어로: 가운데 정렬, 제목 글자 그라데이션(txt → 라임), 상단 은은한 라임 스포트라이트 배경, 라임 로고 마크. 이 화면에서만 허용.
+
 ## 이 앱에서 하지 않는 것
-- 네온 글로우, 그라데이션 로고·제목, 노이즈 텍스처
+- 네온 글로우, 노이즈 텍스처, (히어로 외) 그라데이션 글자
 - 똑같은 카드 그리드로 목록 나열 → 목록은 한 줄 행(row) + 1px 구분선
 - 모든 것을 카드로 감싸기, 모든 섹션 가운데 정렬
 - 100vh (→ 100dvh), 44px 미만 터치 영역, 16px 미만 입력 글자

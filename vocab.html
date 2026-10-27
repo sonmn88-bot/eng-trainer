@@ -12,6 +12,7 @@
 <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
 <title>단어 학습</title>
 <link rel="stylesheet" href="shared/theme.css">
+<script src="shared/icons.js"></script>
 <style>
 .set-header {
   display: flex; align-items: center; gap: 12px;
@@ -116,16 +117,16 @@
 <!-- ── 상단바 ── -->
 <div class="topbar">
   <div class="logo">
-    <div class="logo-mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v16H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg></div>
+    <div class="logo-mark"><i data-icon="book-open-text-duotone"></i></div>
     <div>
       <div class="logo-text-main" id="page-title">단어 학습</div>
       <div class="logo-text-sub" id="page-sub">Vocabulary</div>
     </div>
   </div>
-  <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" title="테마 전환" aria-label="테마 전환" class="icon-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" title="테마 전환" aria-label="테마 전환" class="icon-btn"><i data-icon="moon"></i></button>
         <button class="btn btn-ghost" id="back-btn" onclick="goBack()">← 홈</button>
-  <button onclick="showVocabHelp()" class="icon-btn" title="도움말" aria-label="도움말"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17h.01"/></svg></button>
-  <button onclick="quickGoTeacherFromPage()" title="선생님 모드" aria-label="선생님 모드" class="icon-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg></button>
+  <button onclick="showVocabHelp()" class="icon-btn" title="도움말" aria-label="도움말"><i data-icon="question"></i></button>
+  <button onclick="quickGoTeacherFromPage()" title="선생님 모드" aria-label="선생님 모드" class="icon-btn"><i data-icon="chalkboard-teacher"></i></button>
 </div>
 <!-- vocab 도움말 팝업 -->
 <div id="vocab-help-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10006;align-items:flex-end;justify-content:center">
@@ -177,12 +178,12 @@
   </div>
   <!-- 단어 검색 -->
   <div class="search-wrap">
-    <svg class="search-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <i data-icon="magnifying-glass" class="search-ico"></i>
     <input id="word-search-input" type="text" placeholder="단어 검색 (예: abandon)"
       style="width:100%;box-sizing:border-box"
       oninput="onWordSearch(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off">
     <button onclick="clearWordSearch()" id="word-search-clear"
-      aria-label="검색어 지우기" class="icon-btn" style="position:absolute;right:0;top:50%;transform:translateY(-50%);display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      aria-label="검색어 지우기" class="icon-btn" style="position:absolute;right:0;top:50%;transform:translateY(-50%);display:none"><i data-icon="x"></i></button>
   </div>
   <div id="word-search-result" style="display:none;margin-bottom:.875rem" class="card card-sm">
     <div style="font-size:12px;color:var(--txt3);margin-bottom:.5rem" id="word-search-count"></div>
@@ -217,23 +218,23 @@
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:.625rem">
       <button class="range-btn active" id="rb-all" onclick="selectRange('all')"
         style="padding:.625rem .2rem;border-radius:10px;border:1.5px solid var(--gold);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;text-align:center">
-        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg><span class="ud9e14">전체랜덤</span>
+        <i data-icon="shuffle" class="ico"></i><span class="ud9e14">전체랜덤</span>
       </button>
       <button class="range-btn" id="rb-week" onclick="selectRange('week')"
         style="padding:.625rem .2rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:11px;font-weight:700;cursor:pointer;text-align:center">
-        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="ud9e14">주차선택</span>
+        <i data-icon="calendar-blank" class="ico"></i><span class="ud9e14">주차선택</span>
       </button>
       <button class="range-btn" id="rb-bookmark" onclick="selectRange('bookmark')"
         style="padding:.625rem .2rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:11px;font-weight:700;cursor:pointer;text-align:center">
-        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span style="font-size:9px;white-space:nowrap" id="rb-bm-cnt">북마크</span>
+        <i data-icon="bookmark-simple" class="ico"></i><span style="font-size:9px;white-space:nowrap" id="rb-bm-cnt">북마크</span>
       </button>
       <button class="range-btn" id="rb-weak" onclick="selectRange('weak')"
         style="padding:.625rem .2rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:11px;font-weight:700;cursor:pointer;text-align:center">
-        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-4-3-6-4-10-2 2-3 4-3 6-1-1-2-2-2-4-3 2-5 5-5 8a7 7 0 0 0 7 7z"/></svg><span style="font-size:9px;white-space:nowrap" id="rb-wk-cnt">취약단어</span>
+        <i data-icon="flame" class="ico"></i><span style="font-size:9px;white-space:nowrap" id="rb-wk-cnt">취약단어</span>
       </button>
       <button class="range-btn" id="rb-mywords" onclick="selectRange('mywords')"
         style="padding:.625rem .2rem;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--txt2);font-size:11px;font-weight:700;cursor:pointer;text-align:center">
-        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg><span style="font-size:9px;white-space:nowrap" id="rb-my-cnt">내 단어</span>
+        <i data-icon="note-pencil" class="ico"></i><span style="font-size:9px;white-space:nowrap" id="rb-my-cnt">내 단어</span>
       </button>
     </div>
 
@@ -298,43 +299,43 @@
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:.5rem">
       <button class="mode-sel-btn" data-mode="flash" onclick="pickMode('flash')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
-        <div class="u4fc59"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2z"/><path d="M22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/></svg></div>
+        <div class="u4fc59"><i data-icon="book-open-text-duotone" class="ico"></i></div>
         <div class="u62f6b">플래시</div>
         <div class="muted-2xs">앞뒤 학습</div>
       </button>
       <button class="mode-sel-btn" data-mode="flip" onclick="pickMode('flip')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
-        <div class="u4fc59"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="12" height="14" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v12"/></svg></div>
+        <div class="u4fc59"><i data-icon="cards-duotone" class="ico"></i></div>
         <div class="u62f6b">카드</div>
         <div class="muted-2xs">탭해서 확인</div>
       </button>
       <button class="mode-sel-btn" data-mode="quiz" onclick="pickMode('quiz')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
-        <div class="u4fc59"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></div>
+        <div class="u4fc59"><i data-icon="pencil-simple-line-duotone" class="ico"></i></div>
         <div class="u62f6b">타이핑</div>
         <div class="muted-2xs">뜻 입력</div>
       </button>
       <button class="mode-sel-btn" data-mode="choice" onclick="pickMode('choice')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
-        <div class="u4fc59"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10"/><circle cx="5" cy="6" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="5" cy="18" r="1.5"/></svg></div>
+        <div class="u4fc59"><i data-icon="list-checks-duotone" class="ico"></i></div>
         <div class="u62f6b">4지선다</div>
         <div class="muted-2xs">선택형</div>
       </button>
       <button class="mode-sel-btn" data-mode="blank" onclick="pickMode('blank')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
-        <div class="u4fc59"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h5M15 16h5"/><path d="M10.5 18h3"/></svg></div>
+        <div class="u4fc59"><i data-icon="textbox-duotone" class="ico"></i></div>
         <div class="u62f6b">빈칸</div>
         <div class="muted-2xs">예문 완성</div>
       </button>
       <button class="mode-sel-btn" data-mode="speed" onclick="pickMode('speed')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;transition:all .15s">
-        <div class="u4fc59"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <div class="u4fc59"><i data-icon="lightning-duotone" class="ico"></i></div>
         <div class="u62f6b">속도</div>
         <div class="muted-2xs">O/X 인식</div>
       </button>
       <button class="mode-sel-btn" data-mode="confuse" onclick="pickMode('confuse')"
         style="padding:.75rem .25rem;border-radius:12px;border:1.5px solid var(--bdr);background:var(--sur2);cursor:pointer;text-align:center;grid-column:span 3;display:flex;align-items:center;justify-content:center;gap:8px">
-        <div class="ub5ef8"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/></svg></div>
+        <div class="ub5ef8"><i data-icon="arrows-left-right-duotone" class="ico"></i></div>
         <div style="text-align:left">
           <div class="u62f6b">혼동 단어쌍 특훈</div>
           <div class="muted-2xs">헷갈리는 단어쌍 집중 학습</div>
@@ -346,7 +347,7 @@
   <!-- ── STEP 3: 개수 선택 + 시작 ── -->
   <div id="start-action-panel" style="display:none" class="card card-sm">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem">
-      <div id="start-mode-icon" class="start-mode-ico"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2z"/><path d="M22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/></svg></div>
+      <div id="start-mode-icon" class="start-mode-ico"><i data-icon="book-open-text-duotone" class="ico"></i></div>
       <div class="flex-1">
         <div id="start-mode-name" style="font-size:14px;font-weight:700;color:var(--txt)"></div>
         <div id="start-mode-desc" class="muted-sm"></div>
@@ -435,8 +436,8 @@
     </div>
     <div class="fc-nav-row">
       <button class="btn btn-full" onclick="flashPrev()">← 이전</button>
-      <button class="tts-btn" onclick="Utils.speak(flash.words[flash.idx][0])" title="발음 듣기" aria-label="발음 듣기"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
-      <button class="tts-btn" id="flash-bm-btn" onclick="toggleBookmarkCurrent()" title="북마크" aria-label="북마크"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
+      <button class="tts-btn" onclick="Utils.speak(flash.words[flash.idx][0])" title="발음 듣기" aria-label="발음 듣기"><i data-icon="speaker-high" class="ico"></i></button>
+      <button class="tts-btn" id="flash-bm-btn" onclick="toggleBookmarkCurrent()" title="북마크" aria-label="북마크"><i data-icon="bookmark-simple" class="ico"></i></button>
       
       <button class="btn btn-full" onclick="flashNext()">다음 →</button>
     </div>
@@ -542,8 +543,8 @@
       <div class="big-word m-0" id="quiz-word"></div>
     </div>
     <div style="text-align:center;margin-bottom:.75rem;display:flex;gap:8px;justify-content:center">
-      <button class="tts-btn" id="quiz-bm-btn" onclick="toggleBookmarkCurrent()" title="북마크" aria-label="북마크"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
-      <button class="tts-btn" onclick="Utils.speak(quiz.words[quiz.idx][0])"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>발음</button>
+      <button class="tts-btn" id="quiz-bm-btn" onclick="toggleBookmarkCurrent()" title="북마크" aria-label="북마크"><i data-icon="bookmark-simple" class="ico"></i></button>
+      <button class="tts-btn" onclick="Utils.speak(quiz.words[quiz.idx][0])"><i data-icon="speaker-high" class="ico"></i>발음</button>
       <button class="tts-btn" id="hint-btn" onclick="showHint()">힌트</button>
     </div>
     <div id="quiz-hint" style="display:none;background:var(--gold-bg);border:1px solid var(--gold-bdr);border-radius:var(--rs);padding:.625rem .875rem;font-size:12px;color:var(--gold);margin-bottom:.75rem;text-align:center"></div>
@@ -637,7 +638,7 @@
            autocomplete="off" onkeydown="if(event.key==='Enter')submitBlank()">
     <div id="blank-fb" style="display:none" class="feedback"></div>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:.75rem">
-      <button class="tts-btn" id="blank-bm-btn" onclick="toggleBookmarkCurrent()" title="북마크" aria-label="북마크"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
+      <button class="tts-btn" id="blank-bm-btn" onclick="toggleBookmarkCurrent()" title="북마크" aria-label="북마크"><i data-icon="bookmark-simple" class="ico"></i></button>
       <button class="btn btn-gold btn-full" onclick="submitBlank()" id="blank-sub">확인</button>
       <button class="btn btn-full" onclick="nextBlank()" id="blank-nxt" style="display:none">다음 →</button>
     </div>
@@ -659,7 +660,7 @@
     </div>
     <div id="choice-combo" style="text-align:center;font-size:13px;font-weight:700;color:var(--gold);min-height:20px;margin-bottom:.25rem"></div>
     <div style="display:flex;justify-content:flex-end;margin-bottom:.25rem">
-      <button class="tts-btn" id="choice-bm-btn" onclick="toggleBookmarkCurrent()" title="북마크" aria-label="북마크"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
+      <button class="tts-btn" id="choice-bm-btn" onclick="toggleBookmarkCurrent()" title="북마크" aria-label="북마크"><i data-icon="bookmark-simple" class="ico"></i></button>
     </div>
     <div class="big-word mb-2" id="choice-word"></div>
     <div id="choice-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;box-sizing:border-box"></div>
@@ -694,7 +695,7 @@
       <div class="uc5544">진짜 알고 있었나요?</div>
       <div style="display:flex;gap:8px;justify-content:center">
         <button class="btn u1aefa" onclick="speedRecheck(false)">🤔 몰랐어요</button>
-        <button class="btn btn-ghost btn-sm" id="speed-bm-btn" onclick="toggleBookmarkCurrent()" style="padding:.5rem .875rem"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg> 북마크</button>
+        <button class="btn btn-ghost btn-sm" id="speed-bm-btn" onclick="toggleBookmarkCurrent()" style="padding:.5rem .875rem"><i data-icon="bookmark-simple" class="ico"></i> 북마크</button>
         <button class="btn btn-gold u1aefa" onclick="speedRecheck(true)">✓ 맞아요</button>
       </div>
     </div>
@@ -1255,20 +1256,10 @@ function goReviewMode() {
 }
 
 var ICO = {
-  flash: '<path d="M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2z"/><path d="M22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/>',
-  flip: '<rect x="3" y="7" width="12" height="14" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v12"/>',
-  quiz: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
-  choice: '<path d="M10 6h10M10 12h10M10 18h10"/><circle cx="5" cy="6" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="5" cy="18" r="1.5"/>',
-  blank: '<path d="M4 6h16M4 11h16M4 16h5M15 16h5"/><path d="M10.5 18h3"/>',
-  speed: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
-  confuse: '<path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/>',
-  all: '<path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>',
-  week: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
-  bookmark: '<path d="M6 3h12v18l-6-4-6 4z"/>',
-  weak: '<path d="M12 22a7 7 0 0 0 7-7c0-4-3-6-4-10-2 2-3 4-3 6-1-1-2-2-2-4-3 2-5 5-5 8a7 7 0 0 0 7 7z"/>',
-  mywords: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/>',
-  speak: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>',
-  svg: function(k, cls) { return '<svg class="' + (cls || 'ico') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICO[k] || '') + '<\/svg>'; }
+  flash: 'book-open-text-duotone', flip: 'cards-duotone', quiz: 'pencil-simple-line-duotone',
+  choice: 'list-checks-duotone', blank: 'textbox-duotone', speed: 'lightning-duotone', confuse: 'arrows-left-right-duotone',
+  bookmark: 'bookmark-simple', bookmarkOn: 'bookmark-simple-fill', speak: 'speaker-high',
+  svg: function(k, cls) { return Icon(ICO[k] || k, cls || 'ico'); }
 };
 
 // ── URL Params ─────────────────────────────────
@@ -2201,7 +2192,7 @@ async function initLibrary() {
     var isPinned = !!pinnedSets[s.id];
     var pinBtn = '<button class="catalog-pin' + (isPinned?' on':'') + '" onclick="event.preventDefault();event.stopPropagation();togglePinSet(\'' + s.id + '\')" ' +
       'title="' + (isPinned?'고정 해제':'상단 고정') + '" aria-label="' + (isPinned?'고정 해제':'상단 고정') + '">' +
-      '<svg viewBox="0 0 24 24" aria-hidden="true"' + (isPinned?' style="fill:currentColor"':'') + '><path d="M12 17v5"/><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/></svg></button>';
+      Icon(isPinned ? 'push-pin-fill' : 'push-pin') + '</button>';
     var badgeHtml = studied > 0
       ? `<div class="catalog-prog" id="prog-wrap-${s.id}">
            <div class="catalog-prog-bar"><div id="prog-fill-${s.id}" style="background:${s.color}"></div></div>
@@ -2257,8 +2248,8 @@ async function selectSet(setId) {
 
   // 헤더
   document.getElementById('set-header').innerHTML = `
-    <div class="set-icon-big" style="background:${currentSet.color}18;border:1px solid ${currentSet.color}30">
-      ${currentSet.icon}
+    <div class="set-icon-big" style="background:${currentSet.color}1F;color:${currentSet.color}">
+      ${Icon('books-duotone')}
     </div>
     <div>
       <div style="font-size:16px;font-weight:600">${currentSet.name}</div>
@@ -4661,7 +4652,7 @@ function updateBookmarkBtn(word) {
     var btn = document.getElementById(id);
     if (!btn) return;
     var marked = isBookmarked(word);
-    btn.innerHTML = ICO.svg('bookmark') + (id === 'speed-bm-btn' ? ' 북마크' : '');
+    btn.innerHTML = ICO.svg(marked ? 'bookmarkOn' : 'bookmark') + (id === 'speed-bm-btn' ? ' 북마크' : '');
     btn.classList.toggle('bm-on', marked);
     btn.setAttribute('aria-pressed', marked ? 'true' : 'false');
   });
@@ -4805,7 +4796,7 @@ function showToast(msg) {
     style="width:48px;height:48px;border-radius:50%;background:var(--sur);border:1px solid var(--bdr);
     box-shadow:0 4px 16px rgba(0,0,0,.3);cursor:pointer;font-size:20px;display:flex;align-items:center;
     justify-content:center">
-    🎵
+    <i data-icon="music-notes" class="ico"></i>
     <div id="bgm-float-dot" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;
       border-radius:50%;background:var(--gold);animation:bgm-bounce .8s ease-in-out infinite"></div>
   </button>
