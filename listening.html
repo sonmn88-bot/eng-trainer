@@ -227,12 +227,12 @@ async function initLibrary() {
   for (var i = 0; i < LISTENING_CATALOG.length; i++) {
     var s = LISTENING_CATALOG[i];
     html += '<div class="catalog-card card-interactive" id="lcat-' + s.id + '" onclick="selectSet(\'' + s.id + '\')">' +
-      '<div class="catalog-icon">' + s.icon + '</div>' +
+      '<div class="catalog-icon">' + s.icon + '</div><div class="catalog-main">' +
       '<div class="catalog-name">' + s.name + '</div>' +
       '<div class="catalog-count" id="lcat-cnt-' + s.id + '">' + s.total + '문항</div>' +
       '<div id="lcat-prog-' + s.id + '" style="height:4px;background:var(--sur2);border-radius:99px;margin-top:4px;overflow:hidden"><div style="height:100%;background:var(--gold);width:0%;border-radius:99px"></div></div>' +
       '<span class="catalog-tag" style="background:' + s.color + '18;color:' + s.color + ';border:1px solid ' + s.color + '30">' + s.tag + '</span>' +
-      '</div>';
+      '</div></div>';
   }
   grid.innerHTML = html;
 
