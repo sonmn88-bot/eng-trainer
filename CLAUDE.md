@@ -1,0 +1,39 @@
+# English Trainer (eng-trainer)
+
+수능 영어 단어 학습 웹앱. 선생님(관리자) 1명 + 수강 학생들이 실제로 사용 중.
+- 배포: GitHub Pages (`main` 브랜치) → https://sonmn88-bot.github.io/eng-trainer
+- 데이터: Firebase Realtime Database (`eng-trainer-65cac`)
+- 스택: 순수 HTML/CSS/JS (빌드 없음)
+
+## 파일 구조
+- `index.html` 메인·로그인, `vocab.html` 단어 학습, `teacher.html` 선생님 대시보드, `listening.html` 듣기
+- `shared/` 공통: `db.js`(Firebase), `utils.js`, `theme.css`
+- `data/_index.js` 단어 데이터 목록, `data/words/*.js` 단어 세트(core-essential, confuse-pairs 등), `data/listening/`
+- `audio/` 듣기 음원
+
+## 사용 실태 (우선순위 판단 기준)
+- 기기: 폰 > 아이패드 > 갤럭시탭 → 모바일 우선
+- 거의 단어 학습 전용. 주 150개 수능핵심필수 암기, 북마크로 다시 보기, 내 단어 등록
+- 듣기·약점/복습·상점(골드)은 거의 안 씀 → 크게 손대지 말 것
+- 예정: 학생 화면을 Focus Dark(어두운 배경+라임 포인트) 스타일로 리뉴얼
+
+## 필수 코딩 규칙 (예외 없음)
+1. JS 문자열 안 HTML 닫는 태그는 반드시 이스케이프: `<\/script>` `<\/body>` `<\/html>`
+2. 수정 후 `<script>` 열림/닫힘 개수 일치 확인
+3. `<!DOCTYPE>` 앞이나 `<script>` 밖에 코드가 노출되지 않게
+4. 수정한 JS는 `node --check`로 문법 검사 (HTML 안 스크립트는 추출해서 검사)
+5. 새 함수는 정의 위치·스코프 확인, 정의 전 참조 금지
+
+## 반복됐던 버그 (재발 금지)
+- 함수 삭제 후 남은 `async` 키워드 → `async is not defined`
+- `WORD_CATALOG`는 `window.WORD_CATALOG`로 접근 가능해야 함 (`const`로 선언 금지)
+- 스티커/메모 Firebase 경로 불일치 → 읽음 상태 미갱신
+- 결석 배지가 `lastSeen` / `lastActive` 다른 필드를 써서 `daysSince` 오계산
+- 시험지 인쇄 레이아웃이 A4 페이지 넘침
+
+## 작업 방식
+- 필요한 함수·부분만 수정. 파일 전체 재작성 금지
+- 작업할 때 필요한 파일만 읽기 (저장소 전체 훑기 금지)
+- 작업은 브랜치에서 하고, 사용자가 "배포해줘"라고 할 때만 `main`에 반영
+- 비밀번호·학생 개인정보를 코드에 넣지 말 것 (Firebase에만 보관)
+- 답변은 결론 먼저, 짧게, 한국어로
