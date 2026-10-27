@@ -56,9 +56,30 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 .streak-bar {
   background: var(--sur);
   border: 1px solid var(--bdr);
-  border-radius: var(--rx);
-  padding: .75rem 1rem;
+  border-radius: var(--r);
+  padding: 14px 16px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
 }
+.streak-line { display: flex; align-items: baseline; gap: 4px; }
+.streak-num { font-size: 22px !important; font-weight: 800 !important; color: var(--txt) !important; font-variant-numeric: tabular-nums; line-height: 1.2; font-family: var(--font-body) !important; }
+.streak-unit { font-size: 14px; font-weight: 600; color: var(--txt2); }
+.streak-bar .callout-ico { background: var(--amb-bg); }
+#notice-banner { padding: 0 !important; border-radius: var(--r) !important; margin-bottom: 12px !important; }
+#notice-banner .callout-ico { background: rgba(96,165,250,.14); }
+#notice-banner .callout { padding: 12px 4px 12px 16px; }
+#review-alert { padding: 0 !important; border-radius: var(--r) !important; margin-bottom: 12px !important; }
+#review-alert .callout { padding: 12px 12px 12px 16px; }
+#review-alert .callout-ico { background: var(--amb-bg); }
+#review-alert .callout-title { color: var(--gold); }
+#weak-alert { padding: 0 !important; border-radius: var(--r) !important; margin-bottom: 12px !important; }
+#weak-alert .callout { padding: 12px 16px; }
+#weak-alert .callout-ico { background: var(--gold-bg); }
+.mission-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; }
+.mission-item .callout-ico { width: 36px; height: 36px; font-size: 18px; }
+#daily-mission-card { border-radius: var(--r) !important; padding: 14px 16px !important; }
+#mission-header { display: flex; align-items: center; gap: 6px; font-size: 15px !important; }
 
 /* BGM 시각화 바 애니메이션 */
 .bgm-bar {
@@ -245,7 +266,7 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
           <option value="2">2등급 (80점+)</option>
           <option value="3">3등급 (70점+)</option>
         </select>
-        <div id="dday-words-needed" style="font-size:11px;color:var(--txt2);margin-top:4px"></div>
+        <div id="dday-words-needed" style="font-size:12px;color:var(--txt2);margin-top:10px;line-height:1.5"></div>
       </div>
     </div>
   </div>
@@ -307,13 +328,12 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
       <span id="gold-display" style="display:none;background:rgba(200,242,90,.1);border:1px solid rgba(200,242,90,.25);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer" onclick="openGoldShop()" title="골드 현황">💰 0</span>
     </div>
     <div id="streak-bar" class="streak-bar" style="display:none">
-      <span class="ub5ef8">🔥</span>
-      <div>
-        <div class="streak-num" id="streak-num">0</div>
-        <div style="font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:.08em">연속 출석일</div>
+      <span class="callout-ico">🔥</span>
+      <div class="callout-body">
+        <div class="streak-line"><span class="streak-num" id="streak-num">0</span><span class="streak-unit">일 연속 출석</span></div>
       </div>
-      <div style="margin-left:auto;text-align:right;line-height:1.6">
-        <div style="font-size:12px;color:var(--gold);font-weight:500" id="streak-msg"></div>
+      <div style="text-align:right;line-height:1.5">
+        <div style="font-size:13px;color:var(--gold);font-weight:600" id="streak-msg"></div>
         <div id="streak-max-msg" class="muted-xs"></div>
       </div>
     </div>
@@ -327,33 +347,33 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 
     <!-- 선생님 공지 배너 -->
     <div id="notice-banner" style="display:none;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem">
-      <div style="display:flex;align-items:flex-start;gap:8px">
-        <span style="font-size:16px;flex-shrink:0">📢</span>
-        <div class="flex-1">
-          <div class="u258ae">선생님 공지</div>
-          <div style="font-size:13px;color:var(--txt);line-height:1.6" id="notice-text"></div>
+      <div class="callout">
+        <span class="callout-ico">📢</span>
+        <div class="callout-body">
+          <div class="callout-label">선생님 공지</div>
+          <div class="callout-title" id="notice-text"></div>
         </div>
-        <button onclick="dismissNotice()" style="background:none;border:none;color:var(--txt3);font-size:16px;cursor:pointer;padding:0;line-height:1">×</button>
+        <button onclick="dismissNotice()" class="icon-btn callout-end" aria-label="공지 닫기"><i data-icon="x"></i></button>
       </div>
     </div>
 
     <!-- 오늘의 복습 알림 배너 -->
     <div id="review-alert" style="display:none;background:var(--gold-bg);border:1px solid var(--gold-bdr);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem;cursor:pointer">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span class="ub5ef8">🔔</span>
-        <div class="flex-1">
-          <div style="font-size:13px;font-weight:600;color:var(--gold)" id="review-alert-title">오늘의 복습</div>
-          <div style="font-size:12px;color:var(--txt2);margin-top:2px" id="review-alert-msg"></div>
+      <div class="callout">
+        <span class="callout-ico" id="review-alert-ico">🔔</span>
+        <div class="callout-body">
+          <div class="callout-title" id="review-alert-title">오늘의 복습</div>
+          <div class="callout-text" id="review-alert-msg"></div>
         </div>
-        <span style="font-size:18px;color:var(--gold)">›</span>
+        <i data-icon="caret-right" class="callout-end"></i>
       </div>
     </div>
 
     <!-- 취약단어 긴급 알림 -->
     <div id="weak-alert" style="display:none;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:.625rem 1rem;margin-bottom:1rem">
-      <div class="row-center">
-        <span class="u2592c">⚡</span>
-        <div style="font-size:12px;color:var(--txt2)" id="weak-alert-msg"></div>
+      <div class="callout">
+        <span class="callout-ico">⚡</span>
+        <div class="callout-body"><div class="callout-text" id="weak-alert-msg" style="margin:0"></div></div>
       </div>
     </div>
 
@@ -1355,7 +1375,7 @@ async function showMain() {
       if (atRisk.length >= 2) {
         var rWords = atRisk.map(function(w){ return w.word; }).slice(0,20).join(',');
         document.getElementById('review-alert').style.display = 'block';
-        document.getElementById('review-alert-title').textContent = '⚠️ 잊기 전에 복습하세요';
+        document.getElementById('review-alert-title').textContent = '잊기 전에 복습하세요'; document.getElementById('review-alert-ico').textContent = '⚠️';
         document.getElementById('review-alert-msg').textContent =
           atRisk.length + '개 단어를 곧 잊을 수 있어요. 탭해서 지금 바로 퀴즈!';
         document.getElementById('review-alert').onclick = function() {
@@ -1364,7 +1384,7 @@ async function showMain() {
       } else if (reviewWords.length >= 2) {
         var rWords2 = reviewWords.map(function(w){ return w.word; }).slice(0,20).join(',');
         document.getElementById('review-alert').style.display = 'block';
-        document.getElementById('review-alert-title').textContent = '🔔 오늘의 복습 단어';
+        document.getElementById('review-alert-title').textContent = '오늘의 복습 단어'; document.getElementById('review-alert-ico').textContent = '🔔';
         document.getElementById('review-alert-msg').textContent =
           reviewWords.length + '개 단어가 복습 타이밍이에요. 탭해서 바로 퀴즈!';
         document.getElementById('review-alert').onclick = function() {
@@ -1831,14 +1851,14 @@ async function loadDailyMission() {
     var prog = Math.min(m.target, saved[m.id] || 0);
     var done = prog >= m.target;
     var pct = Math.round(prog / m.target * 100);
-    return '<div style="display:flex;align-items:center;gap:10px;padding:.5rem 0;' + (done?'opacity:.7':'') + '">' +
-      '<span style="font-size:20px;flex-shrink:0">' + (done ? '✅' : m.icon) + '</span>' +
+    return '<div class="mission-item" style="' + (done?'opacity:.7':'') + '">' +
+      '<span class="callout-ico">' + (done ? '✅' : m.icon) + '</span>' +
       '<div style="flex:1;min-width:0">' +
-        '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:14px;margin-bottom:2px">' +
           '<span style="font-weight:600;color:' + (done?'var(--grn,#4ade80)':'var(--txt)') + '">' + m.title + '</span>' +
           '<span style="color:var(--gold);font-weight:700;font-size:11px">+' + m.xp + 'XP</span>' +
         '</div>' +
-        '<div style="font-size:11px;color:var(--txt3);margin-bottom:3px">' + m.desc + '</div>' +
+        '<div style="font-size:12px;color:var(--txt3);margin-bottom:6px">' + m.desc + '</div>' +
         '<div style="height:4px;background:var(--sur2);border-radius:2px;overflow:hidden">' +
           '<div style="height:100%;width:' + pct + '%;background:' + (done?'var(--grn,#4ade80)':'var(--gold)') + ';border-radius:2px;transition:width .4s"></div>' +
         '</div>' +

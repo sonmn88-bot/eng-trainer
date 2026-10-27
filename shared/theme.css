@@ -1026,3 +1026,18 @@ body:has(.tabbar) .rotate-btn { bottom: 76px !important; }
 .mode-sel-btn[data-mode="blank"] .ico { color: var(--amb); }
 .mode-sel-btn[data-mode="speed"] .ico { color: var(--amb); }
 .mode-sel-btn[data-mode="confuse"] .ico { color: var(--pink); }
+
+/* ── 콜아웃: 왼쪽 색 아이콘 칸 + 글 + 오른쪽 동작 (공지·복습·출석·미션 공통) ── */
+.callout { display: flex; align-items: center; gap: 12px; }
+.callout-ico { width: 40px; height: 40px; border-radius: 12px; background: var(--sur2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; line-height: 1; }
+.callout-ico .ei { vertical-align: 0; }
+.callout-body { flex: 1; min-width: 0; }
+.callout-label { font-size: 12px; color: var(--txt3); line-height: 1.4; }
+.callout-title { font-size: 15px; font-weight: 700; color: var(--txt); line-height: 1.45; word-break: keep-all; }
+.callout-text { font-size: 13px; color: var(--txt2); line-height: 1.5; margin-top: 2px; word-break: keep-all; }
+.callout-end { flex-shrink: 0; color: var(--txt3); }
+i.callout-end, svg.callout-end { width: 20px; height: 20px; }
+.greeting { word-break: keep-all; text-wrap: balance; }
+/* 도움말 목록 아이콘도 콜아웃 칸으로 */
+.u9c6e6, .u24675 { width: 36px; height: 36px; border-radius: 10px; background: var(--sur2); display: flex !important; align-items: center; justify-content: center; font-size: 18px !important; line-height: 1; }
+.u9c6e6 .ei, .u24675 .ei { vertical-align: 0; }
