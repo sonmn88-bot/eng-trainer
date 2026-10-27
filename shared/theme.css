@@ -957,3 +957,22 @@ body:has(.tabbar) .rotate-btn { bottom: 76px !important; }
 .ue8f3c{font-size:11.5px !important;color:var(--txt2) !important;line-height:1.6 !important}
 .ufa108{padding:6px 4px !important;background:var(--sur2) !important;border:1px solid var(--bdr) !important;border-radius:8px !important;cursor:pointer !important;font-size:10px !important;font-weight:600 !important;color:var(--txt) !important}
 .ufbb62{font-size:13px !important;font-weight:700 !important;color:var(--txt) !important;margin-bottom:2px !important}
+
+/* ── 리뉴얼 2차: 학습 화면 (DESIGN.md) ── */
+.ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; flex-shrink: 0; }
+.u4fc59 .ico, .ub5ef8 .ico { width: 22px; height: 22px; }
+.u4fc59, .ub5ef8 { color: var(--txt2); line-height: 1; }
+.mode-sel-btn { color: var(--txt); }
+.range-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.range-btn .ico { width: 18px; height: 18px; }
+.start-mode-ico { width: 40px; height: 40px; border-radius: var(--rs); background: var(--sur2); color: var(--gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.tts-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; }
+.bm-on { color: var(--gold) !important; }
+.bm-on .ico { fill: currentColor; }
+/* 학습 화면은 카드 안에 카드를 넣지 않는다 */
+#view-flash > .card, #view-quiz > .card, #view-choice > .card, #view-blank > .card, #view-flip > .card, #view-speed > .card {
+  background: transparent; border: 0; box-shadow: none; padding: 0;
+}
+.fc-nav-row { display: grid; grid-template-columns: 1fr auto auto 1fr; gap: 8px; margin-top: .75rem; }
+.fc-nav-row .btn { min-width: 0; padding-left: 8px; padding-right: 8px; }
+.img-loading { width: 80px; height: 80px; border-radius: var(--rs); margin-bottom: .75rem; }

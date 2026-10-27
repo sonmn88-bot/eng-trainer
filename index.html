@@ -14,16 +14,11 @@
 <style>
 /* 홈 배경 개선 */
 .app {
-  background: radial-gradient(ellipse at 20% 0%, rgba(200,242,90,.06) 0%, transparent 50%),
-              radial-gradient(ellipse at 80% 100%, rgba(96,165,250,.04) 0%, transparent 50%),
-              var(--bg);
-}
-.hero-title {
-  filter: drop-shadow(0 0 32px rgba(200,242,90,.15));
+  background: var(--bg);
 }
 .streak-bar {
-  background: linear-gradient(135deg, rgba(200,242,90,.08) 0%, rgba(200,242,90,.03) 100%);
-  border: 1px solid rgba(200,242,90,.15);
+  background: var(--sur);
+  border: 1px solid var(--bdr);
   border-radius: var(--rx);
   padding: .75rem 1rem;
 }
@@ -103,32 +98,27 @@
   text-transform: uppercase;
 }
 .hero {
-  text-align: center;
-  padding: 2.5rem 0 2rem;
+  text-align: left;
+  padding: 2rem 0 1.5rem;
 }
 .hero-title {
   font-family: var(--font-body);
-  font-size: clamp(32px, 8vw, 48px);
+  font-size: 28px;
   font-weight: 800;
   font-style: normal;
-  letter-spacing: -.03em;
-  background: linear-gradient(135deg, var(--txt) 30%, var(--gold));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: .5rem;
+  letter-spacing: -.02em;
+  color: var(--txt);
+  margin-bottom: .25rem;
   line-height: 1.1;
 }
 .hero-sub {
-  font-size: 11px;
-  color: var(--txt3);
-  letter-spacing: .18em;
-  text-transform: uppercase;
+  font-size: 13px;
+  color: var(--txt2);
 }
 .greeting {
   font-size: 13px;
   color: var(--txt2);
-  text-align: center;
+  text-align: left;
   margin-bottom: 1.5rem;
 }
 .greeting strong { color: var(--gold); font-weight: 500; }
@@ -168,21 +158,20 @@
   </div>
 
   <!-- 다크/라이트 토글 -->
-  <div style="position:absolute;top:12px;right:12px;z-index:100">
-    <button id="theme-toggle-btn" onclick="toggleTheme()"
-      style="background:var(--sur2);border:1px solid var(--bdr);border-radius:99px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--txt);display:flex;align-items:center;gap:4px;transition:all .2s">
-      <span id="theme-icon">🌙</span>
-      <span id="theme-label" style="font-size:10px;font-weight:600;letter-spacing:.04em">DARK</span>
+  <div style="position:absolute;top:8px;right:8px;z-index:100">
+    <button id="theme-toggle-btn" onclick="toggleTheme()" class="icon-btn" title="테마 전환" aria-label="테마 전환">
+      <span id="theme-icon" style="display:flex"></span>
+      <span id="theme-label" style="display:none"></span>
     </button>
   </div>
   <div class="hero">
     <div id="app-title-display" class="hero-title">English Trainer</div>
     <div class="hero-sub">수능 영어 전문</div>
     <!-- 오늘의 명언 -->
-    <div id="daily-quote" style="margin-top:.875rem;font-size:12px;color:var(--txt3);font-style:italic;line-height:1.6;padding:0 .5rem"></div>
+    <div id="daily-quote" style="margin-top:.875rem;font-size:13px;color:var(--txt3);line-height:1.6"></div>
     <!-- D-day + 목표 -->
     <div id="dday-wrap" style="margin-top:.875rem">
-      <div id="dday-count" style="font-size:28px;font-weight:800;color:var(--gold);letter-spacing:-.02em"></div>
+      <div id="dday-count" style="font-size:28px;font-weight:700;color:var(--gold);font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em"></div>
       <div id="dday-detail" style="font-size:11px;color:var(--txt3);margin-top:2px"></div>
       <!-- 목표 등급 설정 (로그인 후에만) -->
       <div id="dday-goal-wrap" style="display:none;margin-top:.5rem">
@@ -220,12 +209,12 @@
       <p style="text-align:center;margin-top:1rem">
         <button class="btn btn-ghost btn-sm" onclick="goTeacher()">선생님 모드</button>
       </p>
-      <div style="margin-top:1.25rem;padding:.875rem;background:var(--sur2);border-radius:var(--rs);text-align:center">
-        <div style="font-size:12px;font-weight:600;color:var(--txt);margin-bottom:.375rem">📱 앱으로 설치하기</div>
+      <div style="margin-top:1.25rem;padding:.875rem;background:var(--sur2);border-radius:var(--rs)">
+        <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:.25rem">앱으로 설치하기</div>
         <div style="font-size:11px;color:var(--txt3);line-height:1.6;margin-bottom:.625rem">홈 화면에 추가하면 앱처럼 사용할 수 있어요</div>
-        <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm fs-11" onclick="showInstallGuide('ios')">🍎 아이폰 설치법</button>
-          <button class="btn btn-ghost btn-sm fs-11" onclick="showInstallGuide('android')">🤖 안드로이드 설치법</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-sm fs-11" onclick="showInstallGuide('ios')">아이폰 설치법</button>
+          <button class="btn btn-sm fs-11" onclick="showInstallGuide('android')">안드로이드 설치법</button>
         </div>
         <div id="install-guide" style="display:none;margin-top:.625rem;font-size:11px;color:var(--txt2);line-height:1.8;text-align:left;background:var(--sur);border-radius:var(--rs);padding:.625rem .75rem"></div>
       </div>
@@ -2195,10 +2184,10 @@ function applyTheme(theme) {
   var icon  = document.getElementById('theme-icon');
   var label = document.getElementById('theme-label');
   if (theme === 'light') {
-    if (icon)  icon.textContent  = '☀️';
+    if (icon)  icon.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/><\/svg>';
     if (label) label.textContent = 'LIGHT';
   } else {
-    if (icon)  icon.textContent  = '🌙';
+    if (icon)  icon.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/><\/svg>';
     if (label) label.textContent = 'DARK';
   }
   localStorage.setItem('theme', theme);
