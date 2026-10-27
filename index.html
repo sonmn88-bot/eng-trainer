@@ -76,7 +76,9 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 #weak-alert { padding: 0 !important; border-radius: var(--r) !important; margin-bottom: 12px !important; }
 #weak-alert .callout { padding: 12px 16px; }
 #weak-alert .callout-ico { background: var(--gold-bg); }
-.mission-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; }
+.mission-item { padding: 10px 0; }
+.mi-top { display: flex; align-items: center; gap: 12px; }
+.mi-prog { display: flex; align-items: center; gap: 10px; margin: 8px 0 0 48px; }
 .mission-item .callout-ico { width: 36px; height: 36px; font-size: 18px; }
 #daily-mission-card { border-radius: var(--r) !important; padding: 14px 16px !important; }
 #mission-header { display: flex; align-items: center; gap: 6px; font-size: 15px !important; }
@@ -1852,17 +1854,19 @@ async function loadDailyMission() {
     var done = prog >= m.target;
     var pct = Math.round(prog / m.target * 100);
     return '<div class="mission-item" style="' + (done?'opacity:.7':'') + '">' +
-      '<span class="callout-ico">' + (done ? '✅' : m.icon) + '</span>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:14px;margin-bottom:2px">' +
-          '<span style="font-weight:600;color:' + (done?'var(--grn,#4ade80)':'var(--txt)') + '">' + m.title + '</span>' +
-          '<span style="color:var(--gold);font-weight:700;font-size:11px">+' + m.xp + 'XP</span>' +
+      '<div class="mi-top">' +
+        '<span class="callout-ico">' + (done ? '✅' : m.icon) + '</span>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:14px;font-weight:600;line-height:1.4;color:' + (done?'var(--grn,#4ade80)':'var(--txt)') + '">' + m.title + '</div>' +
+          '<div style="font-size:12px;color:var(--txt3);line-height:1.4">' + m.desc + '</div>' +
         '</div>' +
-        '<div style="font-size:12px;color:var(--txt3);margin-bottom:6px">' + m.desc + '</div>' +
-        '<div style="height:4px;background:var(--sur2);border-radius:2px;overflow:hidden">' +
+        '<span style="color:var(--gold);font-weight:700;font-size:12px;flex-shrink:0">+' + m.xp + 'XP</span>' +
+      '</div>' +
+      '<div class="mi-prog">' +
+        '<div style="flex:1;height:4px;background:var(--sur2);border-radius:2px;overflow:hidden">' +
           '<div style="height:100%;width:' + pct + '%;background:' + (done?'var(--grn,#4ade80)':'var(--gold)') + ';border-radius:2px;transition:width .4s"></div>' +
         '</div>' +
-        '<div style="font-size:11px;color:var(--txt3);margin-top:2px">' + prog + ' / ' + m.target + '</div>' +
+        '<span style="font-size:11px;color:var(--txt3);font-variant-numeric:tabular-nums;flex-shrink:0;min-width:44px;text-align:right">' + prog + ' / ' + m.target + '</span>' +
       '</div>' +
     '</div>';
   }).join('');
