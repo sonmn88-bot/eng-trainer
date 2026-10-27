@@ -76,12 +76,15 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 #weak-alert { padding: 0 !important; border-radius: var(--r) !important; margin-bottom: 12px !important; }
 #weak-alert .callout { padding: 12px 16px; }
 #weak-alert .callout-ico { background: var(--gold-bg); }
-.mission-item { padding: 10px 0; }
+.mission-item { padding: 6px 0; }
+.mission-item + .mission-item { border-top: 1px solid var(--bdr); padding-top: 10px; margin-top: 4px; }
 .mi-top { display: flex; align-items: center; gap: 12px; }
-.mi-prog { display: flex; align-items: center; gap: 10px; margin: 8px 0 0 48px; }
-.mission-item .callout-ico { width: 36px; height: 36px; font-size: 18px; }
+.mi-prog { display: flex; align-items: center; gap: 10px; margin: 6px 0 2px 52px; }
+.mission-item .callout-ico { width: 40px; height: 40px; font-size: 20px; }
 #daily-mission-card { border-radius: var(--r) !important; padding: 14px 16px !important; }
 #mission-header { display: flex; align-items: center; gap: 6px; font-size: 15px !important; }
+#daily-mission-card .mb-25 { margin-bottom: 6px !important; }
+#mission-list { gap: 0 !important; }
 
 /* BGM 시각화 바 애니메이션 */
 .bgm-bar {
@@ -375,7 +378,7 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
     <div id="weak-alert" style="display:none;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:.625rem 1rem;margin-bottom:1rem">
       <div class="callout">
         <span class="callout-ico">⚡</span>
-        <div class="callout-body"><div class="callout-text" id="weak-alert-msg" style="margin:0"></div></div>
+        <div class="callout-body"><div class="callout-title" id="weak-alert-title"></div><div class="callout-text" id="weak-alert-msg"></div></div>
       </div>
     </div>
 
@@ -1241,12 +1244,12 @@ async function showMain() {
       if (!examBanner) {
         examBanner = document.createElement('div');
         examBanner.id = 'exam-range-banner';
-        examBanner.style.cssText = 'background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:.625rem 1rem;margin-bottom:1rem;cursor:pointer';
-        examBanner.innerHTML = '<div class="row-center">' +
-          '<span style="font-size:16px">📝</span>' +
-          '<div><div class="muted-md">이번 주 시험 범위</div>' +
-          '<div id="exam-banner-text" style="font-size:13px;font-weight:600;color:var(--txt)"></div></div>' +
-          '<span style="margin-left:auto;font-size:14px;color:var(--txt3)">›</span></div>';
+        examBanner.style.cssText = 'background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--r);padding:12px 12px 12px 16px;margin-bottom:12px;cursor:pointer';
+        examBanner.innerHTML = '<div class="callout">' +
+          '<span class="callout-ico" style="background:rgba(96,165,250,.14)">📝</span>' +
+          '<div class="callout-body"><div class="callout-label">이번 주 시험 범위</div>' +
+          '<div class="callout-title" id="exam-banner-text"></div></div>' +
+          Icon('caret-right', 'callout-end') + '</div>';
         examBanner.onclick = function() {
           window.location.href = 'vocab.html?stu=' + state.stuId + '&name=' + encodeURIComponent(state.stuName) +
             '&examSet=' + examRange.setId + '&examWeek=' + examRange.week;
@@ -1396,8 +1399,8 @@ async function showMain() {
 
       if (weakList.length >= 10) {
         document.getElementById('weak-alert').style.display = 'block';
-        document.getElementById('weak-alert-msg').textContent =
-          '⚡ 취약 단어 ' + weakList.length + '개 쌓였어요. 집중훈련 모드로 줄여보세요!';
+        document.getElementById('weak-alert-title').textContent = '취약 단어 ' + weakList.length + '개';
+        document.getElementById('weak-alert-msg').textContent = '집중훈련 모드로 줄여보세요';
       }
     }
   } catch(e) {}
@@ -1857,10 +1860,10 @@ async function loadDailyMission() {
       '<div class="mi-top">' +
         '<span class="callout-ico">' + (done ? '✅' : m.icon) + '</span>' +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-size:14px;font-weight:600;line-height:1.4;color:' + (done?'var(--grn,#4ade80)':'var(--txt)') + '">' + m.title + '</div>' +
-          '<div style="font-size:12px;color:var(--txt3);line-height:1.4">' + m.desc + '</div>' +
+          '<div style="font-size:15px;font-weight:700;line-height:1.4;color:' + (done?'var(--grn,#4ade80)':'var(--txt)') + '">' + m.title + '</div>' +
+          '<div style="font-size:13px;color:var(--txt2);line-height:1.4">' + m.desc + '</div>' +
         '</div>' +
-        '<span style="color:var(--gold);font-weight:700;font-size:12px;flex-shrink:0">+' + m.xp + 'XP</span>' +
+        '<span style="color:var(--gold);font-weight:700;font-size:13px;flex-shrink:0">+' + m.xp + 'XP</span>' +
       '</div>' +
       '<div class="mi-prog">' +
         '<div style="flex:1;height:4px;background:var(--sur2);border-radius:2px;overflow:hidden">' +
