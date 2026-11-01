@@ -515,8 +515,15 @@ const DB = {
   },
 
   async markStickerRead(stuId, key) {
+    return this.markStickersRead(stuId, [key]);
+  },
+  // 여러 메시지를 한 번에 읽음 처리 (키가 비면 쓰지 않음: 예전엔 묶음 위치에 read가 잘못 써졌음)
+  async markStickersRead(stuId, keys) {
     const { db, ref, update } = await initDB();
-    await update(ref(db, `stickers/${stuId}/${key}`), { read: true });
+    const updates = {};
+    (keys || []).forEach(k => { if (stuId && k) updates[`${k}/read`] = true; });
+    if (!Object.keys(updates).length) return;
+    await update(ref(db, `stickers/${stuId}`), updates);
   },
 
   async saveStudentPassword(stuId, password) {

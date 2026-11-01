@@ -831,7 +831,8 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
   <div style="background:var(--sur);border-radius:20px;padding:2rem 1.5rem;text-align:center;max-width:280px;width:90%;position:relative;animation:pop-in .35s cubic-bezier(.175,.885,.32,1.275)">
     <div id="sticker-popup-emoji" style="font-size:64px;margin-bottom:.75rem;line-height:1"></div>
     <div style="font-size:11px;color:var(--txt3);margin-bottom:.375rem">선생님이 보낸 메시지</div>
-    <div id="sticker-popup-msg" style="font-size:16px;font-weight:600;color:var(--txt);margin-bottom:1.25rem;line-height:1.5"></div>
+    <div id="sticker-popup-msg" style="font-size:16px;font-weight:600;color:var(--txt);margin-bottom:.5rem;line-height:1.5"></div>
+    <div id="sticker-popup-more" style="font-size:12px;color:var(--txt3);margin-bottom:1.25rem;min-height:1px"></div>
     <button class="btn btn-gold btn-full" onclick="closeSticker()">감사해요! 😊</button>
   </div>
 </div>
@@ -1266,31 +1267,27 @@ async function showMain() {
   try {
     var stickerData = await DB.getSticker(state.stuId);
     // 최신 읽지 않은 스티커 찾기 (레거시 평면 데이터 방어 + 로컬 dismiss 이중 확인)
-    var latestSticker = null;
-    var latestStickerKey = null;
+    var unread = [];      // 아직 안 본 메시지
+    var resync = [];      // 이 기기에선 봤는데 서버에 읽음이 안 남은 메시지 → 서버에 다시 기록
     if (stickerData && typeof stickerData === 'object') {
-      var entries = Object.entries(stickerData).filter(function(e) {
+      Object.entries(stickerData).forEach(function(e) {
         var v = e[1];
-        return v && typeof v === 'object' && (typeof v.text === 'string' || typeof v.message === 'string');
+        if (!v || typeof v !== 'object' || (typeof v.text !== 'string' && typeof v.message !== 'string') || v.read) return;
+        if (localStorage.getItem('sticker_seen_' + state.stuId + '_' + e[0])) resync.push(e[0]);
+        else unread.push(e);
       });
-      entries.sort(function(a,b){ return (b[1].sentAt||0)-(a[1].sentAt||0); });
-      for (var si = 0; si < entries.length; si++) {
-        var eKey = entries[si][0];
-        var eVal = entries[si][1];
-        var localDismissKey = 'sticker_seen_' + state.stuId + '_' + eKey;
-        // 서버 read=false 여도 이 기기에서 이미 확인 처리했으면 건너뜀 (서버 쓰기 실패 방어)
-        if (eVal.read || localStorage.getItem(localDismissKey)) continue;
-        latestStickerKey = eKey;
-        latestSticker = eVal;
-        break;
-      }
+      unread.sort(function(a,b){ return (b[1].sentAt||0)-(a[1].sentAt||0); });
     }
-    if (latestSticker) {
-      document.getElementById('sticker-popup-emoji').textContent = latestSticker.emoji || '🌟';
-      document.getElementById('sticker-popup-msg').textContent = latestSticker.text || latestSticker.message || '잘하고 있어요!';
+    if (resync.length) DB.markStickersRead(state.stuId, resync).catch(function(){});
+    if (unread.length) {
+      var latest = unread[0][1];
+      document.getElementById('sticker-popup-emoji').textContent = latest.emoji || '🌟';
+      document.getElementById('sticker-popup-msg').textContent = latest.text || latest.message || '잘하고 있어요!';
+      var moreEl = document.getElementById('sticker-popup-more');
+      if (moreEl) moreEl.textContent = unread.length > 1 ? '읽지 않은 메시지 ' + unread.length + '개 · 확인하면 모두 읽음 처리돼요' : '';
       document.getElementById('sticker-popup').style.display = 'flex';
       window._pendingStickerStuId = state.stuId;
-      window._pendingStickerKey = latestStickerKey;
+      window._pendingStickerKeys = unread.map(function(e) { return e[0]; });
     }
   } catch(e) {}
   try {
@@ -3428,16 +3425,15 @@ function showStreakPopup(cnt) {
 
 async function closeSticker() {
   document.getElementById('sticker-popup').style.display = 'none';
-  if (window._pendingStickerStuId && window._pendingStickerKey) {
-    var stuId = window._pendingStickerStuId;
-    var key = window._pendingStickerKey;
-    window._pendingStickerStuId = null;
-    window._pendingStickerKey = null;
-    // 1) 로컬에 즉시 확인 처리 마킹 (서버 실패해도 이 기기에서는 절대 다시 안 뜸)
-    localStorage.setItem('sticker_seen_' + stuId + '_' + key, '1');
-    // 2) 서버에도 반영 (선생님 화면에 읽음 표시용) - 실패해도 로컬 마킹은 이미 완료됨
-    try { await DB.markStickerRead(stuId, key); } catch(e) { console.warn('읽음 처리(서버) 실패', e); }
-  }
+  var stuId = window._pendingStickerStuId;
+  var keys = window._pendingStickerKeys || [];
+  window._pendingStickerStuId = null;
+  window._pendingStickerKeys = null;
+  if (!stuId || !keys.length) return;
+  // 1) 이 기기 기록 (서버 저장이 실패하면 다음 접속 때 다시 서버에 기록함)
+  keys.forEach(function(k) { localStorage.setItem('sticker_seen_' + stuId + '_' + k, '1'); });
+  // 2) 서버에 읽지 않은 메시지 전부 읽음 처리 (선생님 화면 표시용)
+  try { await DB.markStickersRead(stuId, keys); } catch(e) { console.warn('읽음 처리(서버) 실패', e); }
 }
 
 function dismissNotice() {

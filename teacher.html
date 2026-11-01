@@ -1059,22 +1059,18 @@ async function loadStuMessageBadges(arr) {
       var badgeEl = document.getElementById('msg-badge-' + arr[i].id);
       if (!badgeEl) continue;
       // 여러 스티커 중 최신 1개 추출 (레거시 평면 데이터 방어)
-      var lastMsg = null;
+      // 메시지 전체 기준: 안 읽은 개수 표시 (최신 1개만 보던 방식은 예전 메시지를 놓침)
+      var msgs = [];
       if (stickerData && typeof stickerData === 'object') {
-        var entries = Object.values(stickerData).filter(function(v) {
+        msgs = Object.values(stickerData).filter(function(v) {
           return v && typeof v === 'object' && (typeof v.text === 'string' || typeof v.message === 'string');
         });
-        if (entries.length) {
-          entries.sort(function(a,b){ return (b.sentAt||0)-(a.sentAt||0); });
-          lastMsg = entries[0];
-        }
       }
-      if (lastMsg && (lastMsg.text || lastMsg.message)) {
-        if (!lastMsg.read) {
-          badgeEl.innerHTML = '<span style="color:var(--red,#e53935);font-weight:700">✉ 안읽음</span>';
-        } else {
-          badgeEl.innerHTML = '<span class="c-txt3">✉ 읽음</span>';
-        }
+      var unreadN = msgs.filter(function(v) { return !v.read; }).length;
+      if (msgs.length) {
+        badgeEl.innerHTML = unreadN
+          ? '<span style="color:var(--red,#e53935);font-weight:700">✉ 안읽음' + (unreadN > 1 ? ' ' + unreadN : '') + '</span>'
+          : '<span class="c-txt3">✉ 읽음</span>';
       }
     } catch(e) {}
   }
