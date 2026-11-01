@@ -5,6 +5,13 @@
 - 데이터: Firebase Realtime Database (`eng-trainer-65cac`)
 - 스택: 순수 HTML/CSS/JS (빌드 없음)
 
+## 로그인·보안 (2026-11 적용)
+- Firebase Auth(이메일/비밀번호). 학생: 이름 → `loginIndex/{이름키}` → 내부 이메일 `{학생ID}[.v버전]@students.eng-trainer.app`. 선생님: `teacher@eng-trainer.app`, 관리자는 `admins/{uid}: true`
+- DB 규칙 `database.rules.json`: 학생은 `students/{id}/uid`가 자기 uid인 데이터만, 관리자는 전체. `settings`만 공개 읽기
+- 규칙 배포: `npx firebase-tools deploy --only database --project eng-trainer-65cac` (규칙 바꾸면 에뮬레이터로 먼저 검증)
+- 비밀번호는 DB에 저장하지 않음. 학생 비번 초기화는 `DB.resetStudentLogin` (다음 입장 때 학생이 새로 만듦)
+- 새 학생 데이터 경로를 만들면 `database.rules.json`에 `$sid` 소유자 규칙을 꼭 추가 (안 하면 관리자만 접근 가능)
+
 ## 파일 구조
 - `index.html` 메인·로그인, `vocab.html` 단어 학습, `teacher.html` 선생님 대시보드, `listening.html` 듣기
 - `shared/` 공통: `db.js`(Firebase), `utils.js`, `theme.css`
