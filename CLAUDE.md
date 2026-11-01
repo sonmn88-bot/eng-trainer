@@ -34,7 +34,7 @@
 ## 반복됐던 버그 (재발 금지)
 - 함수 삭제 후 남은 `async` 키워드 → `async is not defined`
 - `WORD_CATALOG`는 `window.WORD_CATALOG`로 접근 가능해야 함 (`const`로 선언 금지)
-- 스티커/메모 Firebase 경로 불일치 → 읽음 상태 미갱신
+- 스티커/메모 Firebase 경로 불일치 → 읽음 상태 미갱신 (2026-11 수정: 팝업 닫으면 안 읽은 메시지 전부 `DB.markStickersRead`로 처리, 기기에서만 본 메시지는 다음 접속 때 서버에 다시 기록. 최신 1개만 처리하면 재발)
 - 결석 배지가 `lastSeen` / `lastActive` 다른 필드를 써서 `daysSince` 오계산
 - 시험지 인쇄 레이아웃이 A4 페이지 넘침
 - 디자인 수정 시 지적받은 곳만 고치고 같은 유형을 놓쳐 사용자가 다시 말하게 함 → 아래 "디자인 수정 규칙" 필수
