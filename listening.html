@@ -901,22 +901,10 @@ document.addEventListener('click',function(e){var f=document.getElementById('bgm
 function quickGoTeacherFromPage() {
   var pw = prompt('선생님 비밀번호를 입력하세요:');
   if (pw === null) return;
-  DB.getSettings().then(function(s) {
-    var correct = (s && s.teacherPw) || '1234';
-    if (pw === correct) {
-      localStorage.setItem('teacher_pw', pw);
-      window.location.href = 'teacher.html';
-    } else {
-      alert('비밀번호가 틀렸습니다.');
-    }
-  }).catch(function() {
-    if (pw === '1234') {
-      localStorage.setItem('teacher_pw', pw);
-      window.location.href = 'teacher.html';
-    } else {
-      alert('비밀번호가 틀렸습니다.');
-    }
-  });
+  DB.teacherLogin(pw).then(function(ok) {
+    if (ok) window.location.href = 'teacher.html';
+    else alert('비밀번호가 틀렸습니다.');
+  }).catch(function() { alert('로그인 오류. 잠시 후 다시 해 주세요.'); });
 }
 
 </script>

@@ -156,12 +156,10 @@
 
       <!-- 학생 비밀번호 설정 -->
       <div class="mt-4">
-        <p class="sec-title mb-2">🔑 학생 비밀번호</p>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" id="detail-pw" placeholder="없으면 비워두세요"
-            style="flex:1;font-size:14px;letter-spacing:.08em;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);padding:.5rem .75rem;color:var(--txt)">
-          <button class="btn btn-gold btn-sm" onclick="saveStudentPassword()">저장</button>
-          <button class="btn btn-ghost btn-sm fs-11" onclick="resetStudentPassword()">초기화</button>
+        <p class="sec-title mb-2">🔑 학생 로그인</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div id="detail-pw" style="flex:1;font-size:13px;color:var(--txt2)"></div>
+          <button class="btn btn-sm" onclick="resetStudentPassword()">비밀번호 초기화</button>
         </div>
         <div id="detail-pw-msg" style="font-size:11px;min-height:14px;margin-top:4px;color:var(--grn,#4caf50)"></div>
       </div>
@@ -558,6 +556,17 @@
     <button class="btn btn-gold btn-full" onclick="saveSettings()">저장</button>
   </div>
 
+  <!-- 보안 전환 (1회) -->
+  <div class="card">
+    <p class="sec-title">보안 전환 (한 번만)</p>
+    <div style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem">
+      학생 비밀번호를 암호화된 로그인 계정으로 옮기고, DB에 남은 비밀번호를 지웁니다.
+      비밀번호가 없던 학생은 다음 입장 때 직접 만듭니다. 여러 번 눌러도 안전합니다.
+    </div>
+    <div id="migrate-msg" style="font-size:13px;color:var(--txt2);min-height:18px;margin-bottom:.75rem;white-space:pre-line"></div>
+    <button class="btn btn-full" id="migrate-btn" onclick="runAuthMigration()">보안 전환 실행</button>
+  </div>
+
   <!-- 앱 버전 -->
   <div class="card card-sm mt-4">
     <div class="row-between">
@@ -659,16 +668,16 @@ let exportWords = [];
 // -- Init --
 async function init() {
   try {
-    const pw = localStorage.getItem('teacher_pw');
-    if (!pw) { location.href = 'index.html'; return; }
+    localStorage.removeItem('teacher_pw'); // 예전 방식(기기에 평문 저장) 정리
     let saved;
     // Firebase 연결 실패 시 재시도
     for (let attempt = 0; attempt < 3; attempt++) {
       try { saved = await DB.getSettings(); break; }
       catch(e) { if (attempt === 2) throw e; await new Promise(r => setTimeout(r, 1500)); }
     }
-    if (pw !== (saved.teacherPw || '1234')) { localStorage.removeItem('teacher_pw'); location.href = 'index.html'; return; }
+    if (!(await DB.isAdmin())) { location.href = 'index.html'; return; }
     settings = saved;
+    delete settings.teacherPw;
     students = await DB.getStudents();
     // 구버전 메모 데이터 1회 이전 (memos/ → students/{id}/memo)
     if (!localStorage.getItem('memo_migrated_v1')) {
@@ -898,8 +907,7 @@ window.addEventListener('load', function() {
 });
 
 function logout() {
-  localStorage.removeItem('teacher_pw');
-  location.href = 'index.html';
+  DB.signOut().catch(function() {}).then(function() { location.href = 'index.html'; });
 }
 
 // -- Students --
@@ -1034,6 +1042,7 @@ async function addStudent() {
   err.textContent = '';
   try {
     const id = await DB.createStudent(name);
+    await DB.registerLogin(id, name);
     students[id] = { id, name, createdAt: new Date().toISOString() };
     inp.value = '';
     renderStudents();
@@ -1126,9 +1135,9 @@ async function showStuDetail(stuId) {
     var memo = await DB.getMemo(stuId);
     var memoEl = document.getElementById('detail-memo');
     if (memoEl) memoEl.value = memo || '';
-    // 현재 비밀번호 표시
+    // 로그인 상태 표시 (비밀번호는 Firebase가 암호화해 보관, 선생님도 볼 수 없음)
     var pwEl = document.getElementById('detail-pw');
-    if (pwEl) pwEl.value = s.password || '';
+    if (pwEl) pwEl.textContent = s.uid ? '비밀번호 설정됨' : '첫 입장 때 학생이 비밀번호를 만듦';
   } catch(e) {}
 
   // 마지막 메시지 불러오기
@@ -1283,7 +1292,9 @@ async function saveRenameStudent() {
   var dup = Object.values(students).find(function(s){ return s.name === newName && s.id !== selectedStuId; });
   if (dup) { alert('이미 같은 이름의 학생이 있습니다'); return; }
   try {
+    var oldName = students[selectedStuId].name;
     await DB.saveStudent(selectedStuId, { name: newName });
+    await DB.registerLogin(selectedStuId, newName, oldName);
     students[selectedStuId].name = newName;
     document.getElementById('detail-name').textContent = newName;
     cancelRenameStudent();
@@ -1306,7 +1317,9 @@ async function deleteStudent() {
   if (input === null) return; // 취소
   if (input.trim() !== name) { alert('이름이 일치하지 않습니다. 삭제를 취소합니다.'); return; }
   try {
+    var delStu = students[selectedStuId] || {};
     await DB.saveStudent(selectedStuId, null);
+    await DB.removeLogin(delStu.loginKey || DB.loginKey(delStu.name), delStu.uid);
     delete students[selectedStuId];
     document.getElementById('stu-detail').style.display = 'none';
     renderStudents();
@@ -2849,6 +2862,25 @@ function calcDday(dateStr) {
   return Math.round((t0-t1)/86400000);
 }
 
+async function runAuthMigration() {
+  var btn = document.getElementById('migrate-btn');
+  var msg = document.getElementById('migrate-msg');
+  if (!confirm('학생 로그인을 보안 계정으로 전환할까요?')) return;
+  btn.disabled = true;
+  try {
+    var rep = await DB.migrateAllToAuth(function(i, n, name) { msg.textContent = '진행 중 ' + i + ' / ' + n + ' · ' + (name || ''); });
+    await DB.removeLegacyTeacherPw();
+    students = await DB.getStudents();
+    renderStudents();
+    msg.textContent = '완료: 계정 생성 ' + rep.done + '명 · 첫 입장 때 설정 ' + rep.noPassword + '명 · 이미 전환 ' + rep.skipped + '명' +
+      (rep.duplicateNames.length ? '\n이름 중복(이름을 바꿔 주세요): ' + rep.duplicateNames.join(', ') : '') +
+      (rep.failed.length ? '\n실패(다시 실행하면 이어서 함): ' + rep.failed.join(', ') : '');
+  } catch(e) {
+    msg.textContent = '오류: ' + (e.code || e.message);
+  }
+  btn.disabled = false;
+}
+
 async function saveSettings() {
   const appName = document.getElementById('set-appname').value.trim();
   const pwOld = document.getElementById('set-pw-old').value;
@@ -2859,7 +2891,7 @@ async function saveSettings() {
   // 앱 이름만 변경 (비번 입력 없을 때)
   if (!pwOld && !pwNew && !pwCfm) {
     try {
-      await DB.saveSettings({ appName, teacherPw: settings.teacherPw });
+      await DB.saveSettings({ appName });
       settings.appName = appName;
       errEl.style.color = 'var(--grn,#4caf50)';
       errEl.textContent = '✓ 저장되었습니다';
@@ -2869,20 +2901,23 @@ async function saveSettings() {
   }
 
   // 비번 변경
-  if (pwOld !== settings.teacherPw) { errEl.textContent = '현재 비밀번호가 틀렸습니다'; return; }
-  if (!pwNew) { errEl.textContent = '새 비밀번호를 입력하세요'; return; }
+  if (!pwNew || pwNew.length < 4) { errEl.textContent = '새 비밀번호는 4자 이상'; return; }
   if (pwNew !== pwCfm) { errEl.textContent = '새 비밀번호가 일치하지 않습니다'; return; }
   try {
-    await DB.saveSettings({ appName, teacherPw: pwNew });
-    settings = { appName, teacherPw: pwNew };
-    localStorage.setItem('teacher_pw', pwNew);
+    await DB.changeTeacherPassword(pwOld, pwNew);
+    await DB.saveSettings({ appName });
+    settings.appName = appName;
     errEl.style.color = 'var(--grn,#4caf50)';
     errEl.textContent = '✓ 저장되었습니다';
     document.getElementById('set-pw-old').value = '';
     document.getElementById('set-pw-new').value = '';
     document.getElementById('set-pw-cfm').value = '';
     setTimeout(function(){ errEl.textContent=''; errEl.style.color='var(--red)'; }, 2000);
-  } catch(e) { errEl.style.color='var(--red)'; errEl.textContent = '저장 오류: '+e.message; }
+  } catch(e) {
+    errEl.style.color = 'var(--red)';
+    errEl.textContent = (e && (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password'))
+      ? '현재 비밀번호가 틀렸습니다' : '저장 오류: ' + (e.code || e.message);
+  }
 }
 
 // -- Tabs --
@@ -3256,33 +3291,15 @@ async function exportAllExcel() {
 
 async function resetStudentPassword() {
   if (!selectedStuId) return;
-  if (!confirm('비밀번호를 초기화할까요? 학생이 비밀번호 없이 접속할 수 있게 됩니다.')) return;
+  if (!confirm('비밀번호를 초기화할까요? 학생이 다음에 들어올 때 새 비밀번호를 만들어요.')) return;
   var msgEl = document.getElementById('detail-pw-msg');
-  var pwEl  = document.getElementById('detail-pw');
   try {
-    await DB.saveStudentPassword(selectedStuId, '');
-    if (students[selectedStuId]) students[selectedStuId].password = '';
-    if (pwEl)  pwEl.value = '';
-    if (msgEl) {
-      msgEl.textContent = '✓ 비밀번호가 초기화됐습니다';
-      setTimeout(function(){ msgEl.textContent=''; }, 2500);
-    }
-  } catch(e) { if(msgEl) msgEl.textContent='오류: '+e.message; }
-}
-
-async function saveStudentPassword() {
-  if (!selectedStuId) return;
-  var pwEl = document.getElementById('detail-pw');
-  var msgEl = document.getElementById('detail-pw-msg');
-  var pw = pwEl ? pwEl.value.trim() : '';
-  try {
-    await DB.saveStudentPassword(selectedStuId, pw);
-    if (students[selectedStuId]) students[selectedStuId].password = pw;
-    if (msgEl) {
-      msgEl.textContent = pw ? '✓ 비밀번호가 설정됐습니다' : '✓ 비밀번호가 제거됐습니다';
-      setTimeout(function(){ msgEl.textContent=''; }, 2500);
-    }
-  } catch(e) { if (msgEl) msgEl.textContent = '오류: ' + e.message; }
+    await DB.resetStudentLogin(selectedStuId);
+    if (students[selectedStuId]) { delete students[selectedStuId].uid; delete students[selectedStuId].password; }
+    var pwEl = document.getElementById('detail-pw');
+    if (pwEl) pwEl.textContent = '첫 입장 때 학생이 비밀번호를 만듦';
+    if (msgEl) { msgEl.textContent = '✓ 초기화했습니다'; setTimeout(function(){ msgEl.textContent=''; }, 2500); }
+  } catch(e) { if (msgEl) msgEl.textContent = '오류: ' + (e.code || e.message); }
 }
 
 async function saveMemo() {

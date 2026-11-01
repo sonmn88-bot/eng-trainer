@@ -1,0 +1,110 @@
+{
+  "rules": {
+    ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+    ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    },
+    "settings": {
+      ".read": true
+    },
+    "notice": {
+      ".read": "auth != null"
+    },
+    "examRange": {
+      ".read": "auth != null"
+    },
+    "mnemonics": {
+      ".read": "auth != null"
+    },
+    "loginIndex": {
+      "$key": {
+        ".read": true,
+        ".write": "auth != null && newData.child('id').val() === root.child('uids').child(auth.uid).child('id').val() && (!data.exists() || data.child('id').val() === newData.child('id').val())"
+      }
+    },
+    "uids": {
+      "$uid": {
+        ".read": "(auth != null && auth.uid === $uid) || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && auth.uid === $uid && root.child('students').child(newData.child('id').val()).child('uid').val() === $uid"
+      }
+    },
+    "students": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        "uid": {
+          ".write": "auth != null && !data.exists() && newData.val() === auth.uid"
+        }
+      }
+    },
+    "results": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "bookmarks": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "myWords": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "folders": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "profiles": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "badges": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "badge_progress": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "gold": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "daily_free": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "listening": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "stickers": {
+      "$sid": {
+        ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    }
+  }
+}

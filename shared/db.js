@@ -9,18 +9,219 @@ const FIREBASE_CONFIG = {
 };
 
 let _db = null;
+let _app = null;
+let _authMod = null;
+let _auth = null;
+
+// ── 로그인(Firebase Auth) ─────────────────────────
+// 학생: 이름 → loginIndex 로 학생 ID를 찾고, 학생 ID로 만든 내부 이메일 + 비밀번호로 로그인
+// 선생님: 고정 내부 이메일 + 선생님 비밀번호, admins/{uid} 로 관리자 판별
+const STUDENT_EMAIL_DOMAIN = '@students.eng-trainer.app';
+const TEACHER_EMAIL = 'teacher@eng-trainer.app';
+function _fbPw(pw) { return 'etrn::' + pw; } // Firebase 최소 6자 맞춤 (짧은 기존 비밀번호도 허용)
+function _stuEmail(id, ver) { return id + (ver ? '.v' + ver : '') + STUDENT_EMAIL_DOMAIN; }
 
 async function initDB() {
   if (_db) return _db;
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
   const { getDatabase, ref, get, set, update, push, remove, serverTimestamp }
     = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
-  const app = initializeApp(FIREBASE_CONFIG);
-  _db = { db: getDatabase(app), ref, get, set, update, push, remove, serverTimestamp };
+  _authMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+  _app = initializeApp(FIREBASE_CONFIG);
+  _auth = _authMod.getAuth(_app);
+  const _dbInst = getDatabase(_app);
+  // 로컬 검증용: 테스트 도구가 window.__FB_EMU 를 넣었을 때만 에뮬레이터에 연결 (운영에는 영향 없음)
+  if (window.__FB_EMU) {
+    const { connectDatabaseEmulator } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    connectDatabaseEmulator(_dbInst, '127.0.0.1', 9000);
+    _authMod.connectAuthEmulator(_auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  }
+  // 저장된 로그인 상태가 복원된 뒤에 DB 요청 (규칙이 로그인 상태를 보므로)
+  await new Promise(res => { const un = _authMod.onAuthStateChanged(_auth, () => { un(); res(); }); });
+  _db = { db: _dbInst, ref, get, set, update, push, remove, serverTimestamp };
   return _db;
 }
 
 const DB = {
+  // ── 로그인 ──────────────────────────────────
+  loginKey(name) {
+    return encodeURIComponent(String(name || '').trim()).replace(/\./g, '%2E');
+  },
+  async currentUid() {
+    await initDB();
+    return _auth.currentUser ? _auth.currentUser.uid : null;
+  },
+  async isAdmin() {
+    const { db, ref, get } = await initDB();
+    if (!_auth.currentUser) return false;
+    try { return (await get(ref(db, `admins/${_auth.currentUser.uid}`))).val() === true; }
+    catch (e) { return false; }
+  },
+  // 로그인된 학생 계정이면 { id, name } (자동 로그인 복원용)
+  async myStudent() {
+    const { db, ref, get } = await initDB();
+    if (!_auth.currentUser) return null;
+    try { return (await get(ref(db, `uids/${_auth.currentUser.uid}`))).val(); }
+    catch (e) { return null; }
+  },
+  // 이름으로 로그인 정보 조회: { id, ready, ver } | null
+  async lookupLogin(name) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `loginIndex/${this.loginKey(name)}`));
+    return snap.exists() ? snap.val() : null;
+  },
+  async _setPersistence(remember) {
+    await initDB();
+    await _authMod.setPersistence(_auth, remember ? _authMod.browserLocalPersistence : _authMod.browserSessionPersistence);
+  },
+  async studentSignIn(entry, pw, remember) {
+    await this._setPersistence(remember);
+    await _authMod.signInWithEmailAndPassword(_auth, _stuEmail(entry.id, entry.ver), _fbPw(pw));
+  },
+  // 첫 입장(계정 없음): 학생이 비밀번호를 만들고 계정 생성 + 연결
+  async studentCreate(entry, name, pw, remember) {
+    const { db, ref, set, update } = await initDB();
+    await this._setPersistence(remember);
+    const cred = await _authMod.createUserWithEmailAndPassword(_auth, _stuEmail(entry.id, entry.ver), _fbPw(pw));
+    const uid = cred.user.uid;
+    // 순서 중요: 규칙이 앞 단계 결과를 확인함
+    await set(ref(db, `students/${entry.id}/uid`), uid);
+    await set(ref(db, `uids/${uid}`), { id: entry.id, name });
+    await set(ref(db, `loginIndex/${this.loginKey(name)}`), { id: entry.id, ready: true, ver: entry.ver || 0 });
+    await update(ref(db, `students/${entry.id}`), { password: null, loginKey: this.loginKey(name) });
+  },
+  async signOut() {
+    await initDB();
+    await _authMod.signOut(_auth);
+  },
+  async changeMyPassword(newPw) {
+    await initDB();
+    await _authMod.updatePassword(_auth.currentUser, _fbPw(newPw));
+  },
+  // 선생님 로그인. 계정이 아직 없으면 기존 settings.teacherPw 와 맞을 때 한 번만 계정 생성
+  async teacherLogin(pw) {
+    const { db, ref, get, set } = await initDB();
+    await this._setPersistence(true);
+    try {
+      await _authMod.signInWithEmailAndPassword(_auth, TEACHER_EMAIL, _fbPw(pw));
+    } catch (e) {
+      if (e.code === 'auth/wrong-password') return false; // 계정은 있고 비밀번호만 틀림
+      if (e.code !== 'auth/invalid-credential' && e.code !== 'auth/user-not-found') throw e;
+      let legacy = null;
+      try { legacy = (await get(ref(db, 'settings/teacherPw'))).val(); } catch (e2) {}
+      if (!legacy || legacy !== pw) return false;
+      try {
+        await _authMod.createUserWithEmailAndPassword(_auth, TEACHER_EMAIL, _fbPw(pw));
+      } catch (e3) {
+        if (e3.code === 'auth/email-already-in-use') return false; // 계정은 있는데 비밀번호가 다름
+        throw e3;
+      }
+      await set(ref(db, `admins/${_auth.currentUser.uid}`), true);
+    }
+    return await this.isAdmin();
+  },
+  async changeTeacherPassword(oldPw, newPw) {
+    await initDB();
+    const cred = _authMod.EmailAuthProvider.credential(TEACHER_EMAIL, _fbPw(oldPw));
+    await _authMod.reauthenticateWithCredential(_auth.currentUser, cred);
+    await _authMod.updatePassword(_auth.currentUser, _fbPw(newPw));
+  },
+  // (관리자) 학생 이름 → 로그인 정보 등록/갱신. 이름이 바뀌면 옛 키 삭제
+  async registerLogin(id, name, oldName) {
+    const { db, ref, get, update } = await initDB();
+    const key = this.loginKey(name);
+    const updates = {};
+    let prev = null;
+    if (oldName && oldName !== name) {
+      const oldKey = this.loginKey(oldName);
+      prev = (await get(ref(db, `loginIndex/${oldKey}`))).val();
+      updates[`loginIndex/${oldKey}`] = null;
+    }
+    const cur = prev || (await get(ref(db, `loginIndex/${key}`))).val();
+    const stu = (await get(ref(db, `students/${id}`))).val() || {};
+    updates[`loginIndex/${key}`] = { id, ready: !!stu.uid, ver: (cur && cur.id === id && cur.ver) || 0 };
+    updates[`students/${id}/loginKey`] = key;
+    if (stu.uid) updates[`uids/${stu.uid}`] = { id, name };
+    await update(ref(db), updates);
+  },
+  // (관리자) 학생 로그인 초기화: 다음 입장 때 학생이 새 비밀번호를 만든다
+  async resetStudentLogin(id) {
+    const { db, ref, get, update } = await initDB();
+    const stu = (await get(ref(db, `students/${id}`))).val() || {};
+    const key = stu.loginKey || this.loginKey(stu.name);
+    const cur = (await get(ref(db, `loginIndex/${key}`))).val() || {};
+    const updates = {};
+    updates[`loginIndex/${key}`] = { id, ready: false, ver: (cur.ver || 0) + 1 };
+    updates[`students/${id}/uid`] = null;
+    updates[`students/${id}/password`] = null;
+    if (stu.uid) updates[`uids/${stu.uid}`] = null;
+    await update(ref(db), updates);
+  },
+  // (관리자) 기존 학생 전체를 로그인 계정으로 전환. 이미 전환된 학생은 건너뜀. 다시 실행해도 안전
+  async migrateAllToAuth(onProgress) {
+    const { db, ref, get, update } = await initDB();
+    const { initializeApp, deleteApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const secApp = initializeApp(FIREBASE_CONFIG, 'migrate-' + Date.now());
+    const secAuth = _authMod.getAuth(secApp);
+    if (window.__FB_EMU) _authMod.connectAuthEmulator(secAuth, 'http://127.0.0.1:9099', { disableWarnings: true });
+    await _authMod.setPersistence(secAuth, _authMod.inMemoryPersistence);
+    const all = (await get(ref(db, 'students'))).val() || {};
+    const report = { done: 0, noPassword: 0, skipped: 0, failed: [], duplicateNames: [] };
+    const seen = {};
+    const ids = Object.keys(all);
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i], stu = all[id] || {};
+      if (onProgress) onProgress(i + 1, ids.length, stu.name);
+      if (!stu.name) { report.skipped++; continue; }
+      const key = this.loginKey(stu.name);
+      if (seen[key]) { report.duplicateNames.push(stu.name); continue; }
+      seen[key] = true;
+      const updates = { [`students/${id}/loginKey`]: key };
+      try {
+        if (stu.uid) {
+          updates[`loginIndex/${key}`] = { id, ready: true, ver: 0 };
+          updates[`uids/${stu.uid}`] = { id, name: stu.name };
+          report.skipped++;
+        } else if (stu.password) {
+          let uid;
+          try {
+            uid = (await _authMod.createUserWithEmailAndPassword(secAuth, _stuEmail(id, 0), _fbPw(stu.password))).user.uid;
+          } catch (e) {
+            if (e.code !== 'auth/email-already-in-use') throw e;
+            uid = (await _authMod.signInWithEmailAndPassword(secAuth, _stuEmail(id, 0), _fbPw(stu.password))).user.uid;
+          }
+          await _authMod.signOut(secAuth);
+          updates[`students/${id}/uid`] = uid;
+          updates[`students/${id}/password`] = null;
+          updates[`uids/${uid}`] = { id, name: stu.name };
+          updates[`loginIndex/${key}`] = { id, ready: true, ver: 0 };
+          report.done++;
+        } else {
+          updates[`loginIndex/${key}`] = { id, ready: false, ver: 0 };
+          report.noPassword++;
+        }
+        await update(ref(db), updates);
+      } catch (e) {
+        report.failed.push(stu.name + ' (' + (e.code || e.message) + ')');
+      }
+    }
+    try { await deleteApp(secApp); } catch (e) {}
+    return report;
+  },
+  // (관리자) 학생 삭제 시 로그인 정보도 삭제
+  async removeLogin(key, uid) {
+    const { db, ref, update } = await initDB();
+    const updates = {};
+    if (key) updates[`loginIndex/${key}`] = null;
+    if (uid) updates[`uids/${uid}`] = null;
+    if (Object.keys(updates).length) await update(ref(db), updates);
+  },
+  // (관리자) 전환이 끝난 뒤 남은 평문 비밀번호 정리
+  async removeLegacyTeacherPw() {
+    const { db, ref, update } = await initDB();
+    await update(ref(db, 'settings'), { teacherPw: null });
+  },
+
   async getStudents() {
     const { db, ref, get } = await initDB();
     const snap = await get(ref(db, 'students'));

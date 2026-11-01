@@ -303,14 +303,18 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
     <div class="card">
       <p class="sec-title">학생 입장</p>
       <div class="inp-wrap">
-        <input id="stu-input" type="text" placeholder="이름을 입력하세요" autocomplete="off"
-               oninput="onStuInput()" onkeydown="onStuKeydown(event)">
-        <div class="dd" id="stu-dd"></div>
+        <input id="stu-input" type="text" placeholder="이름 (정확히 입력)" autocomplete="off"
+               onkeydown="if(event.key==='Enter')document.getElementById('stu-pw-input').focus()">
       </div>
       <input type="hidden" id="stu-id">
-      <div id="stu-pw-wrap" style="display:none;margin-bottom:.5rem">
-        <input type="password" id="stu-pw-input" placeholder="비밀번호 입력 (없으면 그냥 입장)"
-               style="text-align:center" onkeydown="if(event.key==='Enter')doStuLogin()">
+      <div id="stu-pw-wrap" style="margin-top:.5rem">
+        <input type="password" id="stu-pw-input" placeholder="비밀번호" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doStuLogin()">
+      </div>
+      <div id="stu-pw2-wrap" style="display:none;margin-top:.5rem">
+        <div class="callout-text" style="margin:0 0 .5rem">처음이에요. 쓸 비밀번호를 만들어 주세요 (4자 이상)</div>
+        <input type="password" id="stu-pw2-input" placeholder="비밀번호 한 번 더" autocomplete="new-password"
+               onkeydown="if(event.key==='Enter')doStuLogin()">
       </div>
       <div id="stu-err" style="color:var(--red);font-size:12px;text-align:center;margin-bottom:.5rem;min-height:16px"></div>
       <div class="auto-login-row">
@@ -682,11 +686,10 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
       <button onclick="closePwSetting()" class="udb2ef">×</button>
     </div>
     <div style="font-size:12px;color:var(--txt2);margin-bottom:1rem;line-height:1.6">
-      비밀번호를 설정하면 다음 접속부터 입력이 필요해요.<br>
-      비워두면 비밀번호가 제거됩니다.
+      비밀번호는 본인만 알 수 있어요. 잊으면 선생님이 초기화할 수 있어요.
     </div>
     <div id="pw-current-status" style="font-size:11px;margin-bottom:.75rem;padding:.5rem .75rem;background:var(--sur2);border-radius:var(--rs)"></div>
-    <input type="password" id="pw-new-input" placeholder="새 비밀번호 (비우면 삭제)"
+    <input type="password" id="pw-new-input" placeholder="새 비밀번호 (4자 이상)"
       maxlength="20" class="mb-2">
     <input type="password" id="pw-confirm-input" placeholder="비밀번호 확인"
       maxlength="20"
@@ -846,7 +849,7 @@ let state = {
   stuId: null,
   stuName: null,
   students: {},
-  settings: { appName: 'English Trainer', teacherPw: '1234' }
+  settings: { appName: 'English Trainer' }
 };
 
 // ── Init ───────────────────────────────────────
@@ -875,7 +878,9 @@ async function init() {
   // 첫 접속 온보딩 체크
   checkOnboarding();
   // 세션 복원
-  const saved = sessionStorage.getItem('stuId');
+  let saved = sessionStorage.getItem('stuId');
+  // 로그인 상태가 없으면(전환 전 방식으로 들어왔던 탭 등) 다시 로그인
+  if (saved && !(await DB.currentUid())) { sessionStorage.clear(); saved = null; }
   if (saved) {
     state.stuId = saved;
     state.stuName = sessionStorage.getItem('stuName') || '';
@@ -895,36 +900,16 @@ async function init() {
     } catch(e) {}
     await showMain();
   } else {
-    // 자동 로그인 확인
-    var _autoId = localStorage.getItem('auto_stuId');
-    var _autoName = localStorage.getItem('auto_stuName');
-    if (_autoId && _autoName) {
-      // 자동로그인 실행
-      try {
-        await state.students; // students 로드 대기
-        var _autoStu = Object.values(state.students).find(function(s){ return s.id === _autoId; });
-        if (_autoStu) {
-          state.stuId = _autoId;
-          state.stuName = _autoName;
-          sessionStorage.setItem('stuId', _autoId);
-          sessionStorage.setItem('stuName', _autoName);
-          // 새 세션 토큰 발급
-          var _newToken = Date.now() + '_' + Math.random().toString(36).slice(2,8);
-          sessionStorage.setItem('session_token', _newToken);
-          DB.saveStudent(_autoId, { lastSeen: new Date().toISOString(), sessionToken: _newToken }).catch(function(){});
-          await showMain();
-        } else {
-          // 학생 정보 없으면 자동로그인 해제
-          localStorage.removeItem('auto_stuId');
-          localStorage.removeItem('auto_stuName');
-        }
-      } catch(e) {}
-    }
+    // 자동 로그인: 저장된 Firebase 로그인 상태가 학생 계정이면 바로 입장
+    try {
+      var _me = await DB.myStudent();
+      if (_me && _me.id) {
+        enterAsStudent(_me.id, _me.name || '');
+      }
+    } catch(e) {}
+    localStorage.removeItem('auto_stuId');   // 예전 방식 자동로그인 값 정리
+    localStorage.removeItem('auto_stuName');
   }
-
-  try {
-    state.students = await DB.getStudents();
-  } catch(e) {}
 
   // 오늘의 명언 (날짜 기반 고정, 100개)
   try {
@@ -1113,86 +1098,69 @@ async function predictStudyGoal(daysLeft) {
 }
 
 // ── Student Login ──────────────────────────────
-function onStuInput() {
-  const val = document.getElementById('stu-input').value.trim();
-  const dd = document.getElementById('stu-dd');
-  if (!val || val.length < 1) { dd.style.display = 'none'; return; }
-
-  const matches = Object.values(state.students)
-    .filter(s => s.name && s.name.includes(val)).slice(0, 6);
-
-  if (!matches.length) { dd.style.display = 'none'; return; }
-  dd.innerHTML = matches.map(s =>
-    `<div class="dd-item" onclick="selectStudent('${s.id}','${s.name}')">${s.name}</div>`
-  ).join('');
-  dd.style.display = 'block';
+function _stuErr(msg) {
+  var err = document.getElementById('stu-err');
+  if (err) err.textContent = msg || '';
 }
 
-function onStuKeydown(e) {
-  if (e.key === 'Enter') doStuLogin();
-  if (e.key === 'Escape') document.getElementById('stu-dd').style.display = 'none';
-}
-
-function selectStudent(id, name) {
-  state.stuId = id;
-  document.getElementById('stu-input').value = name;
-  document.getElementById('stu-id').value = id;
-  document.getElementById('stu-dd').style.display = 'none';
-  // 비밀번호 설정된 학생이면 입력창 표시
-  var stu = state.students[id];
-  var pwWrap = document.getElementById('stu-pw-wrap');
-  if (pwWrap) pwWrap.style.display = (stu && stu.password) ? 'block' : 'none';
+// 전환 전 학생(로그인 계정 없음): 기존 방식으로 확인한 뒤 같은 비밀번호로 계정을 만든다
+async function _legacyLoginEntry(nameVal) {
+  try {
+    var all = await DB.getStudents();
+    var stu = Object.values(all || {}).find(function(s) { return s && s.name === nameVal; });
+    if (!stu) return null;
+    return { id: stu.id, ready: false, ver: 0, legacyPw: stu.password || '' };
+  } catch (e) { return null; }
 }
 
 async function doStuLogin() {
-  const nameVal = document.getElementById('stu-input').value.trim();
-  if (!nameVal) return;
+  var nameVal = document.getElementById('stu-input').value.trim();
+  var pwEl = document.getElementById('stu-pw-input');
+  var pw2El = document.getElementById('stu-pw2-input');
+  var pw2Wrap = document.getElementById('stu-pw2-wrap');
+  var pw = pwEl.value;
+  var remember = !!(document.getElementById('auto-login-chk') || {}).checked;
+  _stuErr('');
+  if (!nameVal) { _stuErr('이름을 입력하세요.'); return; }
 
-  let id = document.getElementById('stu-id').value;
+  var entry = null;
+  try { entry = await DB.lookupLogin(nameVal); } catch (e) {}
+  if (!entry) entry = await _legacyLoginEntry(nameVal);
+  if (!entry) { _stuErr('등록되지 않은 학생입니다. 이름을 정확히 입력했는지 확인하고, 안 되면 선생님에게 문의하세요.'); return; }
+  if (!pw) { _stuErr('비밀번호를 입력하세요.'); pwEl.focus(); return; }
 
-  // 기존 학생만 허용
-  if (!id) {
-    const match = Object.values(state.students).find(s => s.name === nameVal);
-    if (match) {
-      id = match.id;
+  try {
+    if (entry.ready) {
+      await DB.studentSignIn(entry, pw, remember);
+    } else if (entry.legacyPw) {
+      // 기존 비밀번호가 있던 학생: 맞으면 그대로 계정 생성
+      if (pw !== entry.legacyPw) { _stuErr('비밀번호가 틀렸습니다.'); pwEl.value = ''; pwEl.focus(); return; }
+      await DB.studentCreate(entry, nameVal, pw, remember);
     } else {
-      const err = document.getElementById('stu-err');
-      if (err) err.textContent = '등록되지 않은 학생입니다. 선생님에게 문의하세요.';
-      return;
+      // 첫 입장: 비밀번호 만들기
+      if (pw2Wrap.style.display === 'none') { pw2Wrap.style.display = 'block'; pw2El.focus(); return; }
+      if (pw.length < 4) { _stuErr('비밀번호는 4자 이상이어야 해요.'); return; }
+      if (pw !== pw2El.value) { _stuErr('두 비밀번호가 달라요.'); pw2El.value = ''; pw2El.focus(); return; }
+      await DB.studentCreate(entry, nameVal, pw, remember);
     }
+  } catch (e) {
+    var code = e && e.code || '';
+    if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') _stuErr('비밀번호가 틀렸습니다.');
+    else if (code === 'auth/too-many-requests') _stuErr('시도가 너무 많아요. 잠시 후 다시 해 주세요.');
+    else if (code === 'auth/email-already-in-use') _stuErr('이미 비밀번호가 만들어진 학생이에요. 비밀번호를 잊었으면 선생님에게 초기화를 요청하세요.');
+    else _stuErr('입장 오류: ' + (code || e.message));
+    pwEl.value = ''; pwEl.focus();
+    return;
   }
+  pwEl.value = ''; pw2El.value = ''; pw2Wrap.style.display = 'none';
+  enterAsStudent(entry.id, nameVal);
+}
 
-  // 비밀번호 검증
-  var _stu = state.students[id];
-  if (_stu && _stu.password) {
-    var _pwInput = document.getElementById('stu-pw-input');
-    var _entered = _pwInput ? _pwInput.value : '';
-    if (_entered !== _stu.password) {
-      var _err = document.getElementById('stu-err');
-      if (_err) _err.textContent = '비밀번호가 틀렸습니다.';
-      var _pwWrap = document.getElementById('stu-pw-wrap');
-      if (_pwWrap) _pwWrap.style.display = 'block';
-      if (_pwInput) { _pwInput.value = ''; _pwInput.focus(); }
-      return;
-    }
-  }
-
+function enterAsStudent(id, name) {
   state.stuId = id;
-  state.stuName = nameVal;
+  state.stuName = name;
   sessionStorage.setItem('stuId', id);
-  sessionStorage.setItem('stuName', nameVal);
-
-  // 자동 로그인 처리
-  var autoChk = document.getElementById('auto-login-chk');
-  if (autoChk && autoChk.checked) {
-    localStorage.setItem('auto_stuId', id);
-    localStorage.setItem('auto_stuName', nameVal);
-  } else {
-    // 체크 해제 시 자동로그인 삭제
-    localStorage.removeItem('auto_stuId');
-    localStorage.removeItem('auto_stuName');
-  }
-
+  sessionStorage.setItem('stuName', name);
   // 세션 토큰 (중복 로그인 감지)
   var _token = Date.now() + '_' + Math.random().toString(36).slice(2,8);
   sessionStorage.setItem('session_token', _token);
@@ -1215,17 +1183,6 @@ async function showMain() {
 
   // 비밀번호 미설정 학생이면 강제 설정 팝업
   // sessionStorage: 탭 단위 세션 동안만 유지 (페이지 이동/뒤로가기 후에도 유지)
-  var _pwDoneKey = 'pw_done_' + state.stuId;
-  if (!sessionStorage.getItem(_pwDoneKey)) {
-    // Firebase에서 최신 데이터 확인
-    DB.getStudent(state.stuId).then(function(freshStu) {
-      if (!freshStu || !freshStu.password) {
-        sessionStorage.setItem(_pwDoneKey, '1');
-        setTimeout(function() { openPasswordSetting(true); }, 800);
-      }
-    }).catch(function(){});
-  }
-
   // 링크에 stuId 파라미터 전달
   document.getElementById('mod-vocab').href   = `vocab.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
   document.getElementById('mod-listen').href  = `listening.html?stu=${state.stuId}&name=${encodeURIComponent(state.stuName)}`;
@@ -3325,8 +3282,7 @@ function openPasswordSetting(forced) {
     if (forced) {
       statusEl.innerHTML = '<span style="color:var(--gold);font-weight:600">⚠️ 처음 접속 시 비밀번호를 설정해야 해요!</span><br><span class="muted-xs">비밀번호는 본인만 알 수 있어요. 선생님은 초기화만 가능합니다.</span>';
     } else {
-      var stu = state.students[state.stuId];
-      statusEl.innerHTML = (stu && stu.password) ? '🔒 현재 비밀번호 설정됨' : '🔓 현재 비밀번호 없음';
+      statusEl.innerHTML = '🔒 비밀번호를 바꾸면 다음 입장부터 새 비밀번호를 써요.';
     }
   }
   // 입력창 초기화
@@ -3337,7 +3293,7 @@ function openPasswordSetting(forced) {
   if (ci) ci.value = '';
   if (msg) { msg.textContent = ''; msg.style.color = 'var(--txt3)'; }
   // 강제 모드일 때 placeholder 변경
-  if (ni) ni.placeholder = forced ? '비밀번호 입력 (4자 이상)' : '새 비밀번호 (비우면 삭제)';
+  if (ni) ni.placeholder = '새 비밀번호 (4자 이상)';
   popup.style.display = 'flex';
   setTimeout(function(){ if(ni) ni.focus(); }, 100);
 }
@@ -3359,38 +3315,27 @@ async function savePwSetting() {
     msg.textContent = '비밀번호를 반드시 설정해야 해요!';
     return;
   }
-  // 비밀번호 삭제 (빈 칸)
-  if (!newPw) {
-    if (!confirm('비밀번호를 삭제할까요? 다음부터 바로 접속 가능해집니다.')) return;
-  } else {
-    if (newPw.length < 4) {
-      msg.style.color = 'var(--red,#f87171)';
-      msg.textContent = '비밀번호는 4자 이상이어야 해요';
-      return;
-    }
-    if (newPw !== confPw) {
-      msg.style.color = 'var(--red,#f87171)';
-      msg.textContent = '비밀번호가 일치하지 않아요';
-      return;
-    }
+  if (newPw.length < 4) {
+    msg.style.color = 'var(--red,#f87171)';
+    msg.textContent = '비밀번호는 4자 이상이어야 해요';
+    return;
+  }
+  if (newPw !== confPw) {
+    msg.style.color = 'var(--red,#f87171)';
+    msg.textContent = '비밀번호가 일치하지 않아요';
+    return;
   }
 
   try {
-    await DB.saveStudentPassword(state.stuId, newPw);
-    // 로컬 students 캐시 업데이트
-    if (state.students[state.stuId]) {
-      state.students[state.stuId].password = newPw;
-    }
+    await DB.changeMyPassword(newPw);
     msg.style.color = 'var(--grn,#4ade80)';
-    msg.textContent = newPw ? '✓ 비밀번호가 설정됐어요!' : '✓ 비밀번호가 삭제됐어요';
+    msg.textContent = '✓ 비밀번호를 바꿨어요';
     _pwForced = false;
-    // 이 탭에서 다시 안 뜨게 마킹
-    sessionStorage.setItem('pw_done_' + state.stuId, '1');
-    if (state.students[state.stuId]) state.students[state.stuId].password = newPw;
     setTimeout(closePwSetting, 1200);
   } catch(e) {
     msg.style.color = 'var(--red,#f87171)';
-    msg.textContent = '저장 오류: ' + e.message;
+    msg.textContent = (e && e.code === 'auth/requires-recent-login')
+      ? '보안을 위해 나갔다가 다시 들어온 뒤 바꿔 주세요' : '저장 오류: ' + (e.code || e.message);
   }
 }
 
@@ -3432,9 +3377,9 @@ function quickGoTeacher() {
 async function doQuickTeacher() {
   var pw = document.getElementById('quick-teacher-pw').value;
   var err = document.getElementById('quick-teacher-err');
-  var correct = state.settings.teacherPw || '1234';
-  if (pw === correct) {
-    localStorage.setItem('teacher_pw', pw);
+  var ok = false;
+  try { ok = await DB.teacherLogin(pw); } catch (e) {}
+  if (ok) {
     var popup = document.getElementById('quick-teacher-popup');
     if (popup) popup.remove();
     window.location.href = 'teacher.html';
@@ -3564,24 +3509,13 @@ function showWordOfDay() {
 function goToReview() {} // review-alert onclick에서 직접 처리
 
 function logout() {
-  // 자동로그인 해제 여부
-  if (localStorage.getItem('auto_stuId')) {
-    if (!confirm('자동 로그인도 해제할까요?')) {
-      // 자동로그인 유지 - 세션만 클리어
-    } else {
-      localStorage.removeItem('auto_stuId');
-      localStorage.removeItem('auto_stuName');
-    }
-  }
+  DB.signOut().catch(function() {});
   state.stuId = null; state.stuName = null;
   sessionStorage.clear();
   document.getElementById('view-login').style.display = 'block';
   document.getElementById('view-main').style.display = 'none';
   document.getElementById('stu-input').value = '';
   document.getElementById('stu-id').value = '';
-  // 자동로그인 체크박스 상태 반영
-  var chk = document.getElementById('auto-login-chk');
-  if (chk) chk.checked = !!localStorage.getItem('auto_stuId');
 }
 
 function showToast(msg) { showToastGlobal(msg); }
@@ -3604,9 +3538,9 @@ function showHome() {
 }
 async function doLogin() {
   const pw = document.getElementById('pw-input').value;
-  const correct = state.settings.teacherPw || '1234';
-  if (pw === correct) {
-    localStorage.setItem('teacher_pw', pw);
+  let ok = false;
+  try { ok = await DB.teacherLogin(pw); } catch (e) {}
+  if (ok) {
     window.location.href = 'teacher.html';
   } else {
     document.getElementById('pw-err').textContent = '비밀번호가 틀렸습니다';
@@ -3614,10 +3548,6 @@ async function doLogin() {
   }
 }
 
-// Close dropdown on outside click
-document.addEventListener('click', e => {
-  if (!e.target.closest('.inp-wrap')) document.getElementById('stu-dd').style.display = 'none';
-});
 
 init();
 </script>
