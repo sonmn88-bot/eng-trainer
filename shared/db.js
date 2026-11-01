@@ -82,6 +82,21 @@ const DB = {
     await update(ref(db, path), curr);
   },
 
+  // 퀴즈에서 맞힌 단어 기록 (홈 주간 진도용). 키: 소문자 단어를 URI 인코딩('.'도 인코딩)
+  _wordKey(word) {
+    return encodeURIComponent(String(word || '').toLowerCase()).replace(/\./g, '%2E');
+  },
+  async markCorrect(stuId, word) {
+    if (!stuId || stuId === 'guest' || !word) return;
+    const { db, ref, update } = await initDB();
+    await update(ref(db, `students/${stuId}/correctWords`), { [this._wordKey(word)]: Date.now() });
+  },
+  async getCorrectWords(stuId) {
+    const { db, ref, get } = await initDB();
+    const snap = await get(ref(db, `students/${stuId}/correctWords`));
+    return snap.exists() ? snap.val() : {};
+  },
+
   async getWeakWords(stuId) {
     const { db, ref, get } = await initDB();
     const snap = await get(ref(db, `students/${stuId}/weakWords`));

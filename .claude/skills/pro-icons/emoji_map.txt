@@ -107,3 +107,4 @@
 💥 lightning:duotone red
 📄 file-text:duotone muted
 ☐ square muted
+🌪️ wind:duotone blue

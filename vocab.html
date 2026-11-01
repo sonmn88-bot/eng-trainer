@@ -1220,6 +1220,7 @@ async function submitBlank() {
   // DB 기록
   try {
     await DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect);
+    if (isCorrect) DB.markCorrect(STU_ID, w[0]).catch(function(){});
   } catch(e) {}
 }
 
@@ -2037,7 +2038,7 @@ function answerConfuse(idx) {
   document.getElementById('confuse-next-btn').style.display = 'block';
   document.getElementById('confuse-score').textContent = '✓' + confuse.correct + ' ✗' + confuse.wrong;
 
-  try { DB.updateWeakWord(STU_ID, q.word, q.ko, isCorrect); } catch(e) { console.warn('저장 실패', e); }
+  try { DB.updateWeakWord(STU_ID, q.word, q.ko, isCorrect); if (isCorrect) DB.markCorrect(STU_ID, q.word).catch(function(){}); } catch(e) { console.warn('저장 실패', e); }
 }
 
 function nextConfuse() {
@@ -2162,7 +2163,8 @@ function togglePinSet(setId) {
   if (REC_SET) {
     setTimeout(function() {
       selectSet(REC_SET).then(function() {
-        if (REC_WEEK > 0) setTimeout(function() { selectWeek(REC_WEEK); }, 400);
+        // 주차 버튼도 선택 상태로 보여주고 해당 주차 선택
+        if (REC_WEEK > 0) setTimeout(function() { selectRange('week'); selectWeek(REC_WEEK); }, 400);
       });
     }, 300);
   }
@@ -2317,20 +2319,7 @@ function buildWeekGrid() {
   // 단어장 파일의 Day 태그 기반으로 주차 분류
   // Day 태그 없으면 단어장별 기본값 사용
   var defaultPerWeek = currentSet && currentSet.wordsPerWeek ? currentSet.wordsPerWeek : 100;
-  // Day 태그가 있는지 확인
-  var hasDayTag = allWords.length > 0 && allWords[0][2] && allWords[0][2].startsWith('Day ');
-  var weeks = {};
-  for (var i = 0; i < allWords.length; i++) {
-    var wk;
-    if (hasDayTag && allWords[i][2]) {
-      wk = parseInt(allWords[i][2].replace('Day ','')) || (Math.floor(i / defaultPerWeek) + 1);
-    } else {
-      wk = Math.floor(i / defaultPerWeek) + 1;
-    }
-    if (!weeks[wk]) weeks[wk] = { words: [], count: 0 };
-    weeks[wk].words.push(allWords[i]);
-    weeks[wk].count++;
-  }
+  var weeks = Utils.groupByWeek(allWords, defaultPerWeek);
   window._weekWords = weeks;
   window._weeks = weeks;
 
@@ -3189,7 +3178,7 @@ async function submitAns() {
   quiz.results.push(histEntry);
   if (!quiz.history) quiz.history = [];
   quiz.history.push(histEntry);
-  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); } catch(e) { console.warn('저장 실패', e); }
+  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); if (isCorrect) DB.markCorrect(STU_ID, w[0]).catch(function(){}); } catch(e) { console.warn('저장 실패', e); }
   // XP 지급
   var xpAmt = isCorrect ? (currentMode==='weak'?window.XP_RULES.weak_correct:window.XP_RULES.quiz_correct) : window.XP_RULES.quiz_wrong;
   giveXP(xpAmt);
@@ -3979,7 +3968,7 @@ function answerChoice(i) {
   else { choice.wrong++; choice.combo = 0; }
   choice.results.push({ word: w[0], ko: w[1], correct: isCorrect });
 
-  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); } catch(e) { console.warn('저장 실패', e); }
+  try { DB.updateWeakWord(STU_ID, w[0], w[1], isCorrect); if (isCorrect) DB.markCorrect(STU_ID, w[0]).catch(function(){}); } catch(e) { console.warn('저장 실패', e); }
   // XP 지급
   giveXP(isCorrect ? (window.XP_RULES&&window.XP_RULES.choice_correct||5) : (window.XP_RULES&&window.XP_RULES.quiz_wrong||2));
 

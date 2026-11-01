@@ -1,5 +1,20 @@
 // ── Utils ──────────────────────────────────────────────────────────────────
 const Utils = {
+  // 단어 배열을 주차별로 묶음 (Day 태그 우선, 없으면 perWeek개씩). vocab 주차 그리드·홈 주간 진도 공통
+  groupByWeek(words, perWeek) {
+    perWeek = perWeek || 100;
+    var hasDayTag = words.length > 0 && words[0][2] && String(words[0][2]).startsWith('Day ');
+    var weeks = {};
+    for (var i = 0; i < words.length; i++) {
+      var wk = (hasDayTag && words[i][2]) ? (parseInt(String(words[i][2]).replace('Day ', '')) || (Math.floor(i / perWeek) + 1))
+                                         : Math.floor(i / perWeek) + 1;
+      if (!weeks[wk]) weeks[wk] = { words: [], count: 0 };
+      weeks[wk].words.push(words[i]);
+      weeks[wk].count++;
+    }
+    return weeks;
+  },
+
 
   // ── TTS ──
   speak(text, rate) {
