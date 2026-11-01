@@ -905,15 +905,31 @@
 })();
 </script>
 <script src="data/_index.js"></script>
-<script src="data/words/mnemonics.js"></script>
 <script src="data/words/word-grades.js"></script>
 <script src="data/words/badge_data.js"></script>
 <script src="data/words/confuse-pairs.js"></script>
-<!-- merged into main script -->
-<script src="data/words/examples.js"></script>
-<script src="data/words/examples-extra.js"></script>
-<script src="data/words/ebs-examples-intro.js"></script>
-<script src="data/words/ebs-examples-basic.js"></script>
+<script>
+// 예문·연상법(약 1.4MB)은 첫 화면을 그린 뒤 순서대로 받는다 (첫 로딩 속도)
+window.loadExtras = (function() {
+  var p = null;
+  var files = ['data/words/mnemonics.js', 'data/words/examples.js', 'data/words/examples-extra.js',
+               'data/words/ebs-examples-intro.js', 'data/words/ebs-examples-basic.js'];
+  return function() {
+    if (p) return p;
+    p = files.reduce(function(chain, src) {
+      return chain.then(function() {
+        return new Promise(function(res) {
+          var sc = document.createElement('script');
+          sc.src = src; sc.onload = res; sc.onerror = res;
+          document.head.appendChild(sc);
+        });
+      });
+    }, Promise.resolve()).then(function() { window._extrasReady = true; });
+    return p;
+  };
+})();
+window.addEventListener('load', function() { setTimeout(window.loadExtras, 300); });
+</script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
 
@@ -1098,6 +1114,12 @@ function goQuizFromFlip() {
 var blank = { words: [], idx: 0, correct: 0, wrong: 0, results: [] };
 
 function goBlankQuiz() {
+  // 예문 파일을 아직 받는 중이면 받은 뒤 시작
+  if (!window._extrasReady) {
+    showToast('예문 불러오는 중…');
+    window.loadExtras().then(goBlankQuiz);
+    return;
+  }
   // 예문 있는 단어만 필터링 (없음 체크용)
   var src = (window._selectedWords || allWords).slice();
   var withEx = src.filter(function(w) {
@@ -1797,8 +1819,8 @@ function initSetView() {
 async function loadWordCount(setInfo, studiedCount) {
   var el = document.getElementById(`cnt-${setInfo.id}`);
   try {
-    var data = await loadWordFile(setInfo);
-    var total = data.length;
+    // 목록에서는 _index.js의 wordCount를 써서 단어 파일을 받지 않는다 (첫 화면 속도)
+    var total = setInfo.wordCount || (await loadWordFile(setInfo)).length;
     var studied = studiedCount || 0;
     el.textContent = `${total.toLocaleString()} 단어`;
 
@@ -2058,7 +2080,15 @@ function onWordSearch(val) {
     return;
   }
   clearTimeout(_searchTimer);
-  _searchTimer = setTimeout(function() { doWordSearch(val.trim()); }, 200);
+  _searchTimer = setTimeout(function() {
+    // 검색은 전체 단어장이 필요: 아직 안 받은 파일만 받아서 검색
+    var pending = WORD_CATALOG.filter(function(s) { return !window[s.varName]; });
+    if (!pending.length) { doWordSearch(val.trim()); return; }
+    var cnt = document.getElementById('word-search-count');
+    if (resultEl && cnt) { resultEl.style.display = 'block'; cnt.textContent = '단어장 불러오는 중…'; document.getElementById('word-search-list').innerHTML = ''; }
+    Promise.all(pending.map(function(s) { return loadWordFile(s).catch(function() {}); }))
+      .then(function() { doWordSearch(val.trim()); });
+  }, 200);
 }
 
 function doWordSearch(q) {

@@ -1,5 +1,6 @@
 // 예문 데이터 - 수능 핵심 단어 (최종 완성본)
-window.EXAMPLES = {
+// 내 단어 예문이 먼저 들어와 있을 수 있으므로 덮어쓰지 않고 합친다
+window.EXAMPLES = Object.assign(window.EXAMPLES || {}, {
   'a handful of': {en: 'A handful of powerful habits can transform every area of your life.', ko: '소수의 강력한 습관들이 삶의 모든 분야를 변화시킬 수 있다.'},
   'abandon': {en: 'She abandoned her plan after the funding fell through.', ko: '자금이 무산되자 그녀는 계획을 포기했다.'},
   'abatement': {en: 'Noise abatement laws protect residents from excessive sound.', ko: '소음 감소 법이 주민들을 과도한 소리로부터 보호한다.'},
@@ -4108,4 +4109,4 @@ window.EXAMPLES = {
   'zeal': {en: 'Approach every task with zeal and enthusiasm.', ko: '모든 과제에 열정과 열의를 가지고 접근하라.'},
   'zealous': {en: 'Be zealous in your pursuit of growth and relentless in your practice.', ko: '성장 추구에 열성적이고 연습에 끊임없어라.'},
   'zone': {en: 'Push the edges of your zone of comfort and watch it expand.', ko: '안전 지대의 경계를 밀어내면 확장되는 것을 지켜봐라.'},
-};
+});

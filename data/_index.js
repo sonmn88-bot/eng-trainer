@@ -3,6 +3,7 @@
 const WORD_CATALOG = [
   {
     id:       'personal',
+    wordCount: 2278, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     '전체본',
     subname:  '선생님 직접 수집',
     icon:     '⭐',
@@ -15,6 +16,7 @@ const WORD_CATALOG = [
   },
   {
     id:       'core',
+    wordCount: 2283, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     '수능 핵심 필수',
     subname:  'AI + 교육부 선정',
     icon:     '🎯',
@@ -29,6 +31,7 @@ const WORD_CATALOG = [
   },
   {
     id:       'wm-basic',
+    wordCount: 1150, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     'WM 고등 Basic',
     subname:  'Word Master',
     icon:     '📗',
@@ -41,6 +44,7 @@ const WORD_CATALOG = [
   },
   {
     id:       'wm-hyper',
+    wordCount: 1000, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     'WM Hyper 1000',
     subname:  'Word Master',
     icon:     '📘',
@@ -53,6 +57,7 @@ const WORD_CATALOG = [
   },
   {
     id:       'wm-suneung',
+    wordCount: 2000, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     'WM 수능 2000',
     subname:  'Word Master',
     icon:     '📙',
@@ -71,6 +76,7 @@ const WORD_CATALOG = [
   // },
   {
     id:       'wm-edu',
+    wordCount: 2974, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     '교육부 기본어휘',
     subname:  '교육부 공식 선정',
     icon:     '📚',
@@ -83,6 +89,7 @@ const WORD_CATALOG = [
   },
   {
     id:       'ebs-intro',
+    wordCount: 960, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     'EBS 중학 입문',
     subname:  'MY VOCA COACH',
     icon:     '🌱',
@@ -97,6 +104,7 @@ const WORD_CATALOG = [
   },
   {
     id:       'ebs-basic',
+    wordCount: 1170, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     'EBS 중학 기본',
     subname:  'MY VOCA COACH',
     icon:     '📘',
@@ -111,6 +119,7 @@ const WORD_CATALOG = [
   },
   {
     id:       'ebs-adv',
+    wordCount: 1176, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     'EBS 중학 실력',
     subname:  'MY VOCA COACH',
     icon:     '📕',
