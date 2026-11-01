@@ -108,3 +108,11 @@
 📄 file-text:duotone muted
 ☐ square muted
 🌪️ wind:duotone blue
+✉️ envelope-simple:duotone muted
+📨 envelope-simple:duotone muted
+📩 envelope-simple:duotone muted
+📥 tray-arrow-down:duotone blue
+📤 tray-arrow-up:duotone blue
+💾 floppy-disk:duotone muted
+🔍 magnifying-glass:duotone muted
+🔎 magnifying-glass:duotone muted

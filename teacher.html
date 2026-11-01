@@ -11,7 +11,49 @@
 <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
 <title>선생님 모드</title>
 <link rel="stylesheet" href="shared/theme.css">
+<script src="shared/icons.js"></script>
 <style>
+/* ── 선생님 화면 리뉴얼 (DESIGN.md 관리자 다이얼 2·2·7: 촘촘하게, 표처럼) ── */
+.class-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.cs-cell { background: var(--sur); border: 1px solid var(--bdr); border-radius: var(--r); padding: 12px 14px; }
+.cs-label { font-size: 12px; color: var(--txt3); }
+.cs-val { font-size: 22px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.cs-val small { font-size: 13px; font-weight: 600; color: var(--txt3); margin-left: 1px; }
+.c-red { color: var(--red) !important; }
+.list-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.list-head-r { font-size: 11px; color: var(--txt3); }
+.stu-main { flex: 1; min-width: 0; }
+.stu-card .stu-name { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; }
+.stu-card .stu-meta { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--txt3); margin-top: 2px; }
+.stu-card .stu-meta > span + span::before { content: '·'; margin-right: 6px; color: var(--txt3); }
+.stu-card .stu-meta > span:empty { display: none; }
+.stu-memo { color: var(--txt2); }
+.stu-score { min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+.stu-score b { font-size: 17px; font-weight: 800; color: var(--txt); }
+.stu-score small { font-size: 11px; color: var(--txt3); margin-left: 1px; }
+.stu-caret { width: 16px; height: 16px; color: var(--txt3); flex-shrink: 0; }
+.stu-chip-wrap span { font-size: 11px !important; }
+.t-summary { cursor: pointer; font-size: 15px; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
+.mock-row { display: grid; grid-template-columns: 1fr 52px 44px 92px; gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--bdr); font-size: 13px; color: var(--txt2); font-variant-numeric: tabular-nums; }
+.mock-row > span:not(:first-child) { text-align: right; }
+.mock-head { border-top: 0; font-size: 11px; color: var(--txt3); padding-top: 0; }
+.mock-name { color: var(--txt); font-weight: 600; }
+.mock-score { color: var(--gold); font-weight: 800; font-size: 15px; }
+/* 학생 상세: 촘촘한 지표 */
+.detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.detail-actions .btn { min-height: 40px; font-size: 13px; }
+.metrics { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)) !important; gap: 8px !important; margin-bottom: 16px !important; }
+.metric { padding: 10px 12px !important; text-align: left !important; }
+.metric-lbl { font-size: 12px !important; text-transform: none !important; letter-spacing: 0 !important; font-weight: 500 !important; }
+.metric-val { font-family: var(--font-body) !important; font-size: 20px !important; font-weight: 800 !important; font-variant-numeric: tabular-nums; }
+.weak-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid var(--bdr); }
+.weak-w { font-size: 15px; font-weight: 600; }
+.weak-n { font-size: 12px; color: var(--red); font-weight: 600; font-variant-numeric: tabular-nums; }
+/* 주 버튼은 섹션당 하나: 입력칸 옆 작은 저장 버튼은 보조 스타일 */
+.tsec div[style*="display:flex"] > .btn-gold { background: var(--sur2); color: var(--txt); border-color: var(--bdr2); font-weight: 600; }
+[data-theme="light"] .tsec div[style*="display:flex"] > .btn-gold { color: var(--txt); }
+.seg-btn.active { background: var(--gold-bg) !important; color: var(--gold) !important; border-color: var(--gold-bdr) !important; }
+.seg-btn { min-height: 40px !important; font-size: 14px !important; }
 .stu-card {
   display: flex; align-items: center; gap: 12px;
   padding: .875rem 0; border-bottom: 1px solid var(--bdr);
@@ -58,16 +100,16 @@
 
 <div class="topbar">
   <div class="logo">
-    <div class="logo-mark">🎓</div>
+    <div class="logo-mark"><i data-icon="chalkboard-teacher"></i></div>
     <div>
-      <div class="logo-text-main">선생님 모드</div>
-      <div class="logo-text-sub">Teacher Dashboard</div>
+      <div class="logo-text-main">선생님</div>
+      <div class="logo-text-sub">Dashboard</div>
     </div>
   </div>
-  <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px" title="테마 전환">🌙</button>
-        <div style="display:flex;gap:8px;align-items:center">
-    <button class="btn btn-ghost btn-sm" onclick="previewStudentMode()" title="학생 모드로 전환">👤 학생 모드</button>
-    <button class="btn btn-ghost" onclick="logout()">나가기 ›</button>
+  <div style="display:flex;gap:2px;align-items:center">
+    <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" class="icon-btn" title="테마 전환" aria-label="테마 전환"><i data-icon="moon" class="th-dark"></i><i data-icon="sun" class="th-light"></i></button>
+    <button class="btn btn-ghost" onclick="previewStudentMode()" title="학생 화면으로 보기" style="font-size:13px">학생 화면</button>
+    <button class="btn btn-ghost" onclick="logout()" style="font-size:13px">나가기</button>
   </div>
 </div>
 
@@ -85,19 +127,25 @@
 
 <!-- ══ 학생 탭 ══ -->
 <div class="tsec active" id="ts-students">
+  <div class="class-sum" id="class-sum">
+    <div class="cs-cell"><div class="cs-label">오늘 접속</div><div class="cs-val"><span id="cs-today">-</span><small id="cs-total"></small></div></div>
+    <div class="cs-cell"><div class="cs-label">미접속</div><div class="cs-val" id="cs-absent">-</div></div>
+    <div class="cs-cell"><div class="cs-label">모의시험 평균</div><div class="cs-val" id="cs-mock">-</div></div>
+  </div>
   <div class="card card-sm">
-    <p class="sec-title mb-35">등록 학생 <span id="stu-count" class="badge b-gold" style="vertical-align:middle"></span></p>
+    <div class="list-head"><p class="sec-title m-0">학생 <span id="stu-count" class="badge b-gold" style="vertical-align:middle"></span></p>
+      <span class="list-head-r">최근 접속 · 모의시험</span></div>
     <div id="stu-list"><div class="empty">학생이 없습니다</div></div>
   </div>
 
   <div class="card card-sm">
     <details open>
-      <summary style="cursor:pointer;font-size:14px;font-weight:800;min-height:44px">모의시험 결과 (전체 학생)</summary>
+      <summary class="t-summary">모의시험 결과</summary>
       <div id="mock-overview" style="margin-top:.5rem"><div class="empty py-2">불러오는 중…</div></div>
     </details>
   </div>
 
-  <details class="card card-sm mb-4"><summary style="cursor:pointer;font-size:14px;font-weight:800;min-height:44px">＋ 학생 추가</summary>
+  <details class="card card-sm mb-4"><summary class="t-summary">학생 추가</summary>
   <div style="margin-top:.5rem">
     <div style="display:flex;gap:8px;margin-bottom:.875rem">
       <input id="new-stu-name" type="text" placeholder="학생 이름"
@@ -121,13 +169,12 @@
   <!-- 학생 상세 패널 -->
   <div id="stu-detail" style="display:none">
     <div class="card">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('stu-detail').style.display='none'">← 목록</button>
-        <div class="flex-1">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem">
+        <button class="icon-btn" onclick="document.getElementById('stu-detail').style.display='none'" aria-label="목록으로" title="목록으로"><i data-icon="arrow-left"></i></button>
+        <div class="flex-1" style="min-width:0">
           <div style="display:flex;align-items:center;gap:6px">
-            <div style="font-size:15px;font-weight:600" id="detail-name"></div>
-            <button onclick="startRenameStudent()" id="rename-btn"
-              style="background:none;border:none;font-size:12px;color:var(--txt3);cursor:pointer;padding:2px 4px" title="이름 변경">✏️</button>
+            <div style="font-size:18px;font-weight:800" id="detail-name"></div>
+            <button onclick="startRenameStudent()" id="rename-btn" class="icon-btn" title="이름 변경" aria-label="이름 변경" style="width:36px;height:36px;min-height:36px"><i data-icon="note-pencil"></i></button>
           </div>
           <div id="rename-form" style="display:none;display:none;gap:4px;margin-top:4px">
             <input id="rename-input" type="text" style="font-size:13px;padding:4px 8px;flex:1;min-width:0">
@@ -136,8 +183,10 @@
           </div>
           <div id="detail-joined" class="muted-sm"></div>
         </div>
-        <button class="btn btn-gold btn-sm" onclick="openExportPanel()">📋 시험 단어</button>
-        <button class="btn btn-ghost btn-sm" onclick="generateGrowthReport()">📊 리포트</button>
+      </div>
+      <div class="detail-actions">
+        <button class="btn" onclick="openExportPanel()">시험 단어</button>
+        <button class="btn" onclick="generateGrowthReport()">성장 리포트</button>
       </div>
       <div class="metrics" id="detail-metrics"></div>
       <div id="detail-weak" style="margin-top:.5rem"></div>
@@ -933,16 +982,18 @@ function renderStudents() {
       daysSince = Math.round((today0 - last0) / 86400000);
     }
     var absentThreshold = parseInt((settings && settings.absentDays) || 3);
-    var alertBadge = (daysSince >= absentThreshold && daysSince < 999) ? '<span style="font-size:10px;color:var(--red,#e53935);font-weight:700;margin-left:4px">⚠️ ' + (daysSince >= 7 ? '7일+' : daysSince + '일') + ' 미접속</span>' : '';
-    var metaText = s.lastSeen ? '최근: ' + new Date(s.lastSeen).toLocaleDateString('ko') : '등록: ' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('ko') : '-');
-    var memoText = s.memo ? '<div style="font-size:10px;color:var(--txt3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">📝 ' + s.memo + '</div>' : '';
-    // 메시지 뱃지 (초기엔 비어있고 loadStuMessageBadges로 채워짐)
-    var msgBadge = '<span id="msg-badge-' + s.id + '" style="font-size:10px;margin-left:4px"></span>';
-    var lvBadge = '<span id="lv-badge-' + s.id + '" style="font-size:10px;color:var(--txt3);margin-left:4px"></span><span id="mock-badge-' + s.id + '" style="font-size:10px;margin-left:4px"></span>';
+    var isAbsent = daysSince >= absentThreshold && daysSince < 999;
+    var rel = daysSince === 999 ? '접속 기록 없음' : daysSince === 0 ? '오늘' : daysSince === 1 ? '어제' : daysSince + '일 전';
+    var esc = function(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
     var card = '<div class="stu-card" data-id="' + s.id + '">' +
-      '<div class="flex-1"><div class="stu-name">' + s.name + alertBadge + msgBadge + lvBadge + '</div>' +
-      '<div class="stu-meta">' + metaText + '</div>' + memoText + '</div>' +
-      '<span style="margin-left:8px;font-size:18px;color:var(--txt3)">›</span>' +
+      '<div class="stu-avatar">' + esc(String(s.name).slice(0,1)) + '</div>' +
+      '<div class="stu-main">' +
+        '<div class="stu-name">' + esc(s.name) + '<span id="msg-badge-' + s.id + '" class="stu-chip-wrap"></span></div>' +
+        '<div class="stu-meta"><span class="' + (isAbsent ? 'c-red' : '') + '">' + rel + (isAbsent ? ' · 미접속' : '') + '</span>' +
+          '<span id="lv-badge-' + s.id + '"></span>' + (s.memo ? '<span class="stu-memo" title="' + esc(s.memo) + '">메모</span>' : '') + '</div>' +
+      '</div>' +
+      '<div class="stu-score" id="mock-badge-' + s.id + '"></div>' +
+      Icon('caret-right', 'stu-caret') +
       '</div>';
     return card;
   }).join('');
@@ -951,6 +1002,22 @@ function renderStudents() {
   });
 
   // 메시지 읽음 상태 + 레벨 비동기 로드
+  // 반 현황 요약
+  var todayStr0 = new Date().toISOString().slice(0,10);
+  var absentTh = parseInt((settings && settings.absentDays) || 3);
+  var todayCnt = 0, absentCnt = 0;
+  arr.forEach(function(s) {
+    if (!s.lastSeen) return;
+    var d = Math.round((new Date(todayStr0 + 'T00:00:00') - new Date(s.lastSeen.slice(0,10) + 'T00:00:00')) / 86400000);
+    if (d === 0) todayCnt++;
+    if (d >= absentTh) absentCnt++;
+  });
+  document.getElementById('cs-today').textContent = todayCnt;
+  document.getElementById('cs-total').textContent = '/' + arr.length;
+  var abEl = document.getElementById('cs-absent');
+  abEl.textContent = absentCnt + '명';
+  abEl.classList.toggle('c-red', absentCnt > 0);
+
   loadStuMessageBadges(arr);
   loadStuLevelBadges(arr);
   loadMockOverview(arr);
@@ -970,14 +1037,19 @@ async function loadMockOverview(arr) {
     var avg = mocks.length ? Math.round(mocks.reduce(function(a,r){ return a + (r.score||0); }, 0) / mocks.length) : null;
     rows.push({ name: s.name, last: last, n: mocks.length, avg: avg });
     var b = document.getElementById('mock-badge-' + s.id);
-    if (b) b.innerHTML = last ? '<span style="color:var(--gold);font-weight:700">시험 ' + esc(last.score) + '점</span>' : '';
+    if (b) b.innerHTML = last ? '<b>' + esc(last.score) + '</b><small>점</small>' : '<small>-</small>';
   }));
   rows.sort(function(a,b){ return String((b.last && b.last.date) || '').localeCompare(String((a.last && a.last.date) || '')); });
-  if (!rows.some(function(r){ return r.n; })) { box.innerHTML = '<div class="empty py-2">아직 응시한 학생이 없어요</div>'; return; }
-  box.innerHTML = rows.map(function(r) {
-    return '<div class="list-item"><span style="font-weight:700">' + esc(r.name) + '</span><span style="font-size:12px;color:var(--txt2)">' +
-      (r.last ? esc(String(r.last.date).slice(5,10)) + ' · <b class="c-gold">' + esc(r.last.score) + '점</b> · ' + r.n + '회 · 평균 ' + r.avg + '점' : '응시 기록 없음') + '</span></div>';
-  }).join('');
+  var taken = rows.filter(function(r){ return r.n; });
+  var csMock = document.getElementById('cs-mock');
+  if (csMock) csMock.textContent = taken.length ? Math.round(taken.reduce(function(a,r){ return a + r.last.score; }, 0) / taken.length) + '점' : '-';
+  if (!taken.length) { box.innerHTML = '<div class="empty py-2">아직 응시한 학생이 없어요</div>'; return; }
+  box.innerHTML = '<div class="mock-row mock-head"><span>이름</span><span>최근</span><span>점수</span><span>응시·평균</span></div>' +
+    rows.map(function(r) {
+      return '<div class="mock-row"><span class="mock-name">' + esc(r.name) + '</span>' +
+        (r.last ? '<span>' + esc(String(r.last.date).slice(5,10).replace('-', '.')) + '</span><span class="mock-score">' + esc(r.last.score) + '</span><span>' + r.n + '회 · ' + r.avg + '점</span>'
+                : '<span>-</span><span>-</span><span>-</span>') + '</div>';
+    }).join('');
 }
 
 async function loadStuMessageBadges(arr) {
@@ -1016,8 +1088,7 @@ async function loadStuLevelBadges(arr) {
       var lv = (prof && prof.level) || 1;
       var el = document.getElementById('lv-badge-' + arr[i].id);
       if (el) {
-        el.textContent = LEVEL_ICONS[lv] + ' Lv.' + lv;
-        el.style.color = lv >= 8 ? 'var(--gold)' : lv >= 5 ? '#A78BFA' : 'var(--txt3)';
+        el.textContent = 'Lv.' + lv;
       }
       // 미접속 뱃지는 renderStudents의 alertBadge(lastSeen 기준)로 통일 처리됨
     } catch(e) {}
@@ -1117,11 +1188,9 @@ async function showStuDetail(stuId) {
     if (weak.length) {
       document.getElementById('detail-weak').innerHTML =
         '<p class="sec-title mb-25">취약 단어 TOP10</p>' +
-        weak.slice(0,10).map(function(w) {
-          return '<div class="list-item">' +
-            '<span style="font-family:var(--font-display);font-style:italic">' + w.word + '</span>' +
-            '<span class="badge b-red">틀림 ' + w.wrong + '회</span>' +
-            '</div>';
+        weak.slice().sort(function(a, b) { return (b.wrong || 0) - (a.wrong || 0); }).slice(0,10).map(function(w) {
+          return '<div class="weak-row"><span class="weak-w">' + w.word + '</span>' +
+            '<span class="weak-n">' + w.wrong + '회 틀림</span></div>';
         }).join('');
     }
   } catch(e) {
@@ -1137,7 +1206,7 @@ async function showStuDetail(stuId) {
     if (memoEl) memoEl.value = memo || '';
     // 로그인 상태 표시 (비밀번호는 Firebase가 암호화해 보관, 선생님도 볼 수 없음)
     var pwEl = document.getElementById('detail-pw');
-    if (pwEl) pwEl.textContent = s.uid ? '비밀번호 설정됨' : '첫 입장 때 학생이 비밀번호를 만듦';
+    if (pwEl) pwEl.textContent = s.uid ? '비밀번호 설정됨' : '첫 입장 때 설정 예정';
   } catch(e) {}
 
   // 마지막 메시지 불러오기
@@ -3297,7 +3366,7 @@ async function resetStudentPassword() {
     await DB.resetStudentLogin(selectedStuId);
     if (students[selectedStuId]) { delete students[selectedStuId].uid; delete students[selectedStuId].password; }
     var pwEl = document.getElementById('detail-pw');
-    if (pwEl) pwEl.textContent = '첫 입장 때 학생이 비밀번호를 만듦';
+    if (pwEl) pwEl.textContent = '첫 입장 때 설정 예정';
     if (msgEl) { msgEl.textContent = '✓ 초기화했습니다'; setTimeout(function(){ msgEl.textContent=''; }, 2500); }
   } catch(e) { if (msgEl) msgEl.textContent = '오류: ' + (e.code || e.message); }
 }
