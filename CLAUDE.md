@@ -17,6 +17,11 @@
 - `shared/` 공통: `db.js`(Firebase), `utils.js`, `theme.css`
 - `data/_index.js` 단어 데이터 목록, `data/words/*.js` 단어 세트(core-essential, confuse-pairs 등), `data/listening/`
 - `audio/` 듣기 음원
+## 수능 핵심 필수 단어장 (2026-11 리뉴얼)
+- `data/words/core-essential.js`: 1,800개 · 12주 × 150 · `Day N` = 주차. 1주차가 가장 중요(S등급), 주 안에서는 알파벳순. 이전 버전(2,283개·알파벳순 16주)은 `data/archive/core-essential-v1.js`
+- 개수를 바꾸면 `data/_index.js`의 `wordCount`·`totalWords`·`desc`도 같이 고칠 것 (목록 화면이 `wordCount`를 씀)
+- 학생 북마크·내 단어·학습기록은 단어 문자열 기준이라 단어장을 바꿔도 유지됨 (북마크 화면은 단어장 소속과 무관하게 표시)
+- 선생님 '이번 주 시험 범위'는 (단어장, 주차)로 저장됨 → 주차 구성을 바꾸면 시험 범위를 다시 지정해야 함
 
 ## 사용 실태 (우선순위 판단 기준)
 - 기기: 폰 > 아이패드 > 갤럭시탭 → 모바일 우선

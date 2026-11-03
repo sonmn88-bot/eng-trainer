@@ -16,17 +16,17 @@ const WORD_CATALOG = [
   },
   {
     id:       'core',
-    wordCount: 2283, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
+    wordCount: 1800, // 단어 파일 단어 수 (목록 화면 표시용, 파일 바꾸면 갱신)
     name:     '수능 핵심 필수',
-    subname:  'AI + 교육부 선정',
+    subname:  '빈출·중요도 선별',
     icon:     '🎯',
     file:     'core-essential.js',
     varName:  'WM_CORE',
     color:    '#F87171',
     tag:      'AI PICK',
     tagColor: '#F87171',
-    desc:     '수능 빈출 핵심어 + 교육부 선정 2,284개',
-    totalWords: 2284,
+    desc:     '수능 빈출 핵심 1,800개 · 중요도순 12주',
+    totalWords: 1800,
     wordsPerWeek: 150,
   },
   {
