@@ -28,6 +28,9 @@
 .stu-card .stu-meta > span + span::before { content: '·'; margin-right: 6px; color: var(--txt3); }
 .stu-card .stu-meta > span:empty { display: none; }
 .stu-memo { color: var(--txt2); }
+.stu-card .stu-meta { flex-wrap: wrap; row-gap: 1px; }
+.stu-col { flex-basis: 100%; color: var(--txt2); font-variant-numeric: tabular-nums; }
+.stu-card .stu-meta > .stu-col::before { content: none; }
 .stu-score { min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
 .stu-score b { font-size: 17px; font-weight: 800; color: var(--txt); }
 .stu-score small { font-size: 11px; color: var(--txt3); margin-left: 1px; }
@@ -990,7 +993,7 @@ function renderStudents() {
       '<div class="stu-main">' +
         '<div class="stu-name">' + esc(s.name) + '<span id="msg-badge-' + s.id + '" class="stu-chip-wrap"></span></div>' +
         '<div class="stu-meta"><span class="' + (isAbsent ? 'c-red' : '') + '">' + rel + (isAbsent ? ' · 미접속' : '') + '</span>' +
-          '<span id="lv-badge-' + s.id + '"></span>' + (s.memo ? '<span class="stu-memo" title="' + esc(s.memo) + '">메모</span>' : '') + '</div>' +
+          '<span id="lv-badge-' + s.id + '"></span>' + (s.memo ? '<span class="stu-memo" title="' + esc(s.memo) + '">메모</span>' : '') + '<span id="col-badge-' + s.id + '" class="stu-col"></span>' + '</div>' +
       '</div>' +
       '<div class="stu-score" id="mock-badge-' + s.id + '"></div>' +
       Icon('caret-right', 'stu-caret') +
@@ -1020,7 +1023,25 @@ function renderStudents() {
 
   loadStuMessageBadges(arr);
   loadStuLevelBadges(arr);
+  loadStuCollectionBadges(arr);
   loadMockOverview(arr);
+}
+
+// 학생 목록: 북마크·내 단어 개수 (한 번 불러온 값은 캐시)
+var _colCounts = {};
+async function loadStuCollectionBadges(arr) {
+  for (var i = 0; i < arr.length; i++) {
+    var id = arr[i].id, el = document.getElementById('col-badge-' + id);
+    if (!el) continue;
+    try {
+      if (!_colCounts[id]) {
+        var res = await Promise.all([DB.getBookmarks(id), DB.getMyWords(id)]);
+        _colCounts[id] = { bm: Object.keys(res[0] || {}).length, my: Object.values(res[1] || {}).filter(function(x){ return x && x.word; }).length };
+      }
+      var c = _colCounts[id];
+      el.textContent = '북마크 ' + c.bm + ' · 내 단어 ' + c.my;
+    } catch(e) {}
+  }
 }
 
 // 모의시험 결과: 학생 목록 배지 + 전체 표
@@ -1134,13 +1155,22 @@ async function loadStuExtras(stuId) {
       '<div class="metrics">' +
       '<div class="metric"><div class="metric-lbl">학습일</div><div class="metric-val mv-gold">' + Object.keys(days).length + '일</div></div>' +
       '<div class="metric"><div class="metric-lbl">시험 횟수</div><div class="metric-val mv-grn">' + wk.length + '</div></div>' +
-      '<div class="metric"><div class="metric-lbl">평균 점수</div><div class="metric-val mv-grn">' + wkAvg + '%</div></div>' +
-      '<div class="metric"><div class="metric-lbl">북마크</div><div class="metric-val mv-red">' + Object.keys(bm).length + '</div></div></div>';
+      '<div class="metric"><div class="metric-lbl">평균 점수</div><div class="metric-val mv-grn">' + wkAvg + '%</div></div></div>';
     var mocks = results.filter(function(r){ return r.mock; }).slice(-5).reverse();
     html += '<p class="sec-title" style="margin:1rem 0 .5rem">주간 모의시험 기록</p>' + (mocks.length ? mocks.map(function(r){
       return '<div class="list-item"><span>' + esc(String(r.date).slice(0,10)) + '</span><span class="badge b-gold">' + esc(r.score) + '점 · ' + esc(r.total) + '문항</span></div>';
     }).join('') : '<div class="empty" style="padding:.25rem 0">아직 응시 기록이 없어요</div>');
     var mine = Object.keys(my).map(function(k){ return my[k]; }).filter(function(x){ return x && x.word; });
+    _colCounts[stuId] = { bm: Object.keys(bm).length, my: mine.length };
+    var dm = document.getElementById('detail-metrics');
+    if (dm) {
+      dm.querySelectorAll('.metric-col').forEach(function(e){ e.remove(); });
+      dm.insertAdjacentHTML('beforeend',
+        '<div class="metric metric-col"><div class="metric-lbl">북마크</div><div class="metric-val">' + Object.keys(bm).length + '</div></div>' +
+        '<div class="metric metric-col"><div class="metric-lbl">내 단어</div><div class="metric-val">' + mine.length + '</div></div>');
+    }
+    var cb = document.getElementById('col-badge-' + stuId);
+    if (cb) cb.textContent = '북마크 ' + Object.keys(bm).length + ' · 내 단어 ' + mine.length;
     mine.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
     html += '<details class="mt-4"><summary style="cursor:pointer;font-size:13px;font-weight:700;min-height:44px">내 단어 ' + mine.length + '개 (학생이 직접 등록)</summary>' +
       (mine.length ? mine.slice(0, 100).map(function(x){
