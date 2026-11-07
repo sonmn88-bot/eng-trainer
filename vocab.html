@@ -2136,7 +2136,7 @@ function doWordSearch(q) {
 
 // 검색 결과에서 북마크 토글
 async function toggleSearchBm(word, ko) {
-  var added = await DB.toggleBookmark(STU_ID, word, ko);
+  var added = await toggleBookmarkSmart(word, ko);
   if (added !== null) {
     bookmarks = bookmarks || {};
     if (added) bookmarks[word.toLowerCase()] = { word, ko, addedAt: Date.now() };
@@ -4035,8 +4035,7 @@ function speedAnswer(know) {
     document.getElementById('speed-meaning-dont').style.display = 'none';
     document.getElementById('speed-meaning').textContent = w[1];
     // 북마크 버튼 상태 업데이트
-    var bmBtn = document.querySelector('#speed-check-panel .btn-ghost');
-    if (bmBtn) bmBtn.textContent = (window._bookmarks && window._bookmarks[w[0]]) ? '★' : '☆';
+    updateBookmarkBtn(w[0]);
   } else {
     // 몰라요 → 뜻 보여주고 북마크 옵션
     document.getElementById('speed-check-panel').style.display = 'none';
@@ -4261,7 +4260,7 @@ async function loadFolders() {
     foldersCache = await DB.getFolders(STU_ID);
   } catch(e) { foldersCache = {}; }
   // 북마크도 같이 최신화
-  try { bookmarks = await DB.getBookmarks(STU_ID) || {}; } catch(e) {}
+  try { await loadBookmarks(); } catch(e) {} // 소문자 기준 목록으로 다시 만듦 (원본 키 그대로 쓰면 대문자 단어를 못 찾음)
   renderFolderList();
   updateBookmarkCount();
 }
@@ -4342,7 +4341,7 @@ function renderBookmarkDetail(words) {
       '</div>' +
       '<div style="display:flex;gap:6px">' +
         '<button class="tts-btn" style="font-size:11px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
-        '<button class="tts-btn" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="removeBookmark(\'' + safeWord + '\')">✕</button>' +
+        '<button class="tts-btn" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="removeBookmark(\'' + safeWord + '\')" title="전체 북마크와 모든 폴더에서 해제">북마크 해제</button>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -4353,10 +4352,9 @@ function renderBookmarkDetail(words) {
 
 async function removeBookmark(word) {
   try {
-    await DB.toggleBookmark(STU_ID, word, ''); // false 반환 (삭제)
-    delete bookmarks[word.toLowerCase()];
+    var nf = await unbookmarkWord(word); // 전체 북마크 + 폴더에서 함께 제거
     updateBookmarkCount();
-    showToast('☆ 북마크 제거됐어요');
+    showToast('☆ 북마크를 해제했어요' + (nf ? ' · 폴더 ' + nf + '곳에서도 뺐어요' : ''));
     // 현재 뷰 다시 렌더
     if (currentFolderId === '__all__') openAllBookmarks();
   } catch(e) {}
@@ -4421,7 +4419,7 @@ function renderFolderDetail(fid) {
       '<span style="color:var(--txt3);font-size:12px;margin-left:8px">' + (w.ko||'') + '</span></div>' +
       '<div style="display:flex;gap:6px">' +
       '<button class="tts-btn" style="font-size:11px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
-      '<button class="tts-btn" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="removeFromFolder(\'' + safeWord + '\',\'' + fid + '\')">✕</button>' +
+      '<button class="tts-btn" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="removeFromFolder(\'' + safeWord + '\',\'' + fid + '\')" title="이 폴더에서만 빼기 (전체 북마크는 그대로)">폴더에서 빼기</button>' +
       '</div></div>';
   }).join('');
 
@@ -4484,6 +4482,7 @@ async function removeFromFolder(word, fid) {
       delete foldersCache[fid].words[key];
     }
     renderFolderDetail(fid);
+    showToast(isBookmarked(word) ? '이 폴더에서만 뺐어요 · 전체 북마크에는 그대로 있어요' : '폴더에서 뺐어요');
   } catch(e) {}
 }
 
@@ -4655,12 +4654,50 @@ async function loadBookmarks() {
   try {
     var raw = await DB.getBookmarks(STU_ID) || {};
     bookmarks = {};
-    Object.keys(raw).forEach(function(k) { var o = raw[k] || {}; bookmarks[String(o.word || k).toLowerCase()] = o; });
+    Object.keys(raw).forEach(function(k) {
+      var o = raw[k] || {}, lw = String(o.word || k).toLowerCase();
+      if (bookmarks[lw]) bookmarks[lw]._keys.push(k);
+      else bookmarks[lw] = Object.assign({}, o, { _keys: [k] });
+    });
     _bmLoaded = true;
     updateBookmarkCount();
   } catch(e) { bookmarks = {}; }
 }
 async function ensureBookmarks() { if (!_bmLoaded) await loadBookmarks(); }
+
+// 북마크 해제 = 전체 북마크 + 모든 폴더에서 함께 제거 (폴더는 북마크의 부분 목록이므로 남기면 어긋남)
+async function unbookmarkWord(word) {
+  var lw = String(word).toLowerCase();
+  await ensureBookmarks();
+  var entry = bookmarks[lw];
+  var keys = [DB._bk(word), DB._bk(lw)].concat(entry && entry._keys ? entry._keys : []);
+  keys = keys.filter(function(k, i, a) { return k && a.indexOf(k) === i; });
+  if (!Object.keys(foldersCache || {}).length) {
+    try { foldersCache = await DB.getFolders(STU_ID) || {}; } catch (e) {}
+  }
+  var refs = [];
+  Object.keys(foldersCache || {}).forEach(function(fid) {
+    var ws = (foldersCache[fid] && foldersCache[fid].words) || {};
+    Object.keys(ws).forEach(function(k) {
+      if (String((ws[k] || {}).word || '').toLowerCase() === lw) refs.push({ fid: fid, key: k });
+    });
+  });
+  await DB.unbookmarkEverywhere(STU_ID, keys, refs);
+  delete bookmarks[lw];
+  refs.forEach(function(r) { try { delete foldersCache[r.fid].words[r.key]; } catch (e) {} });
+  window._lastUnbookmarkFolders = refs.length;
+  return refs.length;
+}
+// 별 버튼: 지금 북마크 상태를 보고 추가/해제 (true = 추가됨, false = 해제됨)
+async function toggleBookmarkSmart(word, ko) {
+  await ensureBookmarks();
+  var lw = String(word).toLowerCase();
+  if (bookmarks[lw]) { await unbookmarkWord(word); return false; }
+  await DB.saveBookmark(STU_ID, word, ko || '');
+  bookmarks[lw] = { word: word, ko: ko || '', addedAt: Date.now(), _keys: [DB._bk(lw)] };
+  window._lastUnbookmarkFolders = 0;
+  return true;
+}
 
 function updateBookmarkCount() {
   var cnt = Object.keys(bookmarks).length;
@@ -4689,9 +4726,8 @@ async function doFlipBookmark(btn) {
   if (!word) return;
   var key = word.toLowerCase();
   try {
-    var added = await DB.toggleBookmark(STU_ID, word, ko||'');
+    var added = await toggleBookmarkSmart(word, ko||'');
     if (added) {
-      bookmarks[key] = { word, ko: ko||'', addedAt: Date.now() };
       btn.textContent = '⭐';
       btn.style.color = '#C8F25A';
       setTimeout(function(){ addToFolderPopup(word, ko||''); }, 100);
@@ -4709,12 +4745,7 @@ async function toggleBookmarkWord(word, ko, callback) {
   if (!word) return;
   var key = word.toLowerCase();
   try {
-    var added = await DB.toggleBookmark(STU_ID, word, ko||'');
-    if (added) {
-      bookmarks[key] = { word, ko: ko||'', addedAt: Date.now() };
-    } else {
-      delete bookmarks[key];
-    }
+    var added = await toggleBookmarkSmart(word, ko||'');
     updateBookmarkCount();
     if (callback) callback(added);
     showToast(added ? '⭐ 북마크 추가' : '☆ 북마크 제거');
@@ -4743,18 +4774,16 @@ async function toggleBookmarkCurrent() {
   if (!word) { showToast('북마크할 단어를 찾을 수 없어요'); return; }
   try {
     await ensureBookmarks();
-    var added = await DB.toggleBookmark(STU_ID, word, ko);
+    var added = await toggleBookmarkSmart(word, ko);
     if (added) {
-      bookmarks[word.toLowerCase()] = { word, ko, addedAt: Date.now() };
       updateBookmarkBtn(word);
       updateBookmarkCount();
       // 폴더 선택 팝업 (기존 addToFolderPopup 활용)
       setTimeout(function(){ addToFolderPopup(word, ko); }, 100);
     } else {
-      delete bookmarks[word.toLowerCase()];
       updateBookmarkBtn(word);
       updateBookmarkCount();
-      showToast('☆ 북마크를 해제했어요');
+      showToast('☆ 북마크를 해제했어요' + (window._lastUnbookmarkFolders ? ' · 폴더에서도 뺐어요' : ''));
       if (currentMode === 'bookmark') {
         var nextBtn = document.getElementById('btn-nxt');
         if (nextBtn && nextBtn.style.display === 'none') setTimeout(function(){ nextWord(); }, 400);
@@ -5280,7 +5309,7 @@ function quickGoTeacherFromPage() {
     d.querySelector('[data-a=keep]').onclick = function() { d.remove(); };
     d.querySelector('[data-a=del]').onclick = async function() {
       d.remove();
-      try { await DB.removeBookmark(STU_ID, word); delete bookmarks[word.toLowerCase()]; updateBookmarkBtn(word); updateBookmarkCount(); showToast('☆ 북마크를 해제했어요'); } catch (e) { showToast('해제에 실패했어요'); }
+      try { await unbookmarkWord(word); updateBookmarkBtn(word); updateBookmarkCount(); showToast('☆ 북마크를 해제했어요'); } catch (e) { showToast('해제에 실패했어요'); }
     };
     setTimeout(function() { if (d.parentNode) d.remove(); }, 12000);
   }

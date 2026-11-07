@@ -711,6 +711,208 @@ select option { background: var(--sur); }
 .search-ico { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--txt3); pointer-events: none; width: 18px; height: 18px; }
 .search-wrap input { padding-left: 42px; padding-right: 44px; }
 
+/* ── 복원: 예문 박스·목록 행·빈 화면·리스닝 플레이어·팁 카드·애니메이션 (1차 리뉴얼 때 실수로 지워졌던 부분) ── */
+/* ── Example Box ── */
+.ex-box {
+  background: var(--sur2);
+  border-radius: var(--rs);
+  padding: .75rem 1rem;
+  margin-bottom: .75rem;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--txt2);
+  border-left: 2px solid var(--gold-bdr);
+}
+.ex-en { font-style: normal; color: var(--txt); font-weight: 400; }
+.ex-ko { color: var(--txt2); }
+
+/* ── List Items ── */
+.list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bdr);
+  font-size: 13px;
+}
+.list-item:last-child { border-bottom: none; }
+
+/* ── Empty State ── */
+.empty {
+  color: var(--txt3);
+  font-size: 13px;
+  text-align: center;
+  padding: 3rem 0;
+  line-height: 2;
+}
+
+/* ── Password Screen ── */
+.pw-wrap { max-width: 360px; margin: 4rem auto; }
+
+/* ── Report Card ── */
+.report-card {
+  border: 1px solid var(--bdr);
+  border-radius: var(--rs);
+  padding: 1rem;
+  margin-bottom: .75rem;
+  background: var(--sur2);
+}
+
+/* ── Stat Bar ── */
+.stat-bar { height: 4px; border-radius: 2px; background: var(--sur3); overflow: hidden; margin-top: 5px; }
+.stat-fill { height: 100%; border-radius: 2px; transition: width .4s; }
+
+/* ── Listening Player ── */
+.player-card {
+  background: var(--sur);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+.player-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 1rem 0;
+}
+.player-progress {
+  flex: 1;
+  height: 4px;
+  background: var(--sur3);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+.player-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  border-radius: 2px;
+  pointer-events: none;
+  transition: width .1s linear;
+}
+.player-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--txt3);
+  min-width: 35px;
+  text-align: center;
+}
+.player-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--bdr2);
+  background: var(--sur2);
+  color: var(--txt);
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.player-btn:hover { border-color: var(--gold-bdr); color: var(--gold); background: var(--gold-bg); }
+.player-btn-main {
+  width: 52px; height: 52px;
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0C0C0E;
+  font-size: 20px;
+  box-shadow: 0 2px 12px rgba(200,242,90,.3);
+}
+.player-btn-main:hover {
+  background: var(--gold2);
+  border-color: var(--gold2);
+  color: #0C0C0E;
+}
+.speed-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--bdr);
+  background: var(--sur2);
+  color: var(--txt2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.speed-btn.active, .speed-btn:hover {
+  border-color: var(--gold-bdr);
+  color: var(--gold);
+  background: var(--gold-bg);
+}
+
+/* ── Script Panel ── */
+.script-panel {
+  background: var(--sur2);
+  border: 1px solid var(--bdr);
+  border-radius: var(--rs);
+  padding: 1rem 1.25rem;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--txt2);
+  margin-bottom: 1rem;
+  position: relative;
+}
+.script-panel .keyword {
+  color: var(--gold);
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 1px dashed var(--gold-bdr);
+  transition: color .15s;
+}
+.script-panel .keyword:hover { color: var(--gold2); }
+
+/* ── Tip Card ── */
+.tip-card {
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-bdr);
+  border-radius: var(--rs);
+  padding: .875rem 1rem;
+  font-size: 13px;
+  color: var(--txt);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* ── Keyword Popup ── */
+.kw-popup {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--sur3);
+  border: 1px solid var(--gold-bdr);
+  border-radius: var(--r);
+  padding: .875rem 1.25rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  min-width: 220px;
+  text-align: center;
+  animation: popup .2s ease-out;
+}
+.kw-popup-en { font-family: var(--font-body); font-size: 20px; font-weight: 700; font-style: normal; color: var(--gold); }
+.kw-popup-ko { font-size: 14px; color: var(--txt); margin-top: 4px; }
+
+/* ── Animations ── */
+@keyframes popup {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pop { animation: popup .2s ease-out; }
+.fade-in { animation: fadeIn .3s ease-out; }
+.slide-up { animation: slideUp .3s ease-out; }
+
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

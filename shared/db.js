@@ -387,7 +387,16 @@ const DB = {
 
   async saveBookmark(stuId, word, ko) {
     const { db, ref, set } = await initDB();
-    await set(ref(db, `bookmarks/${stuId}/${this._bk(word)}`), { word, ko: ko||'', addedAt: Date.now() });
+    // 키는 항상 소문자: 대소문자만 다른 중복 북마크가 생기지 않게 함
+    await set(ref(db, `bookmarks/${stuId}/${this._bk(String(word).toLowerCase())}`), { word, ko: ko||'', addedAt: Date.now() });
+  },
+  // 북마크 완전 해제: 전체 북마크(대소문자 다른 키 포함)와 폴더 안 같은 단어를 한 번에(전부 성공하거나 전부 실패) 제거
+  async unbookmarkEverywhere(stuId, bookmarkKeys, folderRefs) {
+    const { db, ref, update } = await initDB();
+    const u = {};
+    (bookmarkKeys || []).forEach(k => { if (k) u[`bookmarks/${stuId}/${k}`] = null; });
+    (folderRefs || []).forEach(r => { if (r && r.fid && r.key) u[`folders/${stuId}/${r.fid}/words/${r.key}`] = null; });
+    if (Object.keys(u).length) await update(ref(db), u);
   },
 
   async removeBookmark(stuId, word) {
@@ -395,18 +404,6 @@ const DB = {
     await remove(ref(db, `bookmarks/${stuId}/${this._bk(word)}`));
   },
 
-  async toggleBookmark(stuId, word, ko) {
-    const { db, ref, get, set, remove } = await initDB();
-    const r = ref(db, `bookmarks/${stuId}/${this._bk(word)}`);
-    const snap = await get(r);
-    if (snap.exists()) {
-      await remove(r);
-      return false; // 제거됨
-    } else {
-      await set(r, { word, ko: ko||'', addedAt: Date.now() });
-      return true; // 추가됨
-    }
-  },
 
 
   async migrateOldMemos() {
