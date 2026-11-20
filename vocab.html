@@ -3544,7 +3544,7 @@ function showResult(score, total, skipSave) {
         words: (window._selectedWords || []).map(function(w){ return w[0]; }),
         mock: !!window._mockTest,
         gate: !!window._gateTest
-      });
+      }).catch(function(e) { DB.logError('결과 저장', e); });
       window._mockTest = false;
       if (window._gateTest) { clearFlashPending(); window._gateTest = false; }
       if (window._prevSelected) { window._selectedWords = window._prevSelected; window._prevSelected = null; }
@@ -4789,7 +4789,7 @@ async function toggleBookmarkCurrent() {
         if (nextBtn && nextBtn.style.display === 'none') setTimeout(function(){ nextWord(); }, 400);
       }
     }
-  } catch(e) { showToast('북마크 처리에 실패했어요. 다시 눌러주세요'); }
+  } catch(e) { DB.logError('북마크', e); showToast('북마크 처리에 실패했어요. 다시 눌러주세요'); }
 }
 
 async function goBookmarkMode() {

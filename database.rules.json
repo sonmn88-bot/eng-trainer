@@ -108,6 +108,38 @@
         ".read": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true",
         ".write": "auth != null && root.child('students').child($sid).child('uid').val() === auth.uid || auth != null && root.child('admins').child(auth.uid).val() === true"
       }
+    },
+    "errors": {
+      "$day": {
+        "$id": {
+          ".write": "auth != null && !data.exists() && newData.exists() && $day.matches(/^\\d{4}-\\d{2}-\\d{2}$/)",
+          ".validate": "newData.hasChildren(['t', 'msg', 'page'])",
+          "t": {
+            ".validate": "newData.isNumber()"
+          },
+          "page": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "where": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "msg": {
+            ".validate": "newData.isString() && newData.val().length <= 300"
+          },
+          "stack": {
+            ".validate": "newData.isString() && newData.val().length <= 600"
+          },
+          "stu": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "ua": {
+            ".validate": "newData.isString() && newData.val().length <= 120"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
     }
   }
 }

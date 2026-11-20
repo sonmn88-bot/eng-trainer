@@ -785,3 +785,57 @@ const DB = {
   }
 
 };
+
+// ── 전체 백업 · 오류 기록 ─────────────────────────────
+// (관리자) DB 전체를 한 번에 읽어 백업 파일로. 복원은 학생 기본 정보만(기존 방식) — 나머지는 파일로 보관
+DB.exportAll = async function () {
+  const { db, ref, get } = await initDB();
+  return (await get(ref(db))).val() || {};
+};
+DB.getErrors = async function (days) {
+  const { db, ref, get } = await initDB();
+  const all = (await get(ref(db, 'errors'))).val() || {};
+  const from = new Date(Date.now() - (days || 7) * 86400000).toISOString().slice(0, 10);
+  const out = [];
+  Object.keys(all).forEach((day) => { if (day >= from) Object.values(all[day] || {}).forEach((e) => out.push(e)); });
+  return out;
+};
+DB.pruneErrors = async function (keepDays) {
+  const { db, ref, get, update } = await initDB();
+  const days = Object.keys((await get(ref(db, 'errors'))).val() || {});
+  const from = new Date(Date.now() - (keepDays || 30) * 86400000).toISOString().slice(0, 10);
+  const u = {};
+  days.forEach((d) => { if (d < from) u['errors/' + d] = null; });
+  if (Object.keys(u).length) await update(ref(db), u);
+};
+// 화면에서 난 오류를 errors/{날짜}에 남김 (로그인한 사용자만, 한 페이지에서 최대 5건, 같은 오류 1번)
+(function () {
+  var sent = 0, seen = {};
+  function stuOf() {
+    try { return sessionStorage.getItem('stuId') || new URLSearchParams(location.search).get('stu') || ''; } catch (e) { return ''; }
+  }
+  DB.logError = function (where, err) {
+    try {
+      var msg = String((err && (err.message || (err.reason && err.reason.message))) || err || '').slice(0, 300);
+      if (!msg || /Script error|ResizeObserver|Load failed|Failed to fetch/i.test(msg)) return;
+      var key = where + '|' + msg;
+      if (seen[key] || sent >= 5) return;
+      seen[key] = 1; sent++;
+      initDB().then(function (d) {
+        if (!_auth || !_auth.currentUser) return;
+        var day = new Date().toISOString().slice(0, 10);
+        return d.push(d.ref(d.db, 'errors/' + day), {
+          t: Date.now(),
+          page: (location.pathname.split('/').pop() || 'index.html').slice(0, 60),
+          where: String(where || '').slice(0, 60),
+          msg: msg,
+          stack: String((err && err.stack) || '').slice(0, 600),
+          stu: String(stuOf()).slice(0, 40),
+          ua: navigator.userAgent.slice(0, 120),
+        });
+      }).catch(function () {});
+    } catch (e) {}
+  };
+  window.addEventListener('error', function (e) { DB.logError('화면', e.error || e.message); });
+  window.addEventListener('unhandledrejection', function (e) { DB.logError('비동기', e.reason); });
+})();

@@ -143,6 +143,21 @@ async function securitySuite() {
   ok(await a.evaluate(() => DB.changeMyPassword('wrong', 'abcd22').then(() => false, () => true)), '학생 비번 변경: 현재 비번 틀리면 거부');
   ok(await a.evaluate(() => DB.changeMyPassword('abcd', 'abcd22').then(() => true, (e) => e.code)) === true, '학생 비번 변경: 현재 비번 맞으면 변경');
   ok(await studentLogin(await page(), '가나다', 'abcd22'), '…새 비번으로 입장');
+  // ── 오류 기록·전체 백업 ──
+  await a.evaluate(() => DB.logError('테스트', new Error('테스트 오류 123')));
+  await a.waitForTimeout(1500);
+  const day = new Date().toISOString().slice(0, 10);
+  const errs = Object.values((await getJ('errors/' + day)) || {});
+  ok(errs.some((e) => e.msg === '테스트 오류 123' && e.page && e.t), '학생 화면 오류가 errors/{날짜}에 기록됨');
+  const [ce] = await rest('errors/' + day + '/x', { method: 'PUT', body: JSON.stringify({ t: 1, msg: 'x', page: 'p' }) });
+  ok(ce === 401 || ce === 403, '로그인 없이 오류 기록 쓰기 차단 (' + ce + ')');
+  ok(await a.evaluate(async (day) => { try { const { db, ref, set } = await initDB(); await set(ref(db, 'errors/' + day + '/zz'), { t: 1, msg: 'x', page: 'p', extra: 'no' }); return false; } catch (e) { return true; } }, day), '정해진 항목 외 필드는 거부');
+  ok(await a.evaluate(async () => { try { await DB.getErrors(7); return false; } catch (e) { return true; } }), '학생은 오류 기록을 읽을 수 없음');
+  await t2.evaluate(() => { switchT('settings'); }); await t2.waitForTimeout(2000);
+  ok(/테스트 오류 123/.test(await t2.textContent('#error-list')), '선생님 설정 탭에 최근 오류 표시');
+  const dump = await t2.evaluate(async () => { const d = await DB.exportAll(); return Object.keys(d); });
+  ok(['students', 'results', 'loginIndex'].every((k) => dump.includes(k)), '전체 백업이 DB 전체를 담음 (' + dump.join(',') + ')');
+  ok(/백업/.test(await t2.textContent('#ops-notice')), '백업 기록이 없으면 학생 탭 위에 백업 알림');
   ok((await t2.evaluate(async () => { try { await DB.changeTeacherPassword('tpw1234', 'newpw99'); return true; } catch (e) { return e.code; } })) === true, '선생님 비번 변경');
   const t3 = await page(); await t3.goto(BASE + '/index.html'); await t3.waitForTimeout(1500);
   ok((await t3.evaluate(() => DB.teacherLogin('tpw1234'))) === false, '옛 선생님 비번 거부');
