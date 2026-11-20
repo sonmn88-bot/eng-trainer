@@ -48,6 +48,31 @@
 .mock-head { border-top: 0; font-size: 11px; color: var(--txt3); padding-top: 0; }
 .mock-name { color: var(--txt); font-weight: 600; }
 .mock-score { color: var(--gold); font-weight: 800; font-size: 15px; }
+/* ── 분석 차트 (dataviz: 순차 램프 한 색, 2px 간격, 얇은 표식, 보조선은 흐리게) ── */
+.viz-root { --viz-series: #3987e5; --viz-grid: rgba(255,255,255,.07); --viz-axis: #6b7686;
+  --hm-0: #232b37; --hm-1: #104281; --hm-2: #1c5cab; --hm-3: #2a78d6; --hm-4: #5598e7; --hm-5: #86b6ef; }
+[data-theme="light"] .viz-root { --viz-series: #2a78d6; --viz-grid: #e1e0d9; --viz-axis: #898781;
+  --hm-0: #eceef1; --hm-1: #cde2fb; --hm-2: #9ec5f4; --hm-3: #5598e7; --hm-4: #256abf; --hm-5: #104281; }
+.hm-box { overflow-x: auto; }
+.hm-grid { display: grid; gap: 2px; align-items: center; min-width: 300px; max-width: 720px; }
+.hm-head { font-size: 11px; color: var(--txt3); text-align: center; font-variant-numeric: tabular-nums; }
+.hm-head.exam { color: var(--gold); font-weight: 700; }
+.hm-name { font-size: 12px; color: var(--txt2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
+.hm-cell { height: 24px; border-radius: 4px; border: 0; padding: 0; cursor: pointer; background: var(--hm-0); }
+.hm-cell.l1 { background: var(--hm-1); } .hm-cell.l2 { background: var(--hm-2); } .hm-cell.l3 { background: var(--hm-3); }
+.hm-cell.l4 { background: var(--hm-4); } .hm-cell.l5 { background: var(--hm-5); }
+.hm-cell.sel, .viz-hit.sel { outline: 2px solid var(--txt); outline-offset: 1px; }
+.viz-legend { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--txt3); margin-top: 10px; }
+.viz-ramp { flex: 0 0 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--hm-0), var(--hm-1), var(--hm-3), var(--hm-5)); }
+.viz-detail { font-size: 13px; color: var(--txt2); margin-top: 8px; min-height: 20px; font-variant-numeric: tabular-nums; }
+.viz-svg { width: 100%; max-width: 560px; height: auto; display: block; }
+.viz-svg text { fill: var(--viz-axis); font-size: 12px; font-family: var(--font-body); }
+.viz-svg .grid { stroke: var(--viz-grid); stroke-width: 1; }
+.viz-svg .line { fill: none; stroke: var(--viz-series); stroke-width: 2; stroke-linejoin: round; }
+.viz-svg .dot { fill: var(--viz-series); stroke: var(--sur); stroke-width: 2; }
+.viz-svg .bar { fill: var(--viz-series); }
+.viz-svg .val { fill: var(--txt); font-weight: 700; font-size: 13px; }
+.viz-hit { fill: transparent; cursor: pointer; }
 /* 학생 상세: 촘촘한 지표 */
 .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
 .detail-actions .btn { min-height: 40px; font-size: 13px; }
@@ -313,6 +338,20 @@
 
 <!-- ══ 진도 탭 ══ -->
 <div class="tsec" id="ts-progress">
+  <!-- 차트: 주차별 진도 히트맵 + 반 주간 추이 (dataviz 스킬 기준: 한 색 순차 램프, 단일 축, 탭하면 값 표시) -->
+  <div class="card viz-root">
+    <div class="list-head"><p class="sec-title m-0">주차별 진도 · 수능 핵심 필수</p><span class="list-head-r">퀴즈에서 맞힌 단어 비율</span></div>
+    <div id="hm-box" class="hm-box"><div class="empty py-2">불러오는 중…</div></div>
+    <div class="viz-legend" aria-hidden="true"><span>0%</span><span class="viz-ramp"></span><span>100%</span></div>
+    <div id="hm-detail" class="viz-detail">칸을 누르면 학생·주차별 숫자가 나와요</div>
+  </div>
+  <div class="card viz-root">
+    <div class="list-head"><p class="sec-title m-0">반 평균 점수 · 최근 8주</p><span class="list-head-r">퀴즈·시험 전체</span></div>
+    <div id="trend-score"></div>
+    <div class="list-head" style="margin-top:14px"><p class="sec-title m-0">반 전체 퀴즈 수 · 최근 8주</p></div>
+    <div id="trend-count"></div>
+    <div id="trend-detail" class="viz-detail">점이나 막대를 누르면 그 주의 값이 나와요</div>
+  </div>
   <div class="card">
     <div class="row-between mb-4">
       <p class="sec-title m-0">📊 반 진도 현황</p>
@@ -1042,6 +1081,123 @@ function renderStudents() {
   loadMockOverview(arr);
 }
 
+// ── 분석 차트 ──────────────────────────────────────
+var _resCache = {};
+function getResultsCached(id) {
+  if (!_resCache[id]) _resCache[id] = DB.getResults(id).then(function(r){ return r || []; }).catch(function(){ return []; });
+  return _resCache[id];
+}
+async function ensureCoreWords() {
+  if (window.WM_CORE) return;
+  await new Promise(function(res, rej) {
+    var sc = document.createElement('script'); sc.src = 'data/words/core-essential.js'; sc.onload = res; sc.onerror = rej;
+    document.head.appendChild(sc);
+  });
+}
+function _vizEsc(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+// 학생 × 주차: 그 주 단어 중 퀴즈에서 맞힌 비율 (students/{id}/correctWords)
+async function renderProgressHeatmap() {
+  var box = document.getElementById('hm-box');
+  if (!box) return;
+  try { await ensureCoreWords(); } catch (e) { box.innerHTML = '<div class="empty py-2">단어장을 불러오지 못했어요</div>'; return; }
+  var info = (window.WORD_CATALOG || []).find(function(c){ return c.id === 'core'; }) || {};
+  var weeks = Utils.groupByWeek(window.WM_CORE || [], info.wordsPerWeek || 150);
+  var wkNums = Object.keys(weeks).map(Number).sort(function(a, b){ return a - b; });
+  var arr = Object.values(students).filter(function(s){ return s && s.name; }).sort(function(a, b){ return a.name.localeCompare(b.name, 'ko'); });
+  if (!arr.length) { box.innerHTML = '<div class="empty py-2">학생이 없어요</div>'; return; }
+  var examWk = (window._examRangeCache && window._examRangeCache.setId === 'core') ? Number(window._examRangeCache.week) : null;
+  var cols = '56px repeat(' + wkNums.length + ', minmax(18px, 1fr))';
+  var html = '<div class="hm-grid" style="grid-template-columns:' + cols + '"><span></span>' +
+    wkNums.map(function(w){ return '<span class="hm-head' + (w === examWk ? ' exam' : '') + '">' + w + '</span>'; }).join('');
+  arr.forEach(function(s) {
+    var cw = s.correctWords || {};
+    html += '<span class="hm-name" title="' + _vizEsc(s.name) + '">' + _vizEsc(s.name) + '</span>';
+    wkNums.forEach(function(w) {
+      var list = weeks[w].words, n = 0;
+      list.forEach(function(x){ if (cw[DB._wordKey(x[0])]) n++; });
+      var pct = list.length ? n / list.length : 0;
+      var lv = n === 0 ? 0 : Math.min(5, 1 + Math.floor(pct * 5 - 1e-9));
+      html += '<button type="button" class="hm-cell' + (lv ? ' l' + lv : '') + '" aria-label="' + _vizEsc(s.name) + ' ' + w + '주차 ' + n + '/' + list.length +
+        '" data-t="' + _vizEsc(s.name) + ' · ' + w + '주차 · 맞힌 ' + n + '/' + list.length + ' (' + Math.round(pct * 100) + '%)"></button>';
+    });
+  });
+  box.innerHTML = html + '</div>';
+  box.querySelectorAll('.hm-cell').forEach(function(c) {
+    var show = function() {
+      box.querySelectorAll('.hm-cell.sel').forEach(function(x){ x.classList.remove('sel'); });
+      c.classList.add('sel');
+      document.getElementById('hm-detail').textContent = c.dataset.t;
+    };
+    c.addEventListener('click', show); c.addEventListener('mouseenter', show);
+  });
+}
+
+// 반 전체: 최근 8주(월요일 시작) 평균 점수 · 퀴즈 수 — 서로 다른 단위라 차트를 나눔(이중 축 금지)
+async function renderClassTrend() {
+  var sBox = document.getElementById('trend-score'), cBox = document.getElementById('trend-count');
+  if (!sBox || !cBox) return;
+  var arr = Object.values(students).filter(function(s){ return s && s.id; });
+  var all = await Promise.all(arr.map(function(s){ return getResultsCached(s.id); }));
+  function monday(d) { var x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+  var thisMon = monday(Date.now()), wks = [];
+  for (var i = 7; i >= 0; i--) { var m = new Date(thisMon); m.setDate(m.getDate() - 7 * i); wks.push({ start: m, n: 0, sum: 0 }); }
+  all.forEach(function(rs) {
+    rs.forEach(function(r) {
+      if (!r || !r.date || typeof r.score !== 'number') return;
+      var t = monday(r.date).getTime();
+      var w = wks.find(function(x){ return x.start.getTime() === t; });
+      if (w) { w.n++; w.sum += r.score; }
+    });
+  });
+  var lbl = function(w) { return (w.start.getMonth() + 1) + '/' + w.start.getDate(); };
+  var W = 320, H = 130, L = 30, R = 22, T = 16, B = 24, iw = W - L - R, ih = H - T - B, step = iw / (wks.length - 1);
+  var x = function(i) { return L + step * i; }, yS = function(v) { return T + ih - ih * v / 100; };
+  // 점수 선 차트
+  var pts = wks.map(function(w, i){ return w.n ? { i: i, v: Math.round(w.sum / w.n) } : null; });
+  var path = '', pen = false;
+  pts.forEach(function(p) { if (!p) { pen = false; return; } path += (pen ? 'L' : 'M') + x(p.i).toFixed(1) + ' ' + yS(p.v).toFixed(1); pen = true; });
+  var last = pts.filter(Boolean).slice(-1)[0];
+  var svg = '<svg class="viz-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="반 평균 점수 최근 8주">' +
+    [0, 50, 100].map(function(v){ return '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + yS(v) + '" y2="' + yS(v) + '"/><text x="' + (L - 6) + '" y="' + (yS(v) + 3) + '" text-anchor="end">' + v + '</text>'; }).join('') +
+    wks.map(function(w, i){ return '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + lbl(w) + '</text>'; }).join('') +
+    (path ? '<path class="line" d="' + path + '"/>' : '') +
+    pts.map(function(p){ return p ? '<circle class="dot" cx="' + x(p.i) + '" cy="' + yS(p.v) + '" r="4"/>' : ''; }).join('') +
+    (last ? '<text class="val" x="' + Math.min(x(last.i), W - R - 12) + '" y="' + (yS(last.v) - 9) + '" text-anchor="middle">' + last.v + '</text>' : '') +
+    wks.map(function(w, i){ return '<rect class="viz-hit" data-t="' + lbl(w) + ' 주 · 평균 ' + (w.n ? Math.round(w.sum / w.n) + '점 (' + w.n + '회)' : '기록 없음') + '" x="' + (x(i) - step / 2) + '" y="' + T + '" width="' + step + '" height="' + ih + '"/>'; }).join('') +
+    '</svg>';
+  sBox.innerHTML = pts.some(Boolean) ? svg : '<div class="empty py-2">최근 8주 기록이 없어요</div>';
+  // 퀴즈 수 막대 차트 (데이터 끝 4px 둥글게, 막대 사이 간격)
+  var maxN = Math.max.apply(null, wks.map(function(w){ return w.n; }).concat([1]));
+  var bw = Math.min(22, step - 6), yC = function(v) { return T + ih - ih * v / maxN; };
+  var lastBar = wks.length - 1;
+  var svg2 = '<svg class="viz-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="반 전체 퀴즈 수 최근 8주">' +
+    '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + yC(0) + '" y2="' + yC(0) + '"/><text x="' + (L - 6) + '" y="' + (yC(maxN) + 3) + '" text-anchor="end">' + maxN + '</text>' +
+    wks.map(function(w, i) {
+      var h = ih * w.n / maxN, xx = x(i) - bw / 2, yy = yC(w.n), r = Math.min(4, h);
+      var bar = w.n ? '<path class="bar" d="M' + xx + ' ' + yC(0) + 'V' + (yy + r) + 'Q' + xx + ' ' + yy + ' ' + (xx + r) + ' ' + yy + 'H' + (xx + bw - r) + 'Q' + (xx + bw) + ' ' + yy + ' ' + (xx + bw) + ' ' + (yy + r) + 'V' + yC(0) + 'Z"/>' : '';
+      return bar + '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + lbl(w) + '</text>' +
+        (i === lastBar && w.n ? '<text class="val" x="' + x(i) + '" y="' + (yy - 5) + '" text-anchor="middle">' + w.n + '</text>' : '') +
+        '<rect class="viz-hit" data-t="' + lbl(w) + ' 주 · 퀴즈 ' + w.n + '회" x="' + (x(i) - step / 2) + '" y="' + T + '" width="' + step + '" height="' + ih + '"/>';
+    }).join('') + '</svg>';
+  cBox.innerHTML = svg2;
+  [sBox, cBox].forEach(function(bx) {
+    bx.querySelectorAll('.viz-hit').forEach(function(h) {
+      var show = function() { document.getElementById('trend-detail').textContent = h.getAttribute('data-t'); };
+      h.addEventListener('click', show); h.addEventListener('mouseenter', show);
+    });
+  });
+}
+
+var _chartsDone = false;
+async function renderCharts(force) {
+  if (_chartsDone && !force) return;
+  _chartsDone = true;
+  try { window._examRangeCache = await DB.getExamRange(); } catch (e) {}
+  renderProgressHeatmap().catch(function(e){ DB.logError('진도 차트', e); });
+  renderClassTrend().catch(function(e){ DB.logError('추이 차트', e); });
+}
+
 // 학생 목록: 북마크·내 단어 개수 (한 번 불러온 값은 캐시)
 var _colCounts = {};
 async function loadStuCollectionBadges(arr) {
@@ -1067,7 +1223,7 @@ async function loadMockOverview(arr) {
   var rows = [];
   await Promise.all(arr.map(async function(s) {
     var mocks = [];
-    try { mocks = (await DB.getResults(s.id) || []).filter(function(r){ return r.mock; }); } catch (e) {}
+    try { mocks = (await getResultsCached(s.id)).filter(function(r){ return r.mock; }); } catch (e) {}
     mocks.sort(function(a,b){ return String(a.date).localeCompare(String(b.date)); });
     var last = mocks[mocks.length - 1];
     var avg = mocks.length ? Math.round(mocks.reduce(function(a,r){ return a + (r.score||0); }, 0) / mocks.length) : null;
@@ -3073,6 +3229,7 @@ function switchT(tab) {
   document.querySelectorAll('#analysis-seg .seg-btn').forEach(function(el){ el.classList.remove('active'); });
   var tb = document.getElementById('tt-' + tab); if (tb) tb.classList.add('active');
   if (tab === 'settings') loadErrors();
+  if (tab === 'analysis') renderCharts();
   var seg = document.getElementById('analysis-seg');
   if (seg) seg.style.display = (tab === 'analysis') ? 'flex' : 'none';
   function on(id) { var e = document.getElementById(id); if (e) e.classList.add('active'); }

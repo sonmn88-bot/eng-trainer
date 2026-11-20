@@ -228,6 +228,45 @@ async function stickerSuite() {
   ok(await studentLogin(q, '가나다', 'abcd') && !(await q.isVisible('#sticker-popup')), '다른 기기로 들어와도 다시 안 뜸');
 }
 
+async function chartSuite() {
+  console.log('\n## 선생님 분석 차트');
+  const core = fs.readFileSync(path.join(ROOT, 'data/words/core-essential.js'), 'utf8');
+  const words = [...core.matchAll(/\[\s*'([^']+)'/g)].map((m) => m[1]);
+  const t = await page();
+  await t.goto(BASE + '/index.html'); await t.waitForTimeout(1000);
+  const keys = await t.evaluate((ws) => ws.map((w) => DB._wordKey(w)), words);
+  const cw = (n) => Object.fromEntries(keys.slice(0, n).map((k) => [k, 1]));
+  const now = Date.now(), wk = 7 * 86400000;
+  const res = (arr) => Object.fromEntries(arr.map(([ago, sc], i) => ['r' + i, { setId: 'core', score: sc, total: 20, date: new Date(now - ago * wk).toISOString() }]));
+  await reset({
+    settings: { appName: 'T', teacherPw: 'tpw1234' },
+    students: {
+      stu_1: { id: 'stu_1', name: '가나다', correctWords: cw(420) },
+      stu_2: { id: 'stu_2', name: '라마바', correctWords: cw(80) },
+      stu_3: { id: 'stu_3', name: '사아자' },
+    },
+    results: { stu_1: res([[0, 90], [1, 80], [3, 70], [5, 60]]), stu_2: res([[0, 50], [1, 40], [2, 65]]) },
+    examRange: { setId: 'core', setName: '수능 핵심 필수', week: 2 },
+  });
+  if (process.env.PD_DIR) await t.context().route(/pretendard\/dist\/web\/static\/(.*)$/, (r) => r.fulfill({ path: path.join(process.env.PD_DIR, r.request().url().split('/static/')[1]) }));
+  ok(await teacherToDashboard(t, 'tpw1234'), '선생님 화면');
+  await t.evaluate(() => switchT('analysis')); await t.waitForTimeout(3500);
+  const cells = await t.$$eval('.hm-cell', (e) => e.map((x) => x.className));
+  ok(cells.length === 36, '진도 히트맵 학생 3 × 12주 = ' + cells.length);
+  ok(/l5/.test(cells[0]) && /l5/.test(cells[1]) && !/l\d/.test(cells[35]), '맞힌 비율에 따라 칸 진하기 다름');
+  await t.click('.hm-cell >> nth=0');
+  ok(/가나다 · 1주차 · 맞힌 150\/150/.test(await t.textContent('#hm-detail')), '칸 누르면 학생·주차·개수 표시: ' + await t.textContent('#hm-detail'));
+  ok((await t.$$('#trend-score .dot')).length === 5, '주간 평균 점수 점 5개(기록 있는 주)');
+  ok((await t.$$('#trend-count .bar')).length === 5, '주간 퀴즈 수 막대 5개');
+  if (process.env.SHOT_DIR) {
+    for (const w of [390, 1280]) {
+      await t.setViewportSize({ width: w, height: 900 }); await t.waitForTimeout(500);
+      await (await t.$('#ts-progress')).screenshot({ path: path.join(process.env.SHOT_DIR, 'charts_' + w + '.png') });
+    }
+  }
+  ok(!t._errs.length, '분석 화면 오류 없음 ' + t._errs.join('|'));
+}
+
 (async () => {
   if (!SDK || !fs.existsSync(path.join(SDK, 'firebase-app.js'))) { console.error('FIREBASE_SDK_DIR 없음 (tests/run.sh로 실행하세요)'); process.exit(2); }
   browser = await chromium.launch();
@@ -235,6 +274,7 @@ async function stickerSuite() {
     await securitySuite();
     await bookmarkSuite();
     await stickerSuite();
+    await chartSuite();
   } catch (e) {
     fail++; console.log('FAIL 실행 중 오류: ' + (e && e.stack || e));
   }
