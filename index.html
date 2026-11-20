@@ -11,6 +11,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>English Trainer</title>
 <link rel="stylesheet" href="shared/theme.css">
+<script>(function(){try{if(localStorage.getItem('themeV')!=='transit'){localStorage.setItem('theme','light');localStorage.setItem('themeV','transit');}}catch(e){}})();document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'light')</script>
 <script src="shared/icons.js"></script>
 <style>
 /* ── 홈 간격·정렬 (DESIGN.md: 4px 단위, 섹션 간 16/24) ── */
@@ -49,9 +50,9 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 .th-title { font-size: 20px !important; font-weight: 800 !important; }
 .th-go { border-radius: 12px !important; font-size: 16px !important; font-weight: 800 !important; min-height: 52px !important; }
 /* ── 홈 첫 카드: 이번 주 시험 범위 진도 ── */
-.wp-card { background: var(--sur); border: 1px solid var(--gold-bdr); border-radius: var(--r); padding: 16px; margin-bottom: 12px; }
+.wp-card { background: var(--sur); border: 1px solid var(--bdr); border-radius: var(--r); padding: 16px; margin-bottom: 12px; }
 .wp-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
-.wp-title { font-size: 20px; font-weight: 800; line-height: 1.3; color: var(--txt); word-break: keep-all; }
+.wp-title { font-size: 16px; font-weight: 800; line-height: 1.3; color: var(--txt); word-break: keep-all; }
 .wp-num { flex-shrink: 0; font-variant-numeric: tabular-nums; line-height: 1.3; }
 #wp-done { font-size: 24px; font-weight: 800; color: var(--gold); }
 .wp-total { font-size: 15px; font-weight: 600; color: var(--txt3); margin-left: 2px; }
@@ -62,9 +63,9 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !important; color: var(--txt) !important; border: 1px solid var(--bdr2) !important; }
 /* 홈 배경 개선 */
 .app {
-  background: radial-gradient(ellipse 90% 340px at 50% 0%, rgba(200,242,90,.10), transparent 70%), var(--bg);
+  background: var(--bg);
 }
-[data-theme="light"] .app { background: radial-gradient(ellipse 90% 340px at 50% 0%, rgba(95,138,0,.10), transparent 70%), var(--bg); }
+[data-theme="light"] .app { background: var(--bg); }
 .streak-bar {
   background: var(--sur);
   border: 1px solid var(--bdr);
@@ -151,7 +152,7 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 0%, var(--accent-color, rgba(200,242,90,.1)), transparent 70%);
+  background: none;
   opacity: 0;
   transition: opacity .25s;
 }
@@ -214,10 +215,7 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
   font-weight: 800;
   font-style: normal;
   letter-spacing: -.035em;
-  background: linear-gradient(120deg, var(--txt) 38%, var(--gold) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--txt);
   margin-bottom: .5rem;
   line-height: 1.1;
 }
@@ -356,7 +354,7 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
     </div>
     <!-- 골드 표시 -->
     <div id="gold-bar" style="display:none;align-items:center;justify-content:flex-end;margin-bottom:.5rem">
-      <span id="gold-display" style="display:none;background:rgba(200,242,90,.1);border:1px solid rgba(200,242,90,.25);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer" onclick="openGoldShop()" title="골드 현황">💰 0</span>
+      <span id="gold-display" style="display:none;background:rgba(var(--acc-rgb),.1);border:1px solid rgba(var(--acc-rgb),.25);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer" onclick="openGoldShop()" title="골드 현황">💰 0</span>
     </div>
     <div id="streak-bar" class="streak-bar" style="display:none">
       <span class="callout-ico">🔥</span>
@@ -373,12 +371,13 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
     <!-- 이번 주 시험 범위 진도 (홈 첫 카드) -->
     <section class="wp-card" id="week-progress" style="display:none" aria-live="polite">
       <div class="wp-head">
-        <div style="min-width:0">
-          <div class="callout-label">이번 주 시험 범위</div>
-          <div class="wp-title" id="wp-title"></div>
+        <div class="wkhead" style="margin:0;min-width:0">
+          <div class="wbadge" id="wp-badge"></div>
+          <div class="wt"><span>이번 주 시험 범위</span><b class="wp-title" id="wp-title"></b></div>
         </div>
         <div class="wp-num"><span id="wp-done">0</span><span class="wp-total" id="wp-total">/0</span></div>
       </div>
+      <div id="wp-route"></div>
       <div class="wp-bar"><div id="wp-fill"></div></div>
       <div class="wp-sub" id="wp-sub"></div>
       <button class="th-go" id="wp-go" type="button">이어서 학습</button>
@@ -423,13 +422,13 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
     </div>
 
     <!-- 주간 MVP 배너 -->
-    <div id="mvp-banner" style="display:none;background:linear-gradient(135deg,rgba(200,242,90,.1),rgba(200,242,90,.04));border:1px solid rgba(200,242,90,.25);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;text-align:center">
+    <div id="mvp-banner" style="display:none;background:var(--gold-bg);border:1px solid rgba(var(--acc-rgb),.25);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;text-align:center">
       <div style="font-size:11px;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px">이번 주 MVP 🏆</div>
       <div style="font-size:15px;font-weight:700;color:var(--gold)" id="mvp-name"></div>
     </div>
 
     <!-- 추천 단어장 + 시험 일정 배너 -->
-    <div id="rec-set-banner" style="display:none;background:rgba(200,242,90,.08);border:1px solid rgba(200,242,90,.2);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;cursor:pointer" onclick="goToRecommendedSet()">
+    <div id="rec-set-banner" style="display:none;background:rgba(var(--acc-rgb),.08);border:1px solid rgba(var(--acc-rgb),.2);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:.75rem;cursor:pointer" onclick="goToRecommendedSet()">
       <div class="row-center">
         <span class="ubf83c">📌</span>
         <div>
@@ -523,7 +522,7 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
 
     <div class="module-grid" style="display:none" aria-hidden="true">
       <a class="module-card" href="vocab.html" id="mod-vocab"
-         style="--accent-color:rgba(200,242,90,.1);--accent-bdr:var(--gold-bdr)">
+         style="--accent-color:rgba(var(--acc-rgb),.1);--accent-bdr:var(--gold-bdr)">
         <span class="module-icon">📖</span>
         <div class="module-name">단어</div>
         <div class="module-desc">Vocabulary</div>
@@ -638,7 +637,7 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
 <div id="status-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10010;align-items:flex-start;justify-content:center;padding:.5rem;overflow-y:auto">
   <div style="background:var(--sur);border-radius:20px;width:100%;max-width:480px;margin:auto;overflow:hidden">
     <!-- 헤더 -->
-    <div style="background:linear-gradient(135deg,rgba(200,242,90,.15),rgba(200,242,90,.05));padding:1.25rem 1.25rem .875rem;border-bottom:1px solid var(--bdr);position:relative">
+    <div style="background:var(--gold-bg);padding:1.25rem 1.25rem .875rem;border-bottom:1px solid var(--bdr);position:relative">
       <button onclick="document.getElementById('status-popup').style.display='none'" style="position:absolute;top:12px;right:12px;background:none;border:none;font-size:22px;color:var(--txt3);cursor:pointer">×</button>
       <div style="display:flex;align-items:center;gap:12px">
         <div id="status-avatar" style="width:56px;height:56px;border-radius:50%;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--gold-bdr)">🐱</div>
@@ -655,7 +654,7 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
           <span id="status-xp-next"></span>
         </div>
         <div style="height:6px;background:var(--sur2);border-radius:3px;overflow:hidden">
-          <div id="status-xp-bar" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;width:0%;transition:width .8s"></div>
+          <div id="status-xp-bar" style="height:100%;background:var(--gold);border-radius:3px;width:0%;transition:width .8s"></div>
         </div>
       </div>
       <!-- 핵심 스탯 -->
@@ -704,7 +703,7 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
   <div style="background:var(--sur);border:1px solid var(--gold-bdr);border-radius:24px;padding:2rem 1.5rem;max-width:300px;width:90%;text-align:center;position:relative">
     <div style="font-size:56px;margin-bottom:.5rem;line-height:1.2">🎯</div>
     <div style="font-size:11px;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;margin-bottom:.5rem">SPECIAL EVENT</div>
-    <div style="font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.5rem">D-100</div>
+    <div style="font-size:32px;font-weight:900;color:var(--gold);background-clip:text;margin-bottom:.5rem">D-100</div>
     <div style="font-size:15px;font-weight:700;color:var(--txt);margin-bottom:.5rem">수능까지 100일!</div>
     <div style="font-size:13px;color:var(--txt2);line-height:1.7;margin-bottom:1.25rem">
       여기까지 포기하지 않고 온 것만으로도<br>
@@ -1063,6 +1062,8 @@ async function renderWeekProgress(examRange) {
   var done = list.filter(function(w) { return correct[DB._wordKey(w[0])]; }).length;
   var total = list.length;
   document.getElementById('wp-title').textContent = (examRange.setName || setInfo.name) + ' ' + examRange.week + '주차';
+  document.getElementById('wp-badge').textContent = examRange.week;
+  document.getElementById('wp-route').innerHTML = Utils.routeHtml(weeks, { cur: examRange.week, correct: correct });
   document.getElementById('wp-done').textContent = done;
   document.getElementById('wp-total').textContent = '/' + total;
   document.getElementById('wp-fill').style.width = Math.round(done / total * 100) + '%';
@@ -2288,13 +2289,13 @@ function applyTheme(theme) {
 }
 
 function toggleTheme() {
-  var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  var cur = document.documentElement.getAttribute('data-theme') || 'light';
   applyTheme(cur === 'dark' ? 'light' : 'dark');
 }
 
 // 저장된 테마 즉시 적용 (깜빡임 방지)
 (function() {
-  var saved = localStorage.getItem('theme') || 'dark';
+  var saved = localStorage.getItem('theme') || 'light';
   applyTheme(saved);
 })();
 
@@ -2457,10 +2458,10 @@ function renderShopGrid(currentXP, owned) {
 
   // 현재 탭 아이템 필터링
   var items = SHOP_ITEMS.filter(function(i){ return i.category === activeTab; });
-  var rarityColors = { common:'var(--txt3)', rare:'#60A5FA', epic:'#A78BFA', legendary:'#C8F25A' };
+  var rarityColors = { common:'var(--txt3)', rare:'#60A5FA', epic:'#A78BFA', legendary:'var(--gold)' };
   var rarityLabels = { common:'일반', rare:'레어', epic:'에픽', legendary:'전설' };
-  var rarityBgs    = { common:'var(--sur2)', rare:'rgba(96,165,250,.08)', epic:'rgba(167,139,250,.08)', legendary:'rgba(200,242,90,.08)' };
-  var rarityBdr    = { common:'var(--bdr)', rare:'rgba(96,165,250,.25)', epic:'rgba(167,139,250,.25)', legendary:'rgba(200,242,90,.3)' };
+  var rarityBgs    = { common:'var(--sur2)', rare:'rgba(96,165,250,.08)', epic:'rgba(167,139,250,.08)', legendary:'rgba(var(--acc-rgb),.08)' };
+  var rarityBdr    = { common:'var(--bdr)', rare:'rgba(96,165,250,.25)', epic:'rgba(167,139,250,.25)', legendary:'rgba(var(--acc-rgb),.3)' };
 
   var itemsHtml = items.map(function(item) {
     var isOwned = !!owned[item.id];
@@ -2480,7 +2481,7 @@ function renderShopGrid(currentXP, owned) {
       statusBtn = '<button data-iid="' + item.id + '" onclick="buyShopItem(this.dataset.iid)" style="width:100%;padding:5px;border-radius:6px;border:1px solid var(--gold-bdr);background:var(--gold-bg);color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;margin-top:2px">잠금 해제</button>';
     }
 
-    return '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:12px;padding:.625rem .5rem;position:relative;' + (isOwned?'box-shadow:0 0 8px rgba(200,242,90,.15)':'') + '">' +
+    return '<div style="background:' + rb + ';border:1px solid ' + (isOwned?'var(--gold-bdr)':rd) + ';border-radius:12px;padding:.625rem .5rem;position:relative;' + (isOwned?'box-shadow:0 0 8px rgba(var(--acc-rgb),.15)':'') + '">' +
       '<div style="position:absolute;top:6px;right:6px;font-size:11px;font-weight:700;color:' + rc + ';letter-spacing:.04em">' + rl.toUpperCase() + '</div>' +
       '<div style="font-size:24px;text-align:center;margin-bottom:2px;' + (!isUnlocked&&!isOwned?'filter:grayscale(1);opacity:.4':'') + '">' + item.icon + '</div>' +
       '<div style="font-size:11px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:2px">' + item.name + '</div>' +
@@ -2831,9 +2832,9 @@ async function renderStatusShop(el) {
 
     // 아이템 목록
     var items = (window.SHOP_ITEMS||[]).filter(function(i){return i.category===activeShopTab;});
-    var rarityColors = {common:'var(--txt3)',rare:'#60A5FA',epic:'#A78BFA',legendary:'#C8F25A'};
-    var rarityBgs = {common:'var(--sur2)',rare:'rgba(96,165,250,.08)',epic:'rgba(167,139,250,.08)',legendary:'rgba(200,242,90,.08)'};
-    var rarityBdr = {common:'var(--bdr)',rare:'rgba(96,165,250,.25)',epic:'rgba(167,139,250,.25)',legendary:'rgba(200,242,90,.3)'};
+    var rarityColors = {common:'var(--txt3)',rare:'#60A5FA',epic:'#A78BFA',legendary:'var(--gold)'};
+    var rarityBgs = {common:'var(--sur2)',rare:'rgba(96,165,250,.08)',epic:'rgba(167,139,250,.08)',legendary:'rgba(var(--acc-rgb),.08)'};
+    var rarityBdr = {common:'var(--bdr)',rare:'rgba(96,165,250,.25)',epic:'rgba(167,139,250,.25)',legendary:'rgba(var(--acc-rgb),.3)'};
 
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
     items.forEach(function(item) {
@@ -2890,7 +2891,7 @@ function renderBadgesTab() {
     { key:'skill',    label:'🎮 스킬' },
     { key:'special',  label:'⭐ 특별' },
   ];
-  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'#C8F25A', hidden:'#6B7280' };
+  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'var(--gold)', hidden:'#6B7280' };
 
   return cats.map(function(cat) {
     var catBadges = defs.filter(function(b){ return b.cat === cat.key; });
@@ -2928,7 +2929,7 @@ function showBadgeDetail(badgeId) {
   var isEarned = !!badges[b.id];
   var isHidden = b.grade === 'hidden';
   var titleReward = window.BADGE_TITLES && window.BADGE_TITLES[b.id];
-  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'#C8F25A', hidden:'#6B7280' };
+  var gradeColors = { bronze:'#CD7F32', silver:'#C0C0C0', gold:'var(--gold)', hidden:'#6B7280' };
   var gc = gradeColors[b.grade] || '#6B7280';
 
   var msg = b.icon + ' ' + b.name + '\n\n';
@@ -3157,7 +3158,7 @@ function showGoldInfo() {
 
 function showGoldToast(msg) {
   var el = document.createElement('div');
-  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a0a;border:1px solid #C8F25A;border-radius:99px;padding:8px 18px;font-size:13px;color:#C8F25A;font-weight:700;z-index:9999;pointer-events:none;animation:fadeup .3s ease';
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--sur);border:1px solid var(--gold);border-radius:99px;padding:8px 18px;font-size:13px;color:#C8F25A;font-weight:700;z-index:9999;pointer-events:none;animation:fadeup .3s ease';
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 2500);

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="English Trainer">
 <meta name="theme-color" content="#0E1116">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
+<script>(function(){try{if(localStorage.getItem('themeV')!=='transit'){localStorage.setItem('theme','light');localStorage.setItem('themeV','transit');}}catch(e){}})();document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'light')</script>
 <title>단어 학습</title>
 <link rel="stylesheet" href="shared/theme.css">
 <script src="shared/icons.js"></script>
@@ -55,7 +55,7 @@
   border-left: 2px solid var(--gold-bdr);
 }
 .fc-grade-dot { width:8px;height:8px;border-radius:50%;background:var(--sur3); }
-.fc-grade-dot.filled-s { background:#C8F25A; }
+.fc-grade-dot.filled-s { background:var(--gold); }
 .fc-grade-dot.filled-a { background:var(--blue); }
 .fc-grade-dot.filled-b { background:var(--grn); }
 .fc-grade-dot.filled-c { background:var(--sur3); }
@@ -253,6 +253,7 @@
 
     <!-- 주차 그리드 (주차선택 시) -->
     <div id="week-panel" style="display:none;margin-bottom:.5rem">
+      <div id="week-route"></div>
       <div class="week-grid" id="week-grid"></div>
     </div>
 
@@ -907,7 +908,7 @@
 <script>
 // 저장된 테마 즉시 적용
 (function() {
-  var t = localStorage.getItem('theme') || 'dark';
+  var t = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', t);
 })();
 </script>
@@ -1033,7 +1034,7 @@ function renderFlipCards() {
           'onclick="event.stopPropagation();doFlipBookmark(this)" ' +
           'style="flex:0 0 36px;border-radius:0 0 var(--rs) 0;border:none;font-size:14px;cursor:pointer;' +
           (isBm
-            ? 'background:rgba(200,242,90,.25);color:#C8F25A;'
+            ? 'background:rgba(var(--acc-rgb),.25);color:var(--gold);'
             : 'background:rgba(0,0,0,.35);color:rgba(255,255,255,.4);') +
           '">' + (isBm ? '⭐' : '☆') + '</button>' +
       '</div>' +
@@ -1396,7 +1397,7 @@ async function shareCalendar() {
     svg.push('<rect width="' + w + '" height="' + h + '" fill="#111111" rx="12"/>');
 
     // 제목
-    svg.push('<text x="' + (w/2) + '" y="' + (pad+16) + '" text-anchor="middle" fill="#C8F25A" font-size="14" font-family="sans-serif" font-weight="bold">' +
+    svg.push('<text x="' + (w/2) + '" y="' + (pad+16) + '" text-anchor="middle" style="fill:var(--gold)" font-size="14" font-family="sans-serif" font-weight="bold">' +
       (calTitle ? calTitle.textContent : '학습 기록') + '</text>');
     svg.push('<text x="' + (w/2) + '" y="' + (pad+32) + '" text-anchor="middle" fill="#888" font-size="10" font-family="sans-serif">' + STU_NAME + ' · English Trainer</text>');
 
@@ -1918,7 +1919,7 @@ function renderConfuseLearn() {
   var cards = document.getElementById('confuse-learn-cards');
   if (cards) {
     cards.innerHTML =
-      '<div style="background:rgba(200,242,90,.08);border:2px solid rgba(200,242,90,.3);border-radius:14px;padding:1rem;text-align:center">' +
+      '<div style="background:rgba(var(--acc-rgb),.08);border:2px solid rgba(var(--acc-rgb),.3);border-radius:14px;padding:1rem;text-align:center">' +
         '<div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.08em;margin-bottom:.5rem">단어 A</div>' +
         '<div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:.5rem;font-style:italic">' + pair[0] + '</div>' +
         '<div style="font-size:13px;color:var(--gold);font-weight:600">' + pair[1] + '</div>' +
@@ -2293,7 +2294,7 @@ async function selectSet(setId) {
 
   // 헤더
   document.getElementById('set-header').innerHTML = `
-    <div class="set-icon-big" style="background:${currentSet.color}1F;color:${currentSet.color}">
+    <div class="set-icon-big" style="background:var(--gold-bg);color:var(--gold)">
       ${Icon('books-duotone')}
     </div>
     <div>
@@ -2334,10 +2335,17 @@ function buildWeekGrid() {
   var examWk = window._examRange && window._examRange.setId === (currentSet && currentSet.id)
     ? window._examRange.week : null;
 
+  // 노선도: 지금 위치 = 시험 주차(없으면 1주차), 맞힌 단어는 비동기로 채움
+  var routeEl = document.getElementById('week-route');
+  if (routeEl) {
+    var drawRoute = function(cw) { routeEl.innerHTML = Utils.routeHtml(weeks, { cur: examWk || 1, exam: examWk, correct: cw, onPick: 'selectWeek' }); };
+    drawRoute({});
+    if (typeof STU_ID !== 'undefined' && STU_ID && STU_ID !== 'guest') DB.getCorrectWords(STU_ID).then(drawRoute).catch(function(){});
+  }
   grid.innerHTML = Object.entries(weeks).map(([wk, info]) => {
     var isExam = examWk && parseInt(wk) === parseInt(examWk);
-    var examBadge = isExam ? '<div style="font-size:11px;color:var(--red,#e53935);font-weight:700;margin-top:1px">시험</div>' : '';
-    var examStyle = isExam ? 'border-color:var(--red,#e53935);background:rgba(239,68,68,.06)' : '';
+    var examBadge = isExam ? '<div class="due-tag">시험</div>' : '';
+    var examStyle = isExam ? 'border-color:var(--gold)' : '';
     return `<div class="week-card" onclick="selectWeek(${wk})" id="wk-${wk}" style="${examStyle}">
       <div class="week-card-num">${wk}주차</div>
       <div class="week-card-cnt">${info.count}개</div>
@@ -2493,7 +2501,7 @@ async function renderFlash() {
   // 등급 뱃지 + 난이도 막대
   var grade = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
   var gradeConfig = {
-    'S': { label:'S급', bg:'#C8F25A', color:'#0E1116', dots:4 },
+    'S': { label:'S급', bg:'var(--gold)', color:'var(--on-gold)', dots:4 },
     'A': { label:'A급', bg:'#60A5FA', color:'#fff', dots:3 },
     'B': { label:'B급', bg:'#4ADE80', color:'#fff', dots:2 },
     'C': { label:'C급', bg:'var(--sur3)', color:'var(--txt3)', dots:1 }
@@ -2521,7 +2529,7 @@ async function renderFlash() {
   document.getElementById('flash-prog').textContent = `${flash.idx + 1} / ${flash.words.length}`;
   // 등급 뱃지
   var _grade = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
-  var _gradeColors = {S:'#C8F25A',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
+  var _gradeColors = {S:'var(--gold)',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
   var _gradeEl = document.getElementById('fc-grade-badge');
   if (_gradeEl) { if (_grade) { _gradeEl.textContent=_grade; _gradeEl.style.background=_gradeColors[_grade]||'#9CA3AF'; _gradeEl.style.color='#fff'; _gradeEl.style.display='inline-block'; } else _gradeEl.style.display='none'; }
 
@@ -2760,13 +2768,13 @@ function renderQuiz() {
   if (_bmBtn) updateBookmarkBtn(w[0]);
   var _qg = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
   var _qgEl = document.getElementById('quiz-grade-badge');
-  var _qgC = {S:'#C8F25A',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
+  var _qgC = {S:'var(--gold)',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
   if (_qgEl) { if(_qg){_qgEl.textContent=_qg;_qgEl.style.background=_qgC[_qg]||'#9CA3AF';_qgEl.style.display='inline-block';}else _qgEl.style.display='none'; }
   updateBookmarkBtn(w[0]);
 
   // 등급 뱃지
   var grade = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
-  var gradeStyles = { 'S':'#C8F25A,#0E1116', 'A':'#60A5FA,#fff', 'B':'#4ADE80,#fff', 'C':'var(--sur3),var(--txt3)' };
+  var gradeStyles = { 'S':'var(--gold),var(--on-gold)', 'A':'#60A5FA,#fff', 'B':'#4ADE80,#fff', 'C':'var(--sur3),var(--txt3)' };
   var qBadge = document.getElementById('quiz-grade-badge');
   if (grade && qBadge) {
     var parts = (gradeStyles[grade]||'var(--sur3),var(--txt3)').split(',');
@@ -4107,37 +4115,37 @@ function shareResultCard() {
     '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200">',
     '<defs>',
     '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">',
-    '<stop offset="0%" stop-color="#0C0C0E"/>',
-    '<stop offset="100%" stop-color="#1A1A2E"/>',
+    '<stop offset="0%" stop-color="#F7F7F4"/>',
+    '<stop offset="100%" stop-color="#F7F7F4"/>',
     '</linearGradient>',
     '<linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">',
-    '<stop offset="0%" stop-color="#C8F25A"/>',
-    '<stop offset="100%" stop-color="#DDF98F"/>',
+    '<stop offset="0%" stop-color="#1E6B52"/>',
+    '<stop offset="100%" stop-color="#1E6B52"/>',
     '</linearGradient>',
     '</defs>',
-    '<rect width="320" height="200" rx="16" fill="url(#bg)"/>',
-    '<rect width="320" height="200" rx="16" fill="none" stroke="#C8F25A" stroke-width="1" stroke-opacity=".3"/>',
+    '<rect width="320" height="200" rx="8" fill="url(#bg)"/>',
+    '<rect width="320" height="200" rx="8" fill="none" stroke="#E0E0DA" stroke-width="1"/>',
 
     // 앱 이름
-    '<text x="20" y="28" font-family="sans-serif" font-size="10" fill="#C8F25A" opacity=".7" letter-spacing="2">ENGLISH TRAINER</text>',
+    '<text x="20" y="28" font-family="sans-serif" font-size="10" fill="#1E6B52" letter-spacing="2">ENGLISH TRAINER</text>',
 
     // 이모지 + 점수
     '<text x="20" y="80" font-family="sans-serif" font-size="40">' + emoji + '</text>',
-    '<text x="80" y="68" font-family="sans-serif" font-size="42" font-weight="900" fill="#C8F25A">' + score + '</text>',
-    '<text x="80" y="68" font-family="sans-serif" font-size="42" font-weight="900" fill="#C8F25A" dx="' + (score>=100?74:score>=10?58:40) + '">%</text>',
+    '<text x="80" y="68" font-family="sans-serif" font-size="42" font-weight="900" fill="#1E6B52">' + score + '</text>',
+    '<text x="80" y="68" font-family="sans-serif" font-size="42" font-weight="900" fill="#1E6B52" dx="' + (score>=100?74:score>=10?58:40) + '">%</text>',
 
     // 정답/전체
-    '<text x="80" y="88" font-family="sans-serif" font-size="12" fill="#9996A0">' + correct + '개 정답 / ' + total + '문제 · ' + modeName + '</text>',
+    '<text x="80" y="88" font-family="sans-serif" font-size="12" fill="#62625C">' + correct + '개 정답 / ' + total + '문제 · ' + modeName + '</text>',
 
     // 진행 바
-    '<rect x="20" y="106" width="220" height="6" rx="3" fill="#25252C"/>',
+    '<rect x="20" y="106" width="220" height="6" rx="2" fill="#D5D6D0"/>',
     '<rect x="20" y="106" width="' + barW + '" height="6" rx="3" fill="url(#bar)"/>',
 
     // 날짜
-    '<text x="20" y="136" font-family="sans-serif" font-size="11" fill="#5A5760">' + dateStr + ' · ' + STU_NAME + '</text>',
+    '<text x="20" y="136" font-family="sans-serif" font-size="11" fill="#62625C">' + dateStr + ' · ' + STU_NAME + '</text>',
 
     // 격려 메시지
-    '<text x="20" y="160" font-family="sans-serif" font-size="12" fill="#F0EDE8">' +
+    '<text x="20" y="160" font-family="sans-serif" font-size="12" fill="#151515">' +
       (score>=90?'완벽한 결과예요! 이 기세로 수능까지!':
        score>=70?'잘하고 있어요. 꾸준히 하면 됩니다!':
        score>=50?'포기하지 마세요. 반드시 됩니다 💪':
@@ -4735,7 +4743,7 @@ async function doFlipBookmark(btn) {
     var added = await toggleBookmarkSmart(word, ko||'');
     if (added) {
       btn.textContent = '⭐';
-      btn.style.color = '#C8F25A';
+      btn.style.color = 'var(--gold)';
       setTimeout(function(){ addToFolderPopup(word, ko||''); }, 100);
     } else {
       delete bookmarks[key];
@@ -4819,7 +4827,7 @@ function showComboToast(count) {
   if (!t) {
     t = document.createElement('div');
     t.id = 'combo-toast';
-    t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%) scale(0.8);background:linear-gradient(135deg,#C8F25A,#9BC02E);color:#0E1116;padding:.5rem 1.25rem;border-radius:99px;font-size:14px;font-weight:700;z-index:9999;pointer-events:none;opacity:0;transition:all .25s cubic-bezier(.175,.885,.32,1.275);white-space:nowrap';
+    t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%) scale(0.8);background:var(--gold);color:var(--on-gold);padding:.5rem 1.25rem;border-radius:99px;font-size:14px;font-weight:700;z-index:9999;pointer-events:none;opacity:0;transition:all .25s cubic-bezier(.175,.885,.32,1.275);white-space:nowrap';
     document.body.appendChild(t);
   }
   t.textContent = msg;

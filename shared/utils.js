@@ -15,6 +15,25 @@ const Utils = {
     return weeks;
   },
 
+  // 노선도(speak-daily 동일): 주차 = 정거장. weeks: {주차: {words}}, opt: {cur, exam, correct(맞힌 단어 키 객체), onPick(함수 이름)}
+  // 맞힌 비율 80% 이상인 주차는 지나간 정거장(pass), cur까지 선을 초록으로 채움
+  routeHtml(weeks, opt) {
+    opt = opt || {};
+    var nums = Object.keys(weeks).map(Number).sort(function (a, b) { return a - b; });
+    if (nums.length < 2 || nums.length > 16) return '';
+    var cw = opt.correct || {}, key = (window.DB && DB._wordKey) ? DB._wordKey.bind(DB) : function (w) { return String(w).toLowerCase(); };
+    var cur = Number(opt.cur) || 0;
+    var ci = nums.indexOf(cur);
+    var p = ci > 0 ? ci / (nums.length - 1) : 0;
+    return '<ol class="route" style="--p:' + p.toFixed(3) + '" aria-label="주차 노선">' + nums.map(function (n) {
+      var list = weeks[n].words || [], ok = 0;
+      for (var i = 0; i < list.length; i++) if (cw[key(list[i][0])]) ok++;
+      var cls = (n === cur ? 'cur' : (list.length && ok / list.length >= 0.8 ? 'pass' : '')) + (Number(opt.exam) === n ? ' exam' : '');
+      var pct = list.length ? Math.round(ok / list.length * 100) : 0;
+      return '<li class="' + cls.trim() + '"' + (opt.onPick ? ' onclick="' + opt.onPick + '(' + n + ')"' : '') +
+        ' title="' + n + '주차 · 맞힌 ' + pct + '%"><i></i>' + n + '</li>';
+    }).join('') + '</ol>';
+  },
 
   // ── TTS ──
   speak(text, rate) {

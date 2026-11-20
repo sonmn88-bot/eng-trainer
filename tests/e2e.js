@@ -264,6 +264,12 @@ async function chartSuite() {
       await (await t.$('#ts-progress')).screenshot({ path: path.join(process.env.SHOT_DIR, 'charts_' + w + '.png') });
     }
   }
+  const route = await t.evaluate(() => {
+    const wk = {}; for (let i = 1; i <= 12; i++) wk[i] = { words: [['w' + i, '뜻']] };
+    const d = document.createElement('div'); d.innerHTML = Utils.routeHtml(wk, { cur: 3, exam: 3, correct: { [DB._wordKey('w1')]: 1 } });
+    return [...d.querySelectorAll('li')].map((li) => li.className);
+  });
+  ok(route.length === 12 && route[0] === 'pass' && route[2] === 'cur exam' && route[1] === '', '노선도: 맞힌 주차 pass, 지금 주차 cur·시험 표시');
   ok(!t._errs.length, '분석 화면 오류 없음 ' + t._errs.join('|'));
 }
 

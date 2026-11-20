@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="English Trainer">
 <meta name="theme-color" content="#0E1116">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')</script>
+<script>(function(){try{if(localStorage.getItem('themeV')!=='transit'){localStorage.setItem('theme','light');localStorage.setItem('themeV','transit');}}catch(e){}})();document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'light')</script>
 <title>리스닝 학습</title>
 <link rel="stylesheet" href="shared/theme.css">
 <style>
@@ -80,7 +80,7 @@
     <div class="player-track">
       <span class="player-time" id="time-cur">0:00</span>
       <div style="flex:1;height:4px;background:var(--sur3);border-radius:2px;cursor:pointer" onclick="seekAudio(event)" id="prog-bar">
-        <div id="audio-fill" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;width:0%;pointer-events:none;transition:width .1s linear"></div>
+        <div id="audio-fill" style="height:100%;background:var(--gold);border-radius:2px;width:0%;pointer-events:none;transition:width .1s linear"></div>
       </div>
       <span class="player-time" id="time-dur">0:00</span>
     </div>
@@ -110,7 +110,7 @@
       </div>
       <!-- A-B 바 -->
       <div id="ab-track" style="position:relative;height:14px;background:var(--sur3);border-radius:7px;cursor:pointer;display:none" onclick="seekAudioFromAb(event)">
-        <div id="ab-range" style="position:absolute;height:100%;background:rgba(200,242,90,.3);border-radius:7px;left:0;width:0"></div>
+        <div id="ab-range" style="position:absolute;height:100%;background:rgba(var(--acc-rgb),.3);border-radius:7px;left:0;width:0"></div>
         <div id="ab-handle-a" style="position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;background:var(--gold);border-radius:50%;display:none;cursor:pointer"></div>
         <div id="ab-handle-b" style="position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;background:var(--gold2,#F59E0B);border-radius:50%;display:none;cursor:pointer"></div>
         <div id="ab-cur-pos" style="position:absolute;top:0;width:2px;height:100%;background:var(--txt3);border-radius:1px;pointer-events:none;left:0"></div>
@@ -156,7 +156,7 @@
 <script>
 // 저장된 테마 즉시 적용
 (function() {
-  var t = localStorage.getItem('theme') || 'dark';
+  var t = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', t);
 })();
 </script>

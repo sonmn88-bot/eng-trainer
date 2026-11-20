@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════
    ENGLISH TRAINER — Design System
-   Aesthetic: Focus Dark (speak-daily 계열) - lime accent
+   Aesthetic: 노선도 라이트 (speak-daily와 동일, 2026-11) - 초록 하나 · 1px 선 · 각진 모서리
    Fonts: Cormorant Garamond (display) + DM Sans (body) + DM Mono (numbers)
 ═══════════════════════════════════════════════ */
 
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Archivo:wdth,wght@75..100,500..900&display=swap');
 
 :root {
   /* ── Palette (Dark base) ── */
@@ -25,8 +25,8 @@
 
   --gold:      #C8F25A;
   --gold2:     #DDF98F;
-  --gold-bg:   rgba(200,242,90,.08);
-  --gold-bdr:  rgba(200,242,90,.2);
+  --gold-bg:   rgba(var(--acc-rgb),.08);
+  --gold-bdr:  rgba(var(--acc-rgb),.2);
 
   --grn:       #7EE0A0;
   --grn-bg:    rgba(126,224,160,.08);
@@ -88,8 +88,8 @@
 
   --gold:      #5F8A00;
   --gold2:     #7FB000;
-  --gold-bg:   rgba(95,138,0,.08);
-  --gold-bdr:  rgba(95,138,0,.25);
+  --gold-bg:   rgba(var(--acc-rgb),.08);
+  --gold-bdr:  rgba(var(--acc-rgb),.25);
 
   --grn:       #2E8B57;
   --grn-bg:    rgba(45,158,95,.08);
@@ -333,7 +333,7 @@ input[type="checkbox"], input[type="radio"] {
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--gold-bdr);
-  box-shadow: 0 0 0 3px rgba(200,242,90,.08);
+  box-shadow: 0 0 0 3px rgba(var(--acc-rgb),.08);
 }
 input::placeholder { color: var(--txt3); }
 textarea { resize: vertical; min-height: 90px; }
@@ -357,7 +357,7 @@ select option { background: var(--sur); }
 }
 .prog-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  background: var(--gold);
   border-radius: 2px;
   transition: width .4s cubic-bezier(.4,0,.2,1);
 }
@@ -580,7 +580,7 @@ select option { background: var(--sur); }
   line-height: 1.6;
   font-style: normal;
   letter-spacing: .01em;
-  background: rgba(200,242,90,.06);
+  background: rgba(var(--acc-rgb),.06);
   border-radius: 8px;
   padding: .5rem .75rem;
 }
@@ -786,7 +786,7 @@ select option { background: var(--sur); }
 }
 .player-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  background: var(--gold);
   border-radius: 2px;
   pointer-events: none;
   transition: width .1s linear;
@@ -819,7 +819,7 @@ select option { background: var(--sur); }
   border-color: var(--gold);
   color: #0C0C0E;
   font-size: 20px;
-  box-shadow: 0 2px 12px rgba(200,242,90,.3);
+  box-shadow: none;
 }
 .player-btn-main:hover {
   background: var(--gold2);
@@ -976,7 +976,7 @@ input[type="date"], select, textarea {
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--gold-bdr);
-  box-shadow: 0 0 0 3px rgba(200,242,90,.12);
+  box-shadow: 0 0 0 3px rgba(var(--acc-rgb),.12);
 }
 
 /* ── 가로모드(태블릿) 최적화 ── */
@@ -1243,3 +1243,92 @@ i.callout-end, svg.callout-end { width: 20px; height: 20px; }
 /* 도움말 목록 아이콘도 콜아웃 칸으로 */
 .u9c6e6, .u24675 { width: 36px; height: 36px; border-radius: 10px; background: var(--sur2); display: flex !important; align-items: center; justify-content: center; font-size: 18px !important; line-height: 1; }
 .u9c6e6 .ei, .u24675 .ei { vertical-align: 0; }
+
+/* ═══ 노선도 라이트 (speak-daily DESIGN.md와 동일, 2026-11) — 이 구간이 맨 마지막이어야 함 ═══ */
+/* 다크: 같은 초록 계열로 어둡게 */
+:root {
+  --bg: #121412; --bg2: #171A17; --bg3: #1C1F1C;
+  --sur: #1C1F1C; --sur2: #242824; --sur3: #2C302C;
+  --bdr: #2E322E; --bdr2: #3A3F3A; --track: #3A3F3A;
+  --txt: #ECECE6; --txt2: #A6A69E; --txt3: #8E8E86;
+  --gold: #4FC08D; --gold2: #6CCFA2; --acc-rgb: 79,192,141; --on-gold: #0E1210;
+  --gold-bg: rgba(79,192,141,.10); --gold-bdr: rgba(79,192,141,.32);
+  --grn: #4FC08D; --grn-bg: rgba(79,192,141,.10); --grn-bdr: rgba(79,192,141,.30);
+  --red: #F08A7C; --red-bg: rgba(240,138,124,.10); --red-bdr: rgba(240,138,124,.30);
+  --amb: #E0B34A; --amb-bg: rgba(224,179,74,.10); --amb-bdr: rgba(224,179,74,.30);
+  --blue: #A6A69E; --pur: #A6A69E; --pink: #A6A69E;
+  --due: #F2C230; --mark: rgba(79,192,141,.28);
+  --font-display: 'Archivo', 'Inter', 'Pretendard', -apple-system, sans-serif;
+  --font-en: 'Inter', 'Pretendard', -apple-system, sans-serif;
+  --font-mono: 'Archivo', 'Inter', 'Pretendard', sans-serif;
+  --r: 8px; --rs: 6px; --rx: 12px; --r-chip: 4px;
+  --shadow-sm: none; --shadow: none; --shadow-lg: 0 8px 24px rgba(0,0,0,.35); --glow-gold: none;
+  color-scheme: dark;
+}
+/* 라이트(기본): 따뜻한 오프화이트 + 노선색 초록 하나 */
+[data-theme="light"] {
+  --bg: #F7F7F4; --bg2: #EFEFEA; --bg3: #E7E7E1;
+  --sur: #FFFFFF; --sur2: #EFEFEA; --sur3: #E7E7E1;
+  --bdr: #E0E0DA; --bdr2: #D5D6D0; --track: #D5D6D0;
+  --txt: #151515; --txt2: #62625C; --txt3: #6E6E67;
+  --gold: #1E6B52; --gold2: #185A45; --acc-rgb: 30,107,82; --on-gold: #FFFFFF;
+  --gold-bg: rgba(30,107,82,.08); --gold-bdr: rgba(30,107,82,.28);
+  --grn: #1E6B52; --grn-bg: rgba(30,107,82,.08); --grn-bdr: rgba(30,107,82,.24);
+  --red: #B8392A; --red-bg: rgba(184,57,42,.08); --red-bdr: rgba(184,57,42,.24);
+  --amb: #9A6410; --amb-bg: rgba(242,194,48,.18); --amb-bdr: rgba(154,100,16,.28);
+  --blue: #62625C; --pur: #62625C; --pink: #62625C;
+  --due: #F2C230; --mark: #BFE3D3;
+  --shadow-sm: none; --shadow: none; --shadow-lg: 0 8px 24px rgba(21,21,21,.12);
+  color-scheme: light;
+}
+body { background: var(--bg); }
+body, p, h1, h2, h3, li, button, .btn { word-break: keep-all; overflow-wrap: break-word; }
+/* 면: 그림자 대신 1px 선 */
+.card, .metric, .list-item { box-shadow: none !important; }
+.card { border-radius: var(--r); border-color: var(--bdr); }
+.card:hover, .card-interactive:hover { border-color: var(--bdr); }
+/* 버튼 위계: .btn-gold = 초록 채움(화면당 하나) / .btn = 옅은 면 / .btn-ghost = 글자만 */
+.btn { border-radius: var(--rs); border-color: transparent; background: var(--sur3); font-weight: 700; }
+.btn:hover { background: var(--sur3); border-color: transparent; }
+.btn-gold, .btn-gold:hover { background: var(--gold); border-color: var(--gold); color: var(--on-gold); font-weight: 800; }
+.btn-ghost, .btn-ghost:hover { background: transparent; border-color: transparent; }
+.btn-ghost:hover { color: var(--txt); }
+.btn-danger { border-color: var(--red-bdr); }
+input, select, textarea { border-radius: var(--rs); }
+/* 제목·라벨: 한글엔 넓은 자간 금지 */
+.sec-title { font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--txt2); }
+/* 로고·타일 */
+.logo-mark { border-radius: var(--rs); background: var(--gold); color: var(--on-gold); }
+[data-theme="light"] .logo-mark { color: var(--on-gold); }
+.badge { border-radius: var(--r-chip); }
+/* 숫자: Archivo 좁은 폭 + 고정폭 숫자 */
+.metric-val, .week-card-num, .stat-num, .wbadge, .route li { font-family: var(--font-mono); font-stretch: 80%; font-variant-numeric: tabular-nums; }
+.metric-val { font-weight: 800; }
+/* 영어 단어: Archivo 굵게, 기울임 없음 */
+[style*="--font-display"], .wi-word, .flip-card-front { font-style: normal !important; font-stretch: 85%; font-weight: 800; letter-spacing: -.01em; }
+/* 하단 탭·포커스 */
+.tabbar { background: var(--bg); border-top: 1px solid var(--bdr); }
+.tabbar .tab.on, .tab.active { color: var(--gold); }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+/* 아이콘은 한 톤(선 아이콘 느낌): 초록=주 기능, 노랑=해야 할 일, 빨강=경고만 색 */
+.t-blue, .t-purple, .t-pink, .t-muted { color: var(--txt2); opacity: 1; }
+.mode-sel-btn .ico { color: var(--gold) !important; }
+
+/* 노선도: 주차 = 노선 번호 배지, 진도 = 정거장 */
+.wkhead { display: flex; align-items: center; gap: 12px; margin: 4px 0 0; min-height: 48px; }
+.wbadge { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--gold); color: var(--on-gold); display: grid; place-items: center; font-size: 20px; font-weight: 800; }
+.wkhead .wt { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-size: 13px; color: var(--txt2); line-height: 1.4; }
+.wkhead .wt b { font-size: 16px; color: var(--txt); }
+.route { position: relative; display: flex; justify-content: space-between; margin: 20px 2px 4px; padding: 0; list-style: none; }
+.route::before, .route::after { content: ""; position: absolute; left: 10px; right: 10px; top: 8px; height: 4px; background: var(--track); }
+.route::after { right: auto; width: calc((100% - 20px) * var(--p, 0)); background: var(--gold); }
+.route li { position: relative; z-index: 1; width: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--txt2); white-space: nowrap; cursor: pointer; }
+.route li i { width: 20px; height: 20px; border-radius: 50%; background: var(--sur); border: 3px solid var(--track); }
+.route li.pass i { border-color: var(--gold); }
+.route li.cur i { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 3px var(--sur); }
+.route li.cur { color: var(--gold); font-weight: 800; }
+.route li.exam::after { content: "시험"; position: absolute; top: -18px; font-size: 11px; font-weight: 800; color: var(--txt); background: var(--due); border-radius: var(--r-chip); padding: 0 4px; line-height: 16px; }
+/* 지금 해야 할 일 표시 (speak-daily NEW·DUE) */
+.due-tag { display: inline-block; font-size: 11px; font-weight: 800; color: #151515; background: var(--due); border-radius: var(--r-chip); padding: 0 6px; line-height: 18px; margin-top: 4px; }
+/* 단어장 태그: 색은 왼쪽 점에만, 글자는 회색 칩 (speak-daily: 강조색은 초록 하나) */
+.catalog-tag { color: var(--txt2) !important; background: var(--sur2) !important; border-color: transparent !important; }
