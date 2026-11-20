@@ -267,6 +267,22 @@ async function chartSuite() {
   ok(!t._errs.length, '분석 화면 오류 없음 ' + t._errs.join('|'));
 }
 
+async function swSuite() {
+  console.log('\n## 서비스 워커 (재방문·끊김)');
+  const p = await page();
+  await p.context().addInitScript(() => { window.__SW_TEST = true; });
+  await p.goto(BASE + '/index.html'); await p.waitForTimeout(2500);
+  await p.reload(); await p.waitForTimeout(2000);
+  ok(await p.evaluate(() => !!navigator.serviceWorker.controller), '서비스 워커가 화면을 맡음');
+  const cached = await p.evaluate(async () => (await caches.keys()).length && (await (await caches.open((await caches.keys())[0])).keys()).length);
+  ok(cached >= 7, '앱 기본 파일 저장됨 (' + cached + '개)');
+  await p.context().setOffline(true);
+  await p.reload().catch(() => {}); await p.waitForTimeout(2500);
+  ok(await p.isVisible('#stu-input'), '인터넷이 끊겨도 첫 화면이 뜸');
+  await p.context().setOffline(false);
+  ok(!p._errs.filter((e) => !/fetch|network|offline/i.test(e)).length, '오류 없음 ' + p._errs.join('|'));
+}
+
 (async () => {
   if (!SDK || !fs.existsSync(path.join(SDK, 'firebase-app.js'))) { console.error('FIREBASE_SDK_DIR 없음 (tests/run.sh로 실행하세요)'); process.exit(2); }
   browser = await chromium.launch();
@@ -275,6 +291,7 @@ async function chartSuite() {
     await bookmarkSuite();
     await stickerSuite();
     await chartSuite();
+    await swSuite();
   } catch (e) {
     fail++; console.log('FAIL 실행 중 오류: ' + (e && e.stack || e));
   }

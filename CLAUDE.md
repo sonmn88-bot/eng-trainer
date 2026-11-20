@@ -17,6 +17,8 @@
 - `shared/` 공통: `db.js`(Firebase), `utils.js`, `theme.css`
 - `data/_index.js` 단어 데이터 목록, `data/words/*.js` 단어 세트(core-essential, confuse-pairs 등), `data/listening/`
 - `audio/` 듣기 음원
+- `sw.js` 서비스 워커(https에서만 등록): 앱 파일은 네트워크 우선이라 배포 즉시 반영. `data/words`·`data/listening`은 저장본 먼저(다음 방문에 갱신) → 단어 파일 구조를 크게 바꾸면 `sw.js`의 `CACHE` 이름(et-v1→v2)도 올릴 것
+- `tests/` 배포 전 검사 (`bash tests/run.sh`), 분석 차트는 `teacher.html` 진도 탭(`renderCharts`)
 ## 수능 핵심 필수 단어장 (2026-11 리뉴얼)
 - `data/words/core-essential.js`: 1,800개 · 12주 × 150 · `Day N` = 주차. 1주차가 가장 중요(S등급), 주 안에서는 알파벳순. 이전 버전(2,283개·알파벳순 16주)은 `data/archive/core-essential-v1.js`
 - 개수를 바꾸면 `data/_index.js`의 `wordCount`·`totalWords`·`desc`도 같이 고칠 것 (목록 화면이 `wordCount`를 씀)

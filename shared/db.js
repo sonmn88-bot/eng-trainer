@@ -839,3 +839,10 @@ DB.pruneErrors = async function (keepDays) {
   window.addEventListener('error', function (e) { DB.logError('화면', e.error || e.message); });
   window.addEventListener('unhandledrejection', function (e) { DB.logError('비동기', e.reason); });
 })();
+
+// 서비스 워커 등록 (sw.js: 재방문 속도·끊김 대비). 배포 주소(https)에서만, 검사에선 __SW_TEST일 때만
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || window.__SW_TEST)) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
