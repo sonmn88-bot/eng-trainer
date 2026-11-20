@@ -18,6 +18,7 @@
 - `data/_index.js` 단어 데이터 목록, `data/words/*.js` 단어 세트(core-essential, confuse-pairs 등), `data/listening/`
 - `audio/` 듣기 음원
 - `sw.js` 서비스 워커(https에서만 등록): 앱 파일은 네트워크 우선이라 배포 즉시 반영. `data/words`·`data/listening`은 저장본 먼저(다음 방문에 갱신) → 단어 파일 구조를 크게 바꾸면 `sw.js`의 `CACHE` 이름(et-v1→v2)도 올릴 것
+- `review.html` + `shared/srs.js` **N회독 노선**(간격 반복, 수능핵심필수): 단계 1→6, 맞히면 1·3·7·14·30일 뒤, 틀리면 1단계·내일. 숙달=3단계↑. 복습을 다 끝내야 새 단어(하루 30개) 열림. 저장 `students/{id}/srs/{단어키}={s,d}`, `srsDay={day,newDone}`, `srsInit`(기존 학생은 첫 입장 때 맞힌 단어를 2단계로 시작). 홈 첫 카드(`renderSrsCard`)가 주 버튼, 선생님 학생 목록에 숙달·밀린 복습 표시
 - `tests/` 배포 전 검사 (`bash tests/run.sh`), 분석 차트는 `teacher.html` 진도 탭(`renderCharts`)
 ## 수능 핵심 필수 단어장 (2026-11 리뉴얼)
 - `data/words/core-essential.js`: 1,800개 · 12주 × 150 · `Day N` = 주차. 1주차가 가장 중요(S등급), 주 안에서는 알파벳순. 이전 버전(2,283개·알파벳순 16주)은 `data/archive/core-essential-v1.js`

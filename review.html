@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<script>(function(){try{if(localStorage.getItem('themeV')!=='transit'){localStorage.setItem('theme','light');localStorage.setItem('themeV','transit');}}catch(e){}})();document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'light')</script>
+<title>N회독 노선</title>
+<link rel="stylesheet" href="shared/theme.css">
+<script src="shared/icons.js"></script>
+<style>
+.rv-top { display: flex; align-items: center; gap: 12px; margin: 4px 0 12px; }
+.rv-step { font-size: 13px; font-weight: 700; color: var(--txt2); }
+.rv-count { margin-left: auto; font-family: var(--font-mono); font-stretch: 80%; font-weight: 800; font-size: 15px; color: var(--txt2); font-variant-numeric: tabular-nums; }
+.rv-bar { height: 4px; border-radius: 2px; background: var(--track); overflow: hidden; margin-bottom: 16px; }
+.rv-bar i { display: block; height: 100%; width: 0; background: var(--gold); transition: width .2s var(--ease); }
+.rv-card { background: var(--sur); border: 1px solid var(--bdr); border-radius: var(--r); padding: 24px 20px 20px; }
+.rv-tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--gold); background: var(--gold-bg); border-radius: var(--r-chip); padding: 2px 8px; margin-bottom: 12px; }
+.rv-tag.new { color: #151515; background: var(--due); }
+.rv-word-row { display: flex; align-items: center; gap: 8px; }
+.rv-word { font-family: var(--font-display); font-stretch: 80%; font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -.01em; color: var(--txt); word-break: break-all; }
+.rv-tts { margin-left: auto; flex-shrink: 0; width: 44px; height: 44px; border-radius: var(--rs); border: 0; background: var(--sur2); color: var(--txt2); display: grid; place-items: center; cursor: pointer; }
+.rv-ko { font-size: 21px; font-weight: 700; line-height: 1.5; margin-top: 12px; color: var(--txt); word-break: keep-all; }
+.rv-hint { font-size: 14px; color: var(--txt2); margin-top: 8px; line-height: 1.6; }
+.rv-opts { display: grid; gap: 8px; margin-top: 16px; }
+.rv-opt { min-height: 56px; text-align: left; justify-content: flex-start; font-size: 16px; font-weight: 600; background: var(--sur2); border: 1px solid var(--bdr); border-radius: var(--rs); padding: 12px 16px; color: var(--txt); cursor: pointer; font-family: var(--font-body); word-break: keep-all; }
+.rv-opt.right { background: var(--grn-bg); border-color: var(--gold); color: var(--gold); font-weight: 800; }
+.rv-opt.wrong { background: var(--red-bg); border-color: var(--red-bdr); color: var(--red); }
+.rv-opt:disabled { cursor: default; }
+.rv-go { width: 100%; min-height: 52px; margin-top: 16px; font-size: 16px; }
+.rv-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
+.rv-sum div { background: var(--sur2); border-radius: var(--rs); padding: 12px; }
+.rv-sum b { display: block; font-family: var(--font-mono); font-stretch: 80%; font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.rv-sum span { font-size: 12px; color: var(--txt2); }
+.rv-title { font-size: 21px; font-weight: 800; line-height: 1.4; word-break: keep-all; }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark"><i data-icon="arrows-clockwise"></i></div>
+    <div><div class="logo-text-main">N회독 노선</div><div class="logo-text-sub">Review</div></div>
+  </div>
+  <button class="btn btn-ghost" onclick="goHome()">← 홈</button>
+</div>
+
+<div id="rv-loading" class="empty py-2">불러오는 중…</div>
+<div id="rv-main" style="display:none">
+  <div class="rv-top"><span class="rv-step" id="rv-step"></span><span class="rv-count" id="rv-count"></span></div>
+  <div class="rv-bar"><i id="rv-fill"></i></div>
+  <div class="rv-card" id="rv-card"></div>
+</div>
+</div>
+
+<script src="data/_index.js"></script>
+<script src="data/words/core-essential.js"></script>
+<script src="shared/utils.js"></script>
+<script src="shared/db.js"></script>
+<script src="shared/srs.js"></script>
+<script>
+var params = new URLSearchParams(location.search);
+var STU_ID = params.get('stu') || sessionStorage.getItem('stuId') || '';
+var STU_NAME = params.get('name') || sessionStorage.getItem('stuName') || '';
+var WORDS = window.WM_CORE || [];
+var S = { srs: {}, day: null, plan: null, queue: [], idx: 0, mode: '', total: 0, ok: 0, wrong: 0, newDone: 0, reviewed: 0, retry: {} };
+
+function goHome() { location.href = 'index.html?stu=' + encodeURIComponent(STU_ID) + '&name=' + encodeURIComponent(STU_NAME); }
+function esc(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+async function init() {
+  if (!STU_ID || STU_ID === 'guest') { goHome(); return; }
+  try {
+    var got = await DB.getSrs(STU_ID);
+    S.srs = got.srs; S.day = got.day;
+    // 기존 학생 첫 사용: 이미 맞힌 단어로 시작값 (한 번만)
+    if (!got.init) {
+      var seed = SRS.seedFromCorrect(WORDS, await DB.getCorrectWords(STU_ID));
+      Object.keys(seed).forEach(function (k) { if (!S.srs[k]) S.srs[k] = seed[k]; else delete seed[k]; });
+      await DB.saveSrs(STU_ID, seed);
+      await DB.markSrsInit(STU_ID);
+    }
+    start();
+  } catch (e) {
+    DB.logError('복습 시작', e);
+    document.getElementById('rv-loading').textContent = '불러오지 못했어요. 인터넷 연결을 확인하고 다시 들어와 주세요';
+  }
+}
+
+// 오늘 할 일: 복습 먼저, 다 끝나면 새 단어
+function start() {
+  S.plan = SRS.plan(WORDS, S.srs, S.day);
+  document.getElementById('rv-loading').style.display = 'none';
+  document.getElementById('rv-main').style.display = 'block';
+  if (S.plan.due.length) {
+    S.mode = 'review'; S.queue = S.plan.due.map(function (x) { return { w: x.w, e: x.e }; });
+  } else if (S.plan.fresh.length) {
+    S.mode = 'new'; S.queue = [];
+    // 10개씩: 먼저 보고(카드) → 바로 문제
+    for (var i = 0; i < S.plan.fresh.length; i += 10) {
+      var chunk = S.plan.fresh.slice(i, i + 10);
+      chunk.forEach(function (w) { S.queue.push({ w: w, learn: true }); });
+      shuffle(chunk.slice()).forEach(function (w) { S.queue.push({ w: w, fresh: true }); });
+    }
+  } else { return done(); }
+  S.idx = 0; S.total = S.queue.length; S.retry = {};
+  show();
+}
+
+function progress() {
+  var n = S.queue.filter(function (q) { return !q.learn; }).length;
+  var d = S.queue.slice(0, S.idx).filter(function (q) { return !q.learn; }).length;
+  document.getElementById('rv-step').textContent = S.mode === 'review' ? '1단계 · 돌아온 복습' : '2단계 · 오늘의 새 단어';
+  document.getElementById('rv-count').textContent = d + ' / ' + n;
+  document.getElementById('rv-fill').style.width = (n ? Math.round(d / n * 100) : 0) + '%';
+}
+
+function options(w) {
+  var pool = [], seen = {}; seen[w[1]] = 1;
+  var wk = SRS.weekOf(w);
+  var near = WORDS.filter(function (x) { return SRS.weekOf(x) === wk; });
+  shuffle(near.slice()).concat(shuffle(WORDS.slice(0, 400))).forEach(function (x) {
+    if (pool.length < 3 && !seen[x[1]]) { seen[x[1]] = 1; pool.push(x[1]); }
+  });
+  return shuffle(pool.concat([w[1]]));
+}
+
+function show() {
+  if (S.idx >= S.queue.length) return afterQueue();
+  progress();
+  var q = S.queue[S.idx], w = q.w, card = document.getElementById('rv-card');
+  var head = '<div class="rv-word-row"><div class="rv-word">' + esc(w[0]) + '</div>' +
+    '<button class="rv-tts" aria-label="발음 듣기" onclick="Utils.speak(\'' + esc(w[0]).replace(/'/g, "\\'") + '\')"><i data-icon="speaker-high"></i></button></div>';
+  if (q.learn) {
+    card.innerHTML = '<span class="rv-tag new">새 단어</span>' + head +
+      '<div class="rv-ko">' + esc(w[1]) + '</div><div class="rv-hint">' + SRS.weekOf(w) + '주차 단어 · 소리 내어 한 번 읽고 넘어가요</div>' +
+      '<button class="btn btn-gold rv-go" onclick="nextCard()">다음</button>';
+    Utils.speak(w[0]);
+  } else {
+    var tag = S.mode === 'review' ? '<span class="rv-tag">복습 · ' + ((q.e && q.e.s) || 1) + '단계</span>' : '<span class="rv-tag">확인 문제</span>';
+    card.innerHTML = tag + head + '<div class="rv-opts">' + options(w).map(function (o) {
+      return '<button class="rv-opt" data-v="' + esc(o) + '">' + esc(o) + '</button>';
+    }).join('') + '</div><div id="rv-after"></div>';
+    card.querySelectorAll('.rv-opt').forEach(function (b) { b.addEventListener('click', function () { answer(b); }); });
+  }
+}
+
+function nextCard() { S.idx++; show(); }
+
+function answer(btn) {
+  var q = S.queue[S.idx], w = q.w, ok = btn.dataset.v === w[1];
+  var card = document.getElementById('rv-card');
+  card.querySelectorAll('.rv-opt').forEach(function (b) { b.disabled = true; if (b.dataset.v === w[1]) b.classList.add('right'); });
+  if (!ok) btn.classList.add('wrong');
+  var k = SRS.key(w[0]), firstTry = !S.retry[k];
+  // 저장: 첫 시도 결과만 단계에 반영 (같은 세션에서 다시 풀어 맞힌 건 단계 그대로)
+  if (firstTry) {
+    var ne;
+    if (S.mode === 'review') { ne = SRS.next(q.e, ok); S.reviewed++; }
+    else { ne = { s: 1, d: SRS.today() + 1 }; }   // 새 단어는 오늘 익힘 → 내일 1단계 복습
+    S.srs[k] = ne;
+    var patch = {}; patch[k] = ne;
+    DB.saveSrs(STU_ID, patch).catch(function (e) { DB.logError('복습 저장', e); });
+    if (S.mode === 'new') {
+      S.newDone++;
+      var t = SRS.today(), base = (S.day && S.day.day === t) ? (S.day.newDone || 0) : 0;
+      S.day = { day: t, newDone: base + 1 };
+      DB.saveSrsDay(STU_ID, S.day).catch(function () {});
+    }
+    if (ok) { S.ok++; DB.markCorrect(STU_ID, w[0]).catch(function () {}); } else S.wrong++;
+  }
+  if (!ok) { S.retry[k] = 1; S.queue.push({ w: w, e: S.srs[k], again: true }); }   // 틀린 단어는 끝에 한 번 더
+  var after = document.getElementById('rv-after');
+  after.innerHTML = ok ? '' : '<div class="rv-hint">정답: <b style="color:var(--txt)">' + esc(w[1]) + '</b> · 내일 다시 나와요</div>';
+  after.innerHTML += '<button class="btn btn-gold rv-go" id="rv-next">다음</button>';
+  document.getElementById('rv-next').onclick = nextCard;
+  if (ok) setTimeout(function () { if (S.queue[S.idx] === q) nextCard(); }, 650);
+}
+
+// 복습을 다 끝내면 새 단어로 이어서
+function afterQueue() {
+  if (S.mode === 'review') {
+    var p = SRS.plan(WORDS, S.srs, S.day);
+    if (p.dueTotal) return start();             // 100개 넘게 밀린 경우 다음 묶음
+    if (p.fresh.length) {
+      var card = document.getElementById('rv-card');
+      progress(); document.getElementById('rv-count').textContent = '완료';
+      card.innerHTML = '<div class="rv-title">복습 끝! 이제 새 단어 ' + p.fresh.length + '개가 열렸어요</div>' +
+        '<div class="rv-hint">복습 ' + S.reviewed + '개 중 ' + S.ok + '개 맞힘. 틀린 단어는 내일 다시 나와요</div>' +
+        '<button class="btn btn-gold rv-go" onclick="start()">새 단어 시작</button>';
+      return;
+    }
+  }
+  done();
+}
+
+function done() {
+  var p = SRS.plan(WORDS, S.srs, S.day), t = SRS.today();
+  var tomorrow = Object.keys(S.srs).filter(function (k) { var e = S.srs[k]; return e.s < SRS.GRAD && e.d === t + 1; }).length;
+  document.getElementById('rv-loading').style.display = 'none';
+  document.getElementById('rv-main').style.display = 'block';
+  document.getElementById('rv-step').textContent = '오늘 할 일 완료';
+  document.getElementById('rv-count').textContent = '';
+  document.getElementById('rv-fill').style.width = '100%';
+  document.getElementById('rv-card').innerHTML = '<div class="rv-title">오늘 노선 완주!</div>' +
+    '<div class="rv-sum"><div><b>' + p.mastered + '</b><span>숙달 단어</span></div><div><b>' + p.seen + '</b><span>익힌 단어</span></div><div><b>' + tomorrow + '</b><span>내일 복습</span></div></div>' +
+    '<div class="rv-hint">3번 맞히면 숙달, 6번이면 졸업이에요. 내일 돌아오는 복습을 먼저 하면 새 단어 30개가 다시 열려요.</div>' +
+    '<button class="btn btn-gold rv-go" onclick="goHome()">홈으로</button>';
+}
+
+init();
+</script>
+</body>
+</html>

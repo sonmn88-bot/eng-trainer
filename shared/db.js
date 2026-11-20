@@ -846,3 +846,27 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || window.__
     navigator.serviceWorker.register('sw.js').catch(function () {});
   });
 }
+
+// ── N회독 노선(간격 반복) 저장 — shared/srs.js ──
+DB.getSrs = async function (stuId) {
+  const { db, ref, get } = await initDB();
+  const [a, b, c] = await Promise.all([
+    get(ref(db, `students/${stuId}/srs`)), get(ref(db, `students/${stuId}/srsDay`)), get(ref(db, `students/${stuId}/srsInit`)),
+  ]);
+  return { srs: a.val() || {}, day: b.val() || null, init: !!c.val() };
+};
+DB.saveSrs = async function (stuId, patch) {   // patch: {단어키: {s, d}}
+  if (!stuId || stuId === 'guest' || !patch || !Object.keys(patch).length) return;
+  const { db, ref, update } = await initDB();
+  await update(ref(db, `students/${stuId}/srs`), patch);
+};
+DB.saveSrsDay = async function (stuId, day) {
+  if (!stuId || stuId === 'guest') return;
+  const { db, ref, set } = await initDB();
+  await set(ref(db, `students/${stuId}/srsDay`), day);
+};
+DB.markSrsInit = async function (stuId) {
+  if (!stuId || stuId === 'guest') return;
+  const { db, ref, set } = await initDB();
+  await set(ref(db, `students/${stuId}/srsInit`), true);
+};

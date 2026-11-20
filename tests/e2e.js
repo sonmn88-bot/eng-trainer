@@ -294,6 +294,73 @@ async function swSuite() {
   ok(!p._errs.filter((e) => !/fetch|network|offline/i.test(e)).length, '오류 없음 ' + p._errs.join('|'));
 }
 
+async function srsSuite() {
+  console.log('\n## N회독 노선 (간격 반복)');
+  // 1) 계산 규칙
+  const p0 = await page();
+  await p0.goto(BASE + '/index.html'); await p0.waitForTimeout(1200);
+  const unit = await p0.evaluate(() => {
+    const W = []; for (let i = 0; i < 60; i++) W.push(['w' + i, '뜻' + i, 'Day ' + (i < 30 ? 1 : 2)]);
+    const t = 1000, k = (w) => DB._wordKey(w);
+    const r = {};
+    r.fresh = SRS.plan(W, {}, null, t).fresh.length;                                  // 처음: 새 단어 30
+    const srs = {}; srs[k('w0')] = { s: 2, d: t };                                     // 오늘 복습 1개
+    const p = SRS.plan(W, srs, null, t); r.locked = p.fresh.length; r.due = p.dueTotal; // 복습 남으면 새 단어 잠금
+    r.after = SRS.plan(W, {}, { day: t, newDone: 30 }, t).fresh.length;              // 하루 30개 다 했으면 0
+    r.up = JSON.stringify(SRS.next({ s: 2, d: t }, true, t));                         // 맞히면 3단계, 7일 뒤
+    r.down = JSON.stringify(SRS.next({ s: 4, d: t }, false, t));                      // 틀리면 1단계, 내일
+    r.grad = SRS.next({ s: 5, d: t }, true, t).s;
+    const seed = SRS.seedFromCorrect(W, { [k('w1')]: 1, [k('w2')]: 1 }, t);
+    r.seed = Object.values(seed).map((e) => e.s + ':' + (e.d - t)).join(',');
+    return r;
+  });
+  ok(unit.fresh === 30, '처음엔 새 단어 30개');
+  ok(unit.due === 1 && unit.locked === 0, '복습이 남아 있으면 새 단어 잠김');
+  ok(unit.after === 0, '하루 새 단어 30개를 다 하면 더 안 나옴');
+  ok(unit.up === '{"s":3,"d":1007}' && unit.down === '{"s":1,"d":1001}' && unit.grad === 6, '맞히면 단계↑(3단계=7일 뒤), 틀리면 1단계·내일, 6단계 졸업');
+  ok(unit.seed === '2:1,2:2', '기존 학생: 맞힌 단어는 2단계로 시작, 복습일을 나눔');
+
+  // 2) 실제 화면: 기존 학생(맞힌 단어 있음) → 홈 카드 → 복습 화면에서 새 단어 학습 → DB 저장
+  const core = fs.readFileSync(path.join(ROOT, 'data/words/core-essential.js'), 'utf8');
+  const words = [...core.matchAll(/\[\s*'([^']+)'/g)].map((m) => m[1]);
+  const keys = await p0.evaluate((ws) => ws.map((w) => DB._wordKey(w)), words.slice(0, 5));
+  await reset({ settings: { appName: 'T' }, students: { stu_1: { id: 'stu_1', name: '가나다', password: 'abcd',
+    correctWords: Object.fromEntries(keys.map((k) => [k, 1])) } } });
+  const p = await page();
+  ok(await studentLogin(p, '가나다', 'abcd'), '학생 입장');
+  await setRules(STRICT);
+  await p.waitForTimeout(1500);
+  ok(await p.isVisible('#srs-card') && /새 단어 30개/.test(await p.textContent('#srs-title')), '홈 첫 카드: 오늘의 새 단어 30개 (' + await p.textContent('#srs-title') + ')');
+  ok((await p.$$('#srs-route .route li')).length === 12, '홈 노선도 12주');
+  ok(await p.evaluate(() => document.getElementById('wp-go').classList.contains('sub') || document.getElementById('week-progress').style.display !== 'block'), '주 버튼은 노선 카드 하나');
+  await p.click('#srs-go'); await p.waitForURL(/review\.html/); await p.waitForTimeout(3000);
+  const st0 = await getJ('students/stu_1');
+  ok(st0.srsInit === true && Object.keys(st0.srs || {}).length === 5 && Object.values(st0.srs).every((e) => e.s === 2), '처음 들어오면 맞힌 단어 5개가 2단계로 저장');
+  // 새 단어 10개 보기 → 10문제 (정답 고르기)
+  for (let i = 0; i < 10; i++) { await p.click('#rv-card .btn-gold'); await p.waitForTimeout(80); }
+  for (let i = 0; i < 10; i++) {
+    await p.evaluate(() => { const w = document.querySelector('.rv-word').textContent; const m = WM_CORE.find((x) => x[0] === w)[1];
+      [...document.querySelectorAll('.rv-opt')].find((b) => b.dataset.v === m).click(); });
+    await p.waitForTimeout(150); await p.evaluate(() => { const n = document.getElementById('rv-next'); if (n) n.click(); }); await p.waitForTimeout(100);
+  }
+  await p.waitForTimeout(1200);
+  const st1 = await getJ('students/stu_1');
+  const ones = Object.values(st1.srs).filter((e) => e.s === 1).length;
+  ok(ones === 10 && st1.srsDay && st1.srsDay.newDone === 10, '새 단어 10개 맞힘 → 1단계·내일 복습으로 저장, 오늘 10개 진행 (' + ones + ')');
+  // 오늘 복습 1개가 생기면 새 단어 대신 복습부터
+  const k0 = Object.keys(st1.srs).find((k) => st1.srs[k].s === 2);
+  const todayN = await p.evaluate(() => SRS.today());
+  await rest(`students/stu_1/srs/${encodeURIComponent(k0)}`, { owner: true, method: 'PUT', body: JSON.stringify({ s: 2, d: todayN }) });
+  await p.reload(); await p.waitForTimeout(3000);
+  ok(/복습/.test(await p.textContent('#rv-step')) && (await p.textContent('#rv-count')) === '0 / 1', '복습이 있으면 복습부터 (새 단어 잠김)');
+  await p.evaluate(() => { const w = document.querySelector('.rv-word').textContent; const m = WM_CORE.find((x) => x[0] === w)[1];
+    [...document.querySelectorAll('.rv-opt')].find((b) => b.dataset.v !== m).click(); });
+  await p.waitForTimeout(800);
+  const e0 = (await getJ('students/stu_1/srs'))[k0];
+  ok(e0.s === 1 && e0.d === todayN + 1, '복습에서 틀리면 1단계·내일 다시');
+  ok(!p._errs.length, '복습 화면 오류 없음 ' + p._errs.join('|'));
+}
+
 (async () => {
   if (!SDK || !fs.existsSync(path.join(SDK, 'firebase-app.js'))) { console.error('FIREBASE_SDK_DIR 없음 (tests/run.sh로 실행하세요)'); process.exit(2); }
   browser = await chromium.launch();
@@ -303,6 +370,7 @@ async function swSuite() {
     await stickerSuite();
     await chartSuite();
     await swSuite();
+    await srsSuite();
   } catch (e) {
     fail++; console.log('FAIL 실행 중 오류: ' + (e && e.stack || e));
   }

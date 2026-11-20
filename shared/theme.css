@@ -1332,3 +1332,6 @@ input, select, textarea { border-radius: var(--rs); }
 .due-tag { display: inline-block; font-size: 11px; font-weight: 800; color: #151515; background: var(--due); border-radius: var(--r-chip); padding: 0 6px; line-height: 18px; margin-top: 4px; }
 /* 단어장 태그: 색은 왼쪽 점에만, 글자는 회색 칩 (speak-daily: 강조색은 초록 하나) */
 .catalog-tag { color: var(--txt2) !important; background: var(--sur2) !important; border-color: transparent !important; }
+/* N회독 노선: 복습이 밀린 주차는 노란 정거장 */
+.route li.due i { border-color: var(--due); }
+.route li.cur.due i { box-shadow: 0 0 0 3px var(--sur), 0 0 0 5px var(--due); }

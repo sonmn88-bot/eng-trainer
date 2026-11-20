@@ -37,6 +37,7 @@
 .err-meta { font-size: 12px; color: var(--txt3); margin-top: 2px; }
 .stu-col { flex-basis: 100%; color: var(--txt2); font-variant-numeric: tabular-nums; }
 .stu-card .stu-meta > .stu-col::before { content: none; }
+.c-amb { color: var(--amb); font-weight: 700; }
 .stu-score { min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
 .stu-score b { font-size: 17px; font-weight: 800; color: var(--txt); }
 .stu-score small { font-size: 11px; color: var(--txt3); margin-left: 1px; }
@@ -772,6 +773,7 @@ details[open] > .t-summary::after { transform: rotate(-135deg); margin-bottom: -
 <script src="data/_index.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
+<script src="shared/srs.js"></script>
 <script>
 // -- State --
 let students = {};
@@ -1057,7 +1059,7 @@ function renderStudents() {
       '<div class="stu-main">' +
         '<div class="stu-name">' + esc(s.name) + '<span id="msg-badge-' + s.id + '" class="stu-chip-wrap"></span></div>' +
         '<div class="stu-meta"><span class="' + (isAbsent ? 'c-red' : '') + '">' + rel + (isAbsent ? ' · 미접속' : '') + '</span>' +
-          '<span id="lv-badge-' + s.id + '"></span>' + (s.memo ? '<span class="stu-memo" title="' + esc(s.memo) + '">메모</span>' : '') + '<span id="col-badge-' + s.id + '" class="stu-col"></span>' + '</div>' +
+          '<span id="lv-badge-' + s.id + '"></span>' + (s.memo ? '<span class="stu-memo" title="' + esc(s.memo) + '">메모</span>' : '') + '<span id="col-badge-' + s.id + '" class="stu-col"></span>' + '<span id="srs-badge-' + s.id + '" class="stu-col stu-srs"></span>' + '</div>' +
       '</div>' +
       '<div class="stu-score" id="mock-badge-' + s.id + '"></div>' +
       Icon('caret-right', 'stu-caret') +
@@ -1067,6 +1069,7 @@ function renderStudents() {
   list.querySelectorAll('.stu-card').forEach(function(el) {
     el.addEventListener('click', function() { showStuDetail(this.dataset.id); });
   });
+  renderSrsBadges(arr).catch(function(e){ DB.logError('노선 현황', e); });
 
   // 메시지 읽음 상태 + 레벨 비동기 로드
   // 반 현황 요약
@@ -1206,6 +1209,29 @@ async function renderCharts(force) {
   try { window._examRangeCache = await DB.getExamRange(); } catch (e) {}
   renderProgressHeatmap().catch(function(e){ DB.logError('진도 차트', e); });
   renderClassTrend().catch(function(e){ DB.logError('추이 차트', e); });
+}
+
+// 학생 목록: N회독 노선 숙달·밀린 복습 + 이번 주 시험 범위 맞힌 %
+async function renderSrsBadges(arr) {
+  await ensureCoreWords();
+  var words = window.WM_CORE || [];
+  var t = SRS.today(), exam = window._examRangeCache;
+  if (exam === undefined) { try { exam = window._examRangeCache = await DB.getExamRange(); } catch (e) { exam = null; } }
+  var examList = [];
+  if (exam && exam.setId === 'core') examList = (Utils.groupByWeek(words, 150)[exam.week] || { words: [] }).words;
+  arr.forEach(function(s) {
+    var el = document.getElementById('srs-badge-' + s.id); if (!el) return;
+    var srs = s.srs || {}, mastered = 0, due = 0;
+    Object.keys(srs).forEach(function(k) { var e = srs[k]; if (!e) return; if (e.s >= SRS.MASTER) mastered++; if (e.s < SRS.GRAD && e.d <= t) due++; });
+    var parts = [];
+    if (s.srsInit || Object.keys(srs).length) parts.push('숙달 ' + mastered + (due ? ' · <span class="c-amb">밀린 복습 ' + due + '</span>' : ''));
+    else parts.push('노선 시작 전');
+    if (examList.length) {
+      var cw = s.correctWords || {}, ok = examList.filter(function(w){ return cw[DB._wordKey(w[0])]; }).length;
+      parts.push('이번 주 범위 ' + Math.round(ok / examList.length * 100) + '%');
+    }
+    el.innerHTML = parts.join(' · ');
+  });
 }
 
 // 학생 목록: 북마크·내 단어 개수 (한 번 불러온 값은 캐시)

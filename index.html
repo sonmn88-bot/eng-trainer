@@ -48,7 +48,7 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 .greeting { margin: 0 0 1rem !important; font-size: 14px !important; line-height: 1.6; }
 .today-hero { border-radius: var(--r) !important; }
 .th-title { font-size: 20px !important; font-weight: 800 !important; }
-.th-go { border-radius: 12px !important; font-size: 16px !important; font-weight: 800 !important; min-height: 52px !important; }
+.th-go { border-radius: var(--rs) !important; font-size: 16px !important; font-weight: 800 !important; min-height: 52px !important; }
 /* ── 홈 첫 카드: 이번 주 시험 범위 진도 ── */
 .wp-card { background: var(--sur); border: 1px solid var(--bdr); border-radius: var(--r); padding: 16px; margin-bottom: 12px; }
 .wp-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
@@ -60,7 +60,10 @@ body:has(#view-main[style*="block"]) .hero { padding: 3.25rem 0 1.25rem !importa
 .wp-bar > div { height: 100%; width: 0; border-radius: 99px; background: var(--gold); transition: width .4s var(--ease); }
 .wp-sub { font-size: 13px; color: var(--txt2); line-height: 1.5; margin-bottom: 14px; }
 /* 주 버튼은 한 화면에 하나: 주간 카드가 있으면 '오늘의 단어' 버튼은 보조 버튼으로 */
-body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !important; color: var(--txt) !important; border: 1px solid var(--bdr2) !important; }
+/* 주 버튼은 한 화면에 하나: 위 카드가 주 버튼을 가지면 아래 카드 버튼은 보조(옅은 면) */
+.th-go.sub, body:has(#week-progress[style*="block"]) #today-go { background: var(--sur3) !important; color: var(--txt) !important; border: 0 !important; font-weight: 700 !important; }
+.th-go:disabled.done { opacity: 1; background: var(--sur2); color: var(--txt2); }
+#srs-card .wp-num b { font-size: 26px; }
 /* 홈 배경 개선 */
 .app {
   background: var(--bg);
@@ -368,7 +371,20 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
     </div>
 
     <div class="greeting" id="greeting"></div>
-    <!-- 이번 주 시험 범위 진도 (홈 첫 카드) -->
+    <!-- N회독 노선: 오늘 할 일 (홈 첫 카드, 주 버튼) -->
+    <section class="wp-card" id="srs-card" style="display:none" aria-live="polite">
+      <div class="wp-head">
+        <div class="wkhead" style="margin:0;min-width:0">
+          <div class="wbadge" id="srs-badge">1</div>
+          <div class="wt"><span>N회독 노선 · 수능 핵심 필수</span><b class="wp-title" id="srs-title">오늘 할 일</b></div>
+        </div>
+        <div class="wp-num"><b id="srs-mastered">0</b><span class="wp-total" id="srs-total">/1800</span></div>
+      </div>
+      <div id="srs-route"></div>
+      <div class="wp-sub" id="srs-sub"></div>
+      <button class="th-go" id="srs-go" type="button">시작</button>
+    </section>
+    <!-- 이번 주 시험 범위 진도 -->
     <section class="wp-card" id="week-progress" style="display:none" aria-live="polite">
       <div class="wp-head">
         <div class="wkhead" style="margin:0;min-width:0">
@@ -377,7 +393,6 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
         </div>
         <div class="wp-num"><span id="wp-done">0</span><span class="wp-total" id="wp-total">/0</span></div>
       </div>
-      <div id="wp-route"></div>
       <div class="wp-bar"><div id="wp-fill"></div></div>
       <div class="wp-sub" id="wp-sub"></div>
       <button class="th-go" id="wp-go" type="button">이어서 학습</button>
@@ -844,6 +859,7 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
 <script src="data/words/badge_data.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
+<script src="shared/srs.js"></script>
 <script>
 // ── State ──────────────────────────────────────
 let state = {
@@ -1044,6 +1060,47 @@ async function init() {
   } catch(e) {}
 }
 
+// N회독 노선: 복습 먼저 → 새 단어 30개. 숙달 = 3단계 이상 (shared/srs.js)
+async function renderSrsCard() {
+  if (!state.stuId || state.stuId === 'guest' || !window.SRS) return;
+  if (!window.WM_CORE) {
+    await new Promise(function(res, rej) {
+      var sc = document.createElement('script'); sc.src = 'data/words/core-essential.js'; sc.onload = res; sc.onerror = rej;
+      document.head.appendChild(sc);
+    });
+  }
+  var words = window.WM_CORE || [];
+  var got = await DB.getSrs(state.stuId);
+  var srs = got.srs;
+  if (!got.init) srs = Object.assign(SRS.seedFromCorrect(words, await DB.getCorrectWords(state.stuId)), srs); // 미리보기용 (저장은 복습 화면에서)
+  var p = SRS.plan(words, srs, got.day);
+  document.getElementById('srs-badge').textContent = p.frontier;
+  document.getElementById('srs-mastered').textContent = p.mastered;
+  document.getElementById('srs-total').textContent = '/' + p.total;
+  document.getElementById('srs-route').innerHTML = SRS.routeHtml(words, srs, p.frontier);
+  var title = document.getElementById('srs-title'), sub = document.getElementById('srs-sub'), go = document.getElementById('srs-go');
+  go.classList.remove('done'); go.disabled = false;
+  if (p.dueTotal) {
+    title.textContent = '복습 ' + p.dueTotal + '개가 돌아왔어요';
+    sub.textContent = '복습을 끝내야 오늘의 새 단어 ' + SRS.NEW_PER_DAY + '개가 열려요 · 숙달 단어 수';
+    go.textContent = '복습 시작';
+  } else if (p.newLeft) {
+    title.textContent = '오늘의 새 단어 ' + p.newLeft + '개';
+    sub.textContent = p.frontier + '주차 진행 중 · 3번 맞히면 숙달, 1·3·7·14·30일 간격으로 다시 나와요';
+    go.textContent = '새 단어 시작';
+  } else {
+    title.textContent = '오늘 할 일 끝!';
+    sub.textContent = '내일 돌아오는 복습부터 하면 새 단어가 다시 열려요';
+    go.textContent = '내일 또 만나요'; go.disabled = true; go.classList.add('done');
+  }
+  go.onclick = function() {
+    location.href = 'review.html?stu=' + encodeURIComponent(state.stuId) + '&name=' + encodeURIComponent(state.stuName);
+  };
+  document.getElementById('srs-card').style.display = 'block';
+  // 주 버튼은 이 카드 하나만
+  ['wp-go', 'today-go'].forEach(function(id) { var b = document.getElementById(id); if (b) b.classList.add('sub'); });
+}
+
 // 이번 주 시험 범위 단어 중 퀴즈에서 맞힌 개수
 async function renderWeekProgress(examRange) {
   var setInfo = (window.WORD_CATALOG || []).find(function(c) { return c.id === examRange.setId; });
@@ -1063,7 +1120,6 @@ async function renderWeekProgress(examRange) {
   var total = list.length;
   document.getElementById('wp-title').textContent = (examRange.setName || setInfo.name) + ' ' + examRange.week + '주차';
   document.getElementById('wp-badge').textContent = examRange.week;
-  document.getElementById('wp-route').innerHTML = Utils.routeHtml(weeks, { cur: examRange.week, correct: correct });
   document.getElementById('wp-done').textContent = done;
   document.getElementById('wp-total').textContent = '/' + total;
   document.getElementById('wp-fill').style.width = Math.round(done / total * 100) + '%';
@@ -1261,7 +1317,9 @@ async function showMain() {
     }
   } catch(e) {}
 
-  // 이번 주 시험 범위 진도 (홈 첫 카드)
+  // N회독 노선 (홈 첫 카드)
+  try { await renderSrsCard(); } catch(e) { console.warn('노선 표시 실패', e); }
+  // 이번 주 시험 범위 진도
   try {
     var examRange = await DB.getExamRange();
     if (examRange && examRange.setId && examRange.week) await renderWeekProgress(examRange);

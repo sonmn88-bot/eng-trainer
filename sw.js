@@ -4,7 +4,7 @@
 // - 버전 고정 외부 파일(Firebase SDK 10.12.0, Pretendard 글꼴): 저장본 우선
 // - Firebase DB·로그인 요청, 음원(audio/)은 손대지 않음
 var CACHE = 'et-v1';
-var CORE = ['./', 'index.html', 'vocab.html', 'shared/theme.css', 'shared/utils.js', 'shared/db.js', 'shared/icons.js', 'data/_index.js'];
+var CORE = ['./', 'index.html', 'vocab.html', 'shared/theme.css', 'shared/utils.js', 'shared/db.js', 'shared/icons.js', 'shared/srs.js', 'data/_index.js', 'review.html'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(CORE); }).catch(function () {}));

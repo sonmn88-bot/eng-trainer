@@ -11,7 +11,7 @@ let fail = 0;
 const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!cond) fail++; };
 
 // 1) HTML: <script> 개수 일치 + 인라인 스크립트 문법
-for (const f of ['index.html', 'vocab.html', 'teacher.html', 'listening.html']) {
+for (const f of ['index.html', 'vocab.html', 'teacher.html', 'listening.html', 'review.html']) {
   const html = read(f);
   const open = (html.match(/<script/g) || []).length;
   const close = (html.match(/<\/script>/g) || []).length;
@@ -27,7 +27,7 @@ for (const f of ['index.html', 'vocab.html', 'teacher.html', 'listening.html']) 
 }
 
 // 2) 공용 JS·데이터 파일 문법
-const jsFiles = ['shared/db.js', 'shared/utils.js', 'shared/icons.js', 'data/_index.js', 'sw.js']
+const jsFiles = ['shared/db.js', 'shared/utils.js', 'shared/icons.js', 'shared/srs.js', 'data/_index.js', 'sw.js']
   .concat(fs.readdirSync(path.join(ROOT, 'data/words')).filter((n) => n.endsWith('.js')).map((n) => 'data/words/' + n));
 for (const f of jsFiles) {
   if (!fs.existsSync(path.join(ROOT, f))) continue;
