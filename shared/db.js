@@ -82,21 +82,32 @@ const DB = {
   async studentCreate(entry, name, pw, remember) {
     const { db, ref, set, update } = await initDB();
     await this._setPersistence(remember);
-    const cred = await _authMod.createUserWithEmailAndPassword(_auth, _stuEmail(entry.id, entry.ver), _fbPw(pw));
+    const email = _stuEmail(entry.id, entry.ver);
+    let cred;
+    try {
+      cred = await _authMod.createUserWithEmailAndPassword(_auth, email, _fbPw(pw));
+    } catch (e) {
+      // 지난번 입장이 계정만 만들고 연결 전에 끊긴 경우: 같은 비번이면 로그인해서 연결을 마저 한다
+      if (e.code !== 'auth/email-already-in-use') throw e;
+      cred = await _authMod.signInWithEmailAndPassword(_auth, email, _fbPw(pw));
+    }
     const uid = cred.user.uid;
-    // 순서 중요: 규칙이 앞 단계 결과를 확인함
-    await set(ref(db, `students/${entry.id}/uid`), uid);
+    // 순서 중요: 규칙이 앞 단계 결과를 확인함 (uid → uids → loginKey → loginIndex)
+    try { await set(ref(db, `students/${entry.id}/uid`), uid); }
+    catch (e) { if (!/permission/i.test(e.message)) throw e; } // 이미 이 계정으로 연결돼 있으면 거부됨 → 다음 단계에서 확인
     await set(ref(db, `uids/${uid}`), { id: entry.id, name });
-    await set(ref(db, `loginIndex/${this.loginKey(name)}`), { id: entry.id, ready: true, ver: entry.ver || 0 });
     await update(ref(db, `students/${entry.id}`), { password: null, loginKey: this.loginKey(name) });
+    await set(ref(db, `loginIndex/${this.loginKey(name)}`), { id: entry.id, ready: true, ver: entry.ver || 0 });
   },
   async signOut() {
     await initDB();
     await _authMod.signOut(_auth);
   },
-  async changeMyPassword(newPw) {
+  async changeMyPassword(oldPw, newPw) {
     await initDB();
-    await _authMod.updatePassword(_auth.currentUser, _fbPw(newPw));
+    const u = _auth.currentUser;
+    await _authMod.reauthenticateWithCredential(u, _authMod.EmailAuthProvider.credential(u.email, _fbPw(oldPw)));
+    await _authMod.updatePassword(u, _fbPw(newPw));
   },
   // 선생님 로그인. 계정이 아직 없으면 기존 settings.teacherPw 와 맞을 때 한 번만 계정 생성
   async teacherLogin(pw) {
@@ -130,6 +141,7 @@ const DB = {
   async registerLogin(id, name, oldName) {
     const { db, ref, get, update } = await initDB();
     const key = this.loginKey(name);
+    if (!key) throw new Error('학생 이름이 비어 있어요');
     const updates = {};
     let prev = null;
     if (oldName && oldName !== name) {
@@ -138,6 +150,8 @@ const DB = {
       updates[`loginIndex/${oldKey}`] = null;
     }
     const cur = prev || (await get(ref(db, `loginIndex/${key}`))).val();
+    const taken = (await get(ref(db, `loginIndex/${key}`))).val();
+    if (taken && taken.id !== id) throw new Error('같은 이름의 학생이 이미 있어요');
     const stu = (await get(ref(db, `students/${id}`))).val() || {};
     updates[`loginIndex/${key}`] = { id, ready: !!stu.uid, ver: (cur && cur.id === id && cur.ver) || 0 };
     updates[`students/${id}/loginKey`] = key;
@@ -149,7 +163,9 @@ const DB = {
     const { db, ref, get, update } = await initDB();
     const stu = (await get(ref(db, `students/${id}`))).val() || {};
     const key = stu.loginKey || this.loginKey(stu.name);
+    if (!key) throw new Error('이름이 없는 학생이라 초기화할 수 없어요');   // 빈 키면 loginIndex 전체를 덮어씀
     const cur = (await get(ref(db, `loginIndex/${key}`))).val() || {};
+    if (cur.id && cur.id !== id) throw new Error('로그인 정보가 다른 학생과 겹쳐요. 이름을 확인해 주세요');
     const updates = {};
     updates[`loginIndex/${key}`] = { id, ready: false, ver: (cur.ver || 0) + 1 };
     updates[`students/${id}/uid`] = null;
@@ -166,6 +182,8 @@ const DB = {
     if (window.__FB_EMU) _authMod.connectAuthEmulator(secAuth, 'http://127.0.0.1:9099', { disableWarnings: true });
     await _authMod.setPersistence(secAuth, _authMod.inMemoryPersistence);
     const all = (await get(ref(db, 'students'))).val() || {};
+    const idx = (await get(ref(db, 'loginIndex'))).val() || {};
+    const verOf = (key, id) => (idx[key] && idx[key].id === id && idx[key].ver) || 0; // 다시 실행해도 초기화 버전 유지
     const report = { done: 0, noPassword: 0, skipped: 0, failed: [], duplicateNames: [] };
     const seen = {};
     const ids = Object.keys(all);
@@ -179,7 +197,7 @@ const DB = {
       const updates = { [`students/${id}/loginKey`]: key };
       try {
         if (stu.uid) {
-          updates[`loginIndex/${key}`] = { id, ready: true, ver: 0 };
+          updates[`loginIndex/${key}`] = { id, ready: true, ver: verOf(key, id) };
           updates[`uids/${stu.uid}`] = { id, name: stu.name };
           report.skipped++;
         } else if (stu.password) {
@@ -197,7 +215,7 @@ const DB = {
           updates[`loginIndex/${key}`] = { id, ready: true, ver: 0 };
           report.done++;
         } else {
-          updates[`loginIndex/${key}`] = { id, ready: false, ver: 0 };
+          updates[`loginIndex/${key}`] = { id, ready: false, ver: verOf(key, id) };
           report.noPassword++;
         }
         await update(ref(db), updates);
@@ -523,16 +541,7 @@ const DB = {
     await update(ref(db, `stickers/${stuId}`), updates);
   },
 
-  async saveStudentPassword(stuId, password) {
-    const { db, ref, update } = await initDB();
-    await update(ref(db, `students/${stuId}`), { password: password || '' });
-  },
 
-  async getStudentPassword(stuId) {
-    const { db, ref, get } = await initDB();
-    const snap = await get(ref(db, `students/${stuId}/password`));
-    return snap.exists() ? snap.val() : '';
-  },
 
 
   // ── 골드 시스템 ────────────────────────────

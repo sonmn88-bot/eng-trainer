@@ -124,6 +124,25 @@ async function securitySuite() {
   ok(await t2.evaluate(async () => Object.keys(await DB.getStudents()).length === 3), '선생님 학생 전체 읽기');
   await t2.evaluate(() => DB.resetStudentLogin('stu_2'));
   ok(await studentLogin(await page(), '라마바', '5555', '5555'), '비번 초기화 후 학생이 새로 만들고 입장');
+  // ── 코드 리뷰에서 찾은 문제들 (재발 방지) ──
+  const newId = await t2.evaluate(async () => { const id = await DB.createStudent('차카타'); await DB.registerLogin(id, '차카타'); return id; });
+  ok(await a.evaluate(async (id) => { try { const { db, ref, set } = await initDB(); await set(ref(db, 'students/' + id + '/uid'), await DB.currentUid()); return false; } catch (e) { return true; } }, newId),
+    '다른 학생(아직 첫 입장 전) 계정에 내 uid를 붙여 가로채기 차단');
+  await fetch(`${AUTHU}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: newId + '@students.eng-trainer.app', password: 'etrn::7777', returnSecureToken: true }) });
+  ok(await studentLogin(await page(), '차카타', '7777', '7777'), '첫 입장이 계정만 만들고 끊겼어도 같은 비번으로 다시 하면 연결됨');
+  await t2.evaluate(() => DB.migrateAllToAuth());
+  const li = await getJ('loginIndex/' + encodeURIComponent(encodeURIComponent('라마바'))); // DB 키 자체가 URI 인코딩이라 REST 경로는 한 번 더
+  ok(li && li.ver === 1 && li.ready === true, '보안 전환을 다시 실행해도 초기화된 학생 버전 유지 (ver ' + (li && li.ver) + ')');
+  ok(await studentLogin(await page(), '라마바', '5555'), '…그 학생은 새 비번으로 계속 입장');
+  await rest('students/stu_noname', { owner: true, method: 'PUT', body: JSON.stringify({ id: 'stu_noname' }) });
+  const liBefore = Object.keys(await getJ('loginIndex')).length;
+  const resetMsg = await t2.evaluate(() => DB.resetStudentLogin('stu_noname').then(() => 'ok', (e) => e.message));
+  ok(resetMsg !== 'ok' && Object.keys(await getJ('loginIndex')).length === liBefore, '이름 없는 학생 초기화는 막히고 로그인 목록 유지');
+  ok(await t2.evaluate(() => DB.registerLogin('stu_3', '가나다').then(() => false, () => true)), '다른 학생 이름으로 로그인 등록 시 거부');
+  ok(await a.evaluate(() => DB.changeMyPassword('wrong', 'abcd22').then(() => false, () => true)), '학생 비번 변경: 현재 비번 틀리면 거부');
+  ok(await a.evaluate(() => DB.changeMyPassword('abcd', 'abcd22').then(() => true, (e) => e.code)) === true, '학생 비번 변경: 현재 비번 맞으면 변경');
+  ok(await studentLogin(await page(), '가나다', 'abcd22'), '…새 비번으로 입장');
   ok((await t2.evaluate(async () => { try { await DB.changeTeacherPassword('tpw1234', 'newpw99'); return true; } catch (e) { return e.code; } })) === true, '선생님 비번 변경');
   const t3 = await page(); await t3.goto(BASE + '/index.html'); await t3.waitForTimeout(1500);
   ok((await t3.evaluate(() => DB.teacherLogin('tpw1234'))) === false, '옛 선생님 비번 거부');

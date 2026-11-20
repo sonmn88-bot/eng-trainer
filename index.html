@@ -689,6 +689,7 @@ body:has(#week-progress[style*="block"]) #today-go { background: var(--sur2) !im
       비밀번호는 본인만 알 수 있어요. 잊으면 선생님이 초기화할 수 있어요.
     </div>
     <div id="pw-current-status" style="font-size:11px;margin-bottom:.75rem;padding:.5rem .75rem;background:var(--sur2);border-radius:var(--rs)"></div>
+    <input type="password" id="pw-old-input" placeholder="현재 비밀번호" class="mb-2" autocomplete="current-password">
     <input type="password" id="pw-new-input" placeholder="새 비밀번호 (4자 이상)"
       maxlength="20" class="mb-2">
     <input type="password" id="pw-confirm-input" placeholder="비밀번호 확인"
@@ -3285,6 +3286,8 @@ function openPasswordSetting(forced) {
   // 입력창 초기화
   var ni = document.getElementById('pw-new-input');
   var ci = document.getElementById('pw-confirm-input');
+  var oi = document.getElementById('pw-old-input');
+  if (oi) oi.value = '';
   var msg = document.getElementById('pw-setting-msg');
   if (ni) ni.value = '';
   if (ci) ci.value = '';
@@ -3302,6 +3305,7 @@ function closePwSetting() {
 }
 
 async function savePwSetting() {
+  var oldPw = (document.getElementById('pw-old-input').value || '').trim();
   var newPw = (document.getElementById('pw-new-input').value || '').trim();
   var confPw = (document.getElementById('pw-confirm-input').value || '').trim();
   var msg = document.getElementById('pw-setting-msg');
@@ -3323,16 +3327,22 @@ async function savePwSetting() {
     return;
   }
 
+  if (!oldPw) {
+    msg.style.color = 'var(--red,#f87171)';
+    msg.textContent = '현재 비밀번호를 입력해 주세요';
+    return;
+  }
   try {
-    await DB.changeMyPassword(newPw);
+    await DB.changeMyPassword(oldPw, newPw);
     msg.style.color = 'var(--grn,#4ade80)';
     msg.textContent = '✓ 비밀번호를 바꿨어요';
     _pwForced = false;
     setTimeout(closePwSetting, 1200);
   } catch(e) {
     msg.style.color = 'var(--red,#f87171)';
-    msg.textContent = (e && e.code === 'auth/requires-recent-login')
-      ? '보안을 위해 나갔다가 다시 들어온 뒤 바꿔 주세요' : '저장 오류: ' + (e.code || e.message);
+    var c = e && e.code;
+    msg.textContent = (c === 'auth/invalid-credential' || c === 'auth/wrong-password') ? '현재 비밀번호가 틀렸어요'
+      : c === 'auth/too-many-requests' ? '시도가 너무 많아요. 잠시 후 다시 해 주세요' : '저장 오류: ' + (c || e.message);
   }
 }
 
