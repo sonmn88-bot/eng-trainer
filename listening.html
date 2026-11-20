@@ -17,8 +17,8 @@
 .q-list-item:hover { opacity:.8; }
 .q-num { font-family:var(--font-mono);font-size:11px;color:var(--txt3);min-width:32px;text-align:center;background:var(--sur2);border-radius:6px;padding:4px 6px;letter-spacing:.04em; }
 .q-num.done { background:var(--grn-bg);color:var(--grn); }
-.q-type-badge { font-size:9px;font-weight:600;letter-spacing:.06em;padding:2px 7px;border-radius:3px;flex-shrink:0; }
-.q-diff { font-size:10px;color:var(--txt3);margin-left:auto; }
+.q-type-badge { font-size:11px;font-weight:600;letter-spacing:.06em;padding:2px 7px;border-radius:3px;flex-shrink:0; }
+.q-diff { font-size:11px;color:var(--txt3);margin-left:auto; }
 .dr-match { color:var(--grn); }
 .dr-miss { color:var(--red);text-decoration:underline; }
 .kw-card { display:flex;align-items:flex-start;gap:10px;padding:.625rem 0;border-bottom:1px solid var(--bdr);font-size:13px; }
@@ -32,7 +32,7 @@
 .sentence.speaking { background:var(--gold-bg);border-left:2px solid var(--gold);padding-left:8px; }
 .keyword { color:var(--gold);font-weight:600;cursor:pointer;border-bottom:1px dotted var(--gold-bdr); }
 .keyword:hover { background:var(--gold-bg);border-radius:3px; }
-.tts-hint { font-size:10px;color:var(--txt3);margin-bottom:.5rem; }
+.tts-hint { font-size:11px;color:var(--txt3);margin-bottom:.5rem; }
 .sub-tab-btn { flex:1;padding:7px;text-align:center;border:1px solid var(--bdr);background:var(--sur2);border-radius:var(--rs);cursor:pointer;font-size:11px;font-family:var(--font-body);font-weight:500;color:var(--txt2);transition:all .15s; }
 .sub-tab-btn.active { background:var(--gold-bg);border-color:var(--gold-bdr);color:var(--gold);font-weight:600; }
 </style>
@@ -92,7 +92,7 @@
       <button class="player-btn" onclick="seekRel(5)">⏭</button>
     </div>
     <div class="speed-row">
-      <span style="font-size:10px;color:var(--txt3);align-self:center;text-transform:uppercase">배속</span>
+      <span style="font-size:11px;color:var(--txt3);align-self:center;text-transform:uppercase">배속</span>
       <button class="speed-btn" onclick="setSpeed(0.5)">0.5×</button>
       <button class="speed-btn" onclick="setSpeed(0.75)">0.75×</button>
       <button class="speed-btn active" onclick="setSpeed(1.0)">1.0×</button>
@@ -102,11 +102,11 @@
     <!-- A-B 구간 반복 -->
     <div style="margin-top:.5rem">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:.375rem">
-        <span style="font-size:10px;color:var(--txt3);text-transform:uppercase">구간반복</span>
+        <span style="font-size:11px;color:var(--txt3);text-transform:uppercase">구간반복</span>
         <button id="ab-btn-a" class="speed-btn" onclick="setAbPoint('a')" style="min-width:36px">A</button>
         <button id="ab-btn-b" class="speed-btn" onclick="setAbPoint('b')" style="min-width:36px">B</button>
         <button id="ab-loop-btn" class="speed-btn" onclick="toggleAbLoop()" style="display:none;min-width:52px">반복▶</button>
-        <button onclick="clearAb()" style="font-size:10px;color:var(--txt3);background:none;border:none;cursor:pointer">초기화</button>
+        <button onclick="clearAb()" style="font-size:11px;color:var(--txt3);background:none;border:none;cursor:pointer">초기화</button>
       </div>
       <!-- A-B 바 -->
       <div id="ab-track" style="position:relative;height:14px;background:var(--sur3);border-radius:7px;cursor:pointer;display:none" onclick="seekAudioFromAb(event)">
@@ -115,7 +115,7 @@
         <div id="ab-handle-b" style="position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;background:var(--gold2,#F59E0B);border-radius:50%;display:none;cursor:pointer"></div>
         <div id="ab-cur-pos" style="position:absolute;top:0;width:2px;height:100%;background:var(--txt3);border-radius:1px;pointer-events:none;left:0"></div>
       </div>
-      <div id="ab-time-display" style="font-size:10px;color:var(--txt3);margin-top:2px;text-align:center;display:none"></div>
+      <div id="ab-time-display" style="font-size:11px;color:var(--txt3);margin-top:2px;text-align:center;display:none"></div>
     </div>
   </div>
 
@@ -341,7 +341,7 @@ async function openQuestion(idx) {
       kwHtml += '<div class="kw-card">' +
         '<div class="kw-en">' + en + '</div>' +
         '<div class="kw-ko">' + ko + '</div>' +
-        '<button class="tts-btn" style="margin-left:auto;font-size:10px;padding:3px 8px" onclick="speakText(\'' + en.replace(/'/g, '') + '\')">🔊</button>' +
+        '<button class="tts-btn" style="margin-left:auto;font-size:11px;padding:3px 8px" onclick="speakText(\'' + en.replace(/'/g, '') + '\')">🔊</button>' +
         '</div>';
     }
   } else {
@@ -431,7 +431,7 @@ function renderScript(q) {
     if (sentObj.speaker) {
       var color = speakerColors[sentObj.speaker] || 'var(--txt3)';
       var label = speakerLabels[sentObj.speaker] || sentObj.speaker;
-      speakerBadge = '<span style="font-size:10px;font-weight:700;color:' + color + ';margin-right:4px;flex-shrink:0">' + label + '</span>';
+      speakerBadge = '<span style="font-size:11px;font-weight:700;color:' + color + ';margin-right:4px;flex-shrink:0">' + label + '</span>';
       htmlStr += '<span class="sentence" style="display:flex;align-items:baseline;gap:2px" data-idx="' + s + '" data-tts="' + encodedTts + '">' + speakerBadge + '<span>' + highlighted + '</span></span>';
     } else {
       htmlStr += '<span class="sentence" data-idx="' + s + '" data-tts="' + encodedTts + '">' + highlighted + '</span>';

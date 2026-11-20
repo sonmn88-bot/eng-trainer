@@ -48,6 +48,17 @@
 .mock-head { border-top: 0; font-size: 11px; color: var(--txt3); padding-top: 0; }
 .mock-name { color: var(--txt); font-weight: 600; }
 .mock-score { color: var(--gold); font-weight: 800; font-size: 15px; }
+/* 카드 제목 통일 (15px 굵게 · 높이 44px · 아래 간격 8~12px) — 회색 작은 제목·큰 제목이 섞여 정렬이 어긋났던 것 정리 */
+.tsec .sec-title { font-size: 15px; font-weight: 700; color: var(--txt); letter-spacing: 0; line-height: 1.4; }
+.tsec .sec-title:not(.m-0) { margin-bottom: 12px !important; margin-top: 0 !important; }
+.tsec .row-between, .tsec .list-head { min-height: 44px; margin-bottom: 8px !important; gap: 8px; }
+.tsec .card > .row-between:last-child, .tsec .card > .row-between:has(+ [style*="display:none"]:last-child) { margin-bottom: 0 !important; }
+.t-summary { list-style: none; justify-content: space-between; }
+.t-summary::-webkit-details-marker { display: none; }
+.t-summary::after { content: ''; width: 8px; height: 8px; border-right: 2px solid var(--txt3); border-bottom: 2px solid var(--txt3); transform: rotate(45deg); margin: 0 6px 4px 0; flex-shrink: 0; }
+details[open] > .t-summary::after { transform: rotate(-135deg); margin-bottom: -4px; }
+.list-head-r { font-size: 12px; }
+.tsec .row-between > .sec-title { white-space: nowrap; flex-shrink: 0; }
 /* ── 분석 차트 (dataviz: 순차 램프 한 색, 2px 간격, 얇은 표식, 보조선은 흐리게) ── */
 .viz-root { --viz-series: var(--gold); --viz-grid: var(--bdr); --viz-axis: var(--txt3);
   --hm-0: #242824; --hm-1: #1D3B30; --hm-2: #22573F; --hm-3: #2C7656; --hm-4: #3F9C73; --hm-5: #6CC79C; }
@@ -120,8 +131,8 @@
   vertical-align: middle; color: var(--txt);
 }
 .export-word-table tr:last-child td { border-bottom: none; }
-.export-word-table .tag-weak { color: var(--red); font-size: 10px; font-weight: 600; }
-.export-word-table .tag-study { color: var(--gold); font-size: 10px; font-weight: 600; }
+.export-word-table .tag-weak { color: var(--red); font-size: 11px; font-weight: 600; }
+.export-word-table .tag-study { color: var(--gold); font-size: 11px; font-weight: 600; }
 .export-panel {
   background: var(--sur2); border: 1px solid var(--bdr);
   border-radius: var(--rs); padding: .875rem; margin-top: .75rem;
@@ -228,7 +239,7 @@
       <div id="detail-score-chart" style="margin-top:.875rem;display:none">
         <div style="font-size:12px;font-weight:600;margin-bottom:.5rem">📈 최근 점수 추이</div>
         <div id="detail-score-bars" style="display:flex;align-items:flex-end;gap:3px;height:60px;margin-bottom:4px"></div>
-        <div id="detail-score-labels" style="display:flex;gap:3px;font-size:9px;color:var(--txt3)"></div>
+        <div id="detail-score-labels" style="display:flex;gap:3px;font-size:11px;color:var(--txt3)"></div>
       </div>
       <div id="detail-graph" style="display:none;margin-top:1rem">
         <p class="sec-title mb-2">📈 점수 추이 (최근 10회)</p>
@@ -262,13 +273,13 @@
         <div id="last-msg-wrap" style="display:none;background:var(--sur2);border-radius:var(--rs);padding:.625rem .875rem;margin-bottom:.625rem;border-left:3px solid var(--gold-bdr)">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
             <span class="muted-xs">마지막 메시지</span>
-            <span id="last-msg-read" style="font-size:10px"></span>
+            <span id="last-msg-read" style="font-size:11px"></span>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
             <span id="last-msg-emoji" style="font-size:18px"></span>
             <span id="last-msg-text" style="font-size:12px;color:var(--txt);flex:1"></span>
           </div>
-          <div id="last-msg-time" style="font-size:10px;color:var(--txt3);margin-top:2px"></div>
+          <div id="last-msg-time" style="font-size:11px;color:var(--txt3);margin-top:2px"></div>
         </div>
         <!-- 아이콘 선택 (선택 시 입력창에 세팅) -->
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.625rem">
@@ -486,7 +497,7 @@
       </select>
     </div>
     <div id="heatmap-wrap" style="overflow-x:auto"></div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:.5rem;font-size:10px;color:var(--txt3)">
+    <div style="display:flex;align-items:center;gap:6px;margin-top:.5rem;font-size:11px;color:var(--txt3)">
       <span>적음</span>
       <div style="display:flex;gap:2px">
         <div style="width:10px;height:10px;border-radius:2px;background:var(--sur3)"></div>
@@ -676,7 +687,7 @@
         <div style="font-size:18px;font-weight:800;color:var(--gold)">60+</div>
       </div>
     </div>
-    <div style="margin-top:.75rem;font-size:10px;color:var(--txt3);line-height:1.8">
+    <div style="margin-top:.75rem;font-size:11px;color:var(--txt3);line-height:1.8">
       🎯 XP/레벨/배지 시스템 · 📊 성장 리포트 · 🔀 혼동단어 특훈<br>
       🎵 학습 BGM · ☀️ 다크/라이트 모드 · 💾 데이터 백업
     </div>
@@ -2768,7 +2779,7 @@ async function loadWeakWordMatrix() {
       '<thead><tr style="background:var(--sur2)">' +
         '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--bdr);min-width:120px">단어</th>' +
         stuNames.map(function(n){
-          return '<th style="padding:6px 4px;text-align:center;border-bottom:1px solid var(--bdr);min-width:44px;white-space:nowrap;font-size:10px">' + n + '</th>';
+          return '<th style="padding:6px 4px;text-align:center;border-bottom:1px solid var(--bdr);min-width:44px;white-space:nowrap;font-size:11px">' + n + '</th>';
         }).join('') +
         '<th style="padding:6px 4px;text-align:center;border-bottom:1px solid var(--bdr);min-width:44px;color:var(--red,#f87171)">총</th>' +
       '</tr></thead><tbody>';
@@ -2792,7 +2803,7 @@ async function loadWeakWordMatrix() {
     });
 
     html += '</tbody></table></div>';
-    html += '<div style="font-size:10px;color:var(--txt3);margin-top:.5rem">🔴 5회↑ · 🟡 2~4회 · 🟢 1회 · — 없음</div>';
+    html += '<div style="font-size:11px;color:var(--txt3);margin-top:.5rem">🔴 5회↑ · 🟡 2~4회 · 🟢 1회 · — 없음</div>';
     el.innerHTML = html;
   } catch(e) {
     el.innerHTML = '<div class="c-red">오류: ' + e.message + '</div>';
@@ -3030,7 +3041,7 @@ function toggleMemoOverview() {
       return '<div style="padding:.5rem 0;border-bottom:1px solid var(--bdr)">' +
         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">' +
           '<span style="font-size:13px;font-weight:600">' + s.name + '</span>' +
-          '<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px" onclick="showStuDetail(\'' + s.id + '\')">' + '수정' + '</button>' +
+          '<button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px" onclick="showStuDetail(\'' + s.id + '\')">' + '수정' + '</button>' +
         '</div>' +
         '<div style="font-size:12px;color:var(--txt2);line-height:1.5">' + s.memo + '</div>' +
       '</div>';
@@ -3505,8 +3516,8 @@ async function loadProgress() {
         // 완료/미완료 학생 이름 구분
         var doneNames = Array.from(stat.done).map(function(id){ var s=students[id]; return s?s.name:''; }).filter(Boolean);
         var notDoneNames = stuList.filter(function(s){ return !stat.done.has(s.id); }).map(function(s){ return s.name; });
-        var nameChips = doneNames.map(function(n){ return '<span style="font-size:10px;background:rgba(75,181,67,.15);color:var(--grn,#4caf50);border-radius:99px;padding:1px 7px;margin:1px">' + n + '</span>'; }).join('') +
-          notDoneNames.map(function(n){ return '<span style="font-size:10px;background:var(--sur2);color:var(--txt3);border-radius:99px;padding:1px 7px;margin:1px">' + n + '</span>'; }).join('');
+        var nameChips = doneNames.map(function(n){ return '<span style="font-size:11px;background:rgba(75,181,67,.15);color:var(--grn,#4caf50);border-radius:99px;padding:1px 7px;margin:1px">' + n + '</span>'; }).join('') +
+          notDoneNames.map(function(n){ return '<span style="font-size:11px;background:var(--sur2);color:var(--txt3);border-radius:99px;padding:1px 7px;margin:1px">' + n + '</span>'; }).join('');
 
         weekHtml += '<div class="mb-4">' +
           '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:.25rem">' +

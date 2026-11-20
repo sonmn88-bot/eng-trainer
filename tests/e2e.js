@@ -264,6 +264,11 @@ async function chartSuite() {
       await (await t.$('#ts-progress')).screenshot({ path: path.join(process.env.SHOT_DIR, 'charts_' + w + '.png') });
     }
   }
+  const tiny = await t.evaluate(() => { const out = []; for (const tab of ['students', 'analysis', 'exam', 'settings']) { switchT(tab);
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+    while ((n = w.nextNode())) { const e = n.parentElement; if (n.nodeValue.trim() && e && e.offsetParent && !e.closest('svg') && parseFloat(getComputedStyle(e).fontSize) < 11) out.push(n.nodeValue.trim().slice(0, 12)); } }
+    switchT('analysis'); return out; });
+  ok(!tiny.length, '선생님 화면 11px 미만 글자 없음 ' + tiny.slice(0, 5).join('|'));
   const route = await t.evaluate(() => {
     const wk = {}; for (let i = 1; i <= 12; i++) wk[i] = { words: [['w' + i, '뜻']] };
     const d = document.createElement('div'); d.innerHTML = Utils.routeHtml(wk, { cur: 3, exam: 3, correct: { [DB._wordKey('w1')]: 1 } });

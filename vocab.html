@@ -36,7 +36,7 @@
   border-color: var(--gold-bdr); background: var(--gold-bg); color: var(--gold);
 }
 .week-card-num { font-family: var(--font-body); font-size: 18px; font-weight: 700; }
-.week-card-cnt { font-size: 10px; color: var(--txt3); margin-top: 2px; letter-spacing:.04em; }
+.week-card-cnt { font-size: 11px; color: var(--txt3); margin-top: 2px; letter-spacing:.04em; }
 .fc-nav {
   display: flex; align-items: center; justify-content: space-between;
   gap: 10px; margin-top: 1rem;
@@ -2502,8 +2502,8 @@ async function renderFlash() {
   var grade = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
   var gradeConfig = {
     'S': { label:'S급', bg:'var(--gold)', color:'var(--on-gold)', dots:4 },
-    'A': { label:'A급', bg:'#60A5FA', color:'#fff', dots:3 },
-    'B': { label:'B급', bg:'#4ADE80', color:'#fff', dots:2 },
+    'A': { label:'A급', bg:'var(--gold-bg)', color:'var(--gold)', dots:3 },
+    'B': { label:'B급', bg:'var(--sur2)', color:'var(--txt2)', dots:2 },
     'C': { label:'C급', bg:'var(--sur3)', color:'var(--txt3)', dots:1 }
   };
   var gc = gradeConfig[grade];
@@ -2529,7 +2529,7 @@ async function renderFlash() {
   document.getElementById('flash-prog').textContent = `${flash.idx + 1} / ${flash.words.length}`;
   // 등급 뱃지
   var _grade = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
-  var _gradeColors = {S:'var(--gold)',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
+  var _gradeColors = {S:'var(--gold)',A:'var(--gold)',B:'var(--txt2)',C:'var(--txt3)'};
   var _gradeEl = document.getElementById('fc-grade-badge');
   if (_gradeEl) { if (_grade) { _gradeEl.textContent=_grade; _gradeEl.style.background=_gradeColors[_grade]||'#9CA3AF'; _gradeEl.style.color='#fff'; _gradeEl.style.display='inline-block'; } else _gradeEl.style.display='none'; }
 
@@ -2768,13 +2768,13 @@ function renderQuiz() {
   if (_bmBtn) updateBookmarkBtn(w[0]);
   var _qg = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
   var _qgEl = document.getElementById('quiz-grade-badge');
-  var _qgC = {S:'var(--gold)',A:'#A78BFA',B:'#60A5FA',C:'#9CA3AF'};
+  var _qgC = {S:'var(--gold)',A:'var(--gold)',B:'var(--txt2)',C:'var(--txt3)'};
   if (_qgEl) { if(_qg){_qgEl.textContent=_qg;_qgEl.style.background=_qgC[_qg]||'#9CA3AF';_qgEl.style.display='inline-block';}else _qgEl.style.display='none'; }
   updateBookmarkBtn(w[0]);
 
   // 등급 뱃지
   var grade = window.WORD_GRADES && window.WORD_GRADES[w[0].toLowerCase()];
-  var gradeStyles = { 'S':'var(--gold),var(--on-gold)', 'A':'#60A5FA,#fff', 'B':'#4ADE80,#fff', 'C':'var(--sur3),var(--txt3)' };
+  var gradeStyles = { 'S':'var(--gold),var(--on-gold)', 'A':'var(--gold-bg),var(--gold)', 'B':'var(--sur2),var(--txt2)', 'C':'var(--sur3),var(--txt3)' };
   var qBadge = document.getElementById('quiz-grade-badge');
   if (grade && qBadge) {
     var parts = (gradeStyles[grade]||'var(--sur3),var(--txt3)').split(',');
