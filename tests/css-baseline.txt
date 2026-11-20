@@ -1,0 +1,378 @@
+#auto-login-chk
+#bgm-float-btn
+#btn-nxt
+#btn-sub
+#choice-options
+#choice-options .choice-opt
+#self-eval-row .ev
+#self-eval-row .ev-blur
+#self-eval-row .ev-no
+#self-eval-row .ev-yes
+#ts-students > #stu-detail
+#ts-students > *
+#ts-students.active
+#view-blank > .card
+#view-choice > .card
+#view-flash .tts-btn
+#view-flash > .card
+#view-flip > .card
+#view-quiz > .card
+#view-speed > .card
+#weak-notice
+*
+*::after
+*::before
+.app
+.b-amb
+.b-gold
+.b-gold .ei
+.b-grn
+.b-red
+.badge
+.badge:empty
+.big-word
+.bm-on
+.btn
+.btn + .btn
+.btn-danger
+.btn-danger:hover
+.btn-full
+.btn-ghost
+.btn-ghost:hover
+.btn-gold
+.btn-gold .ei
+.btn-gold:hover
+.btn-sm
+.btn-sm input
+.btn:active
+.btn:hover
+.c-gold
+.c-red
+.c-txt3
+.callout
+.callout-body
+.callout-end
+.callout-ico
+.callout-ico .ei
+.callout-label
+.callout-text
+.callout-title
+.card
+.card-gold
+.card-interactive
+.card-interactive:active
+.card-interactive:hover
+.card-sm
+.card:hover
+.catalog-card
+.catalog-card.pinned
+.catalog-card:active
+.catalog-card:first-child
+.catalog-card:hover
+.catalog-chev
+.catalog-count
+.catalog-dot
+.catalog-grid
+.catalog-icon
+.catalog-main
+.catalog-meta
+.catalog-name
+.catalog-pin
+.catalog-pin svg
+.catalog-pin.on
+.catalog-prog
+.catalog-prog-bar
+.catalog-prog-bar > div
+.catalog-prog-pct
+.catalog-tag
+.choice-opt
+.dd
+.dd-item
+.dd-item:hover
+.display
+.divider
+.ei
+.empty
+.ex-box
+.ex-en
+.ex-ko
+.fade-in
+.fb-fail
+.fb-fail::before
+.fb-ok
+.fb-ok::before
+.fb-time
+.fc-back
+.fc-en
+.fc-front
+.fc-hint
+.fc-img
+.fc-inner
+.fc-inner.flipped
+.fc-ko
+.fc-mnemonic
+.fc-nav-row
+.fc-nav-row .btn
+.feedback
+.filter-btn
+.filter-btn.sel
+.filter-btn:hover
+.filter-row
+.flashcard
+.flex-1
+.flip-card-wrap
+.fs-11
+.fw-6
+.greeting
+.home-fold
+.home-fold > summary
+.home-fold > summary::-webkit-details-marker
+.home-fold > summary::after
+.home-fold[open] > summary::after
+.ico
+.icon-btn
+.icon-btn svg
+.icon-btn:active
+.icon-btn:hover
+.img-loading
+.inp-wrap
+.kw-popup
+.kw-popup-en
+.kw-popup-ko
+.label
+.list-item
+.list-item:last-child
+.logo
+.logo-mark
+.logo-mark .ph
+.logo-text-main
+.logo-text-sub
+.m-0
+.mb-2
+.mb-25
+.mb-3
+.mb-35
+.mb-4
+.metric
+.metric-lbl
+.metric-val
+.metrics
+.mode-card
+.mode-card.sel
+.mode-card:hover
+.mode-desc
+.mode-grid
+.mode-icon
+.mode-name
+.mode-sel-btn
+.mode-sel-btn .ico
+.mode-sel-btn .u4fc59
+.mode-sel-btn[data-mode="blank"] .ico
+.mode-sel-btn[data-mode="choice"] .ico
+.mode-sel-btn[data-mode="confuse"]
+.mode-sel-btn[data-mode="confuse"] .ico
+.mode-sel-btn[data-mode="flash"] .ico
+.mode-sel-btn[data-mode="flip"] .ico
+.mode-sel-btn[data-mode="quiz"] .ico
+.mode-sel-btn[data-mode="speed"] .ico
+.module-card
+.module-grid
+.mono
+.mt-4
+.muted-2xs
+.muted-md
+.muted-sm
+.muted-xs
+.mv-amb
+.mv-gold
+.mv-grn
+.mv-red
+.ph
+.player-btn
+.player-btn-main
+.player-btn-main:hover
+.player-btn:hover
+.player-card
+.player-fill
+.player-progress
+.player-time
+.player-track
+.pop
+.prog-fill
+.prog-info
+.prog-track
+.prog-wrap
+.pw-wrap
+.py-2
+.q-list-item
+.quiz-input
+.quiz-input::placeholder
+.quiz-input:focus
+.range-btn
+.range-btn .ico
+.range-btn span
+.report-card
+.rotate-btn
+.row-between
+.row-center
+.row-gap8
+.screen
+.screen.active
+.script-panel
+.script-panel .keyword
+.script-panel .keyword:hover
+.search-ico
+.search-wrap
+.search-wrap input
+.sec-title
+.seg
+.seg-btn
+.seg-btn.active
+.set-icon-big .ph
+.sheet
+.sheet-bg
+.sheet-bg.open
+.sheet-item
+.sheet-item.danger
+.sheet-item:first-child
+.sheet.open
+.skel
+.slide-up
+.speed-btn
+.speed-btn.active
+.speed-btn:hover
+.start-mode-ico
+.stat-bar
+.stat-fill
+.stu-card
+.sub-tab-btn
+.t-amber
+.t-blue
+.t-green
+.t-lime
+.t-muted
+.t-pink
+.t-purple
+.t-red
+.tab
+.tab.active
+.tabbar
+.tabbar .tab
+.tabbar .tab.on
+.tabbar svg
+.tabs
+.th-go
+.th-go:disabled
+.th-light
+.th-sub
+.th-title
+.timer
+.timer.danger
+.timer.warn
+.tip-card
+.today-hero
+.topbar
+.topbar > .logo
+.tsec
+.tsec.active
+.tts-btn
+.tts-btn:hover
+.u026d2
+.u0a6a9
+.u0fa80
+.u11b4d
+.u13076
+.u1aefa
+.u200a7
+.u24675
+.u24675 .ei
+.u258ae
+.u2592c
+.u31525
+.u38e38
+.u3c9ad
+.u48b90
+.u4fc59
+.u4fc59 .ico
+.u5b8a1
+.u62f6b
+.u7e602
+.u88a20
+.u895b9
+.u9535b
+.u96ff0
+.u9c6e6
+.u9c6e6 .ei
+.u9ff6b
+.ua302b
+.ub3165
+.ub5ef8
+.ub5ef8 .ico
+.ub68b3
+.ubf83c
+.uc5544
+.ud9e14
+.udb2ef
+.ue8f3c
+.ufa108
+.ufbb62
+.week-card
+.week-card-cnt
+.week-card-num
+.week-grid
+::-webkit-scrollbar
+::-webkit-scrollbar-thumb
+::-webkit-scrollbar-thumb:hover
+::-webkit-scrollbar-track
+:focus-visible
+:root
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap'); :root
+@keyframes fadeIn
+@keyframes popup
+@keyframes skeleton-pulse
+@keyframes slideUp
+@media (max-width: 360px)
+@media (max-width: 480px)
+@media (min-width: 1024px)
+@media (min-width: 768px)
+@media (orientation: landscape) and (max-height: 600px)
+@media (orientation: landscape) and (min-width: 700px)
+@media (prefers-reduced-motion: reduce)
+[data-theme="light"]
+[data-theme="light"] .app
+[data-theme="light"] .btn-gold
+[data-theme="light"] .btn-gold:hover
+[data-theme="light"] .hero-mark
+[data-theme="light"] .logo-mark
+[data-theme="light"] .th-dark
+[data-theme="light"] .th-light
+[data-theme="light"] body::before
+[role="button"]
+[style*="background:var(--gold)"] .ei
+body
+body::before
+body:has(#ts-students) .app
+body:has(.tabbar) #bgm-float
+body:has(.tabbar) .rotate-btn
+button
+html
+html.force-landscape
+html.force-landscape .app
+html.force-landscape .rotate-btn
+html.force-landscape body
+i.callout-end
+input
+input::placeholder
+input:focus
+input[type="checkbox"]
+input[type="date"]
+input[type="number"]
+input[type="password"]
+input[type="radio"]
+input[type="text"]
+select
+select option
+select:focus
+svg.callout-end
+textarea
+textarea:focus
