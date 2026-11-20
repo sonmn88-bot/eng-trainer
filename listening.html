@@ -42,15 +42,15 @@
 
 <div class="topbar">
   <div class="logo">
-    <div class="logo-mark">🎧</div>
+    <div class="logo-mark"><i data-icon="headphones-duotone"></i></div>
     <div>
       <div class="logo-text-main" id="page-title">리스닝 학습</div>
       <div class="logo-text-sub">Listening</div>
     </div>
   </div>
-  <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" title="테마 전환" class="u0fa80">🌙</button>
+  <button onclick="(function(){var t=localStorage.getItem('theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);})()" title="테마 전환" aria-label="테마 전환" class="icon-btn"><i data-icon="moon" class="th-dark"></i><i data-icon="sun" class="th-light"></i></button>
         <button class="btn btn-ghost" id="back-btn" onclick="goBack()">← 홈</button>
-  <button onclick="quickGoTeacherFromPage()" title="선생님 모드" class="u7e602">🎓</button>
+  <button onclick="quickGoTeacherFromPage()" title="선생님 모드" aria-label="선생님 모드" class="icon-btn"><i data-icon="chalkboard-teacher"></i></button>
 </div>
 
 <div id="view-library" class="fade-in">
@@ -163,6 +163,7 @@
 <script src="data/_index.js"></script>
 <script src="shared/utils.js"></script>
 <script src="shared/db.js"></script>
+<script src="shared/icons.js"></script>
 <script>
 var params = new URLSearchParams(location.search);
 var STU_ID = params.get('stu') || 'guest';

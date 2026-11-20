@@ -68,6 +68,13 @@
 .wi-word { font-family: var(--font-display); font-size: 16px; font-style: italic; color: var(--txt); min-width: 100px; }
 .wi-ko { color: var(--gold); font-weight: 500; }
 .wi-ans { color: var(--red); font-size: 12px; margin-top: 2px; }
+/* 오답 노트: 단어·뜻·내 답은 왼쪽 한 묶음, 버튼은 오른쪽 */
+.wn-item { flex-direction: column; align-items: stretch; gap: 8px; }
+.wn-head { display: flex; align-items: center; gap: 12px; }
+.wn-main { flex: 1; min-width: 0; }
+.wn-main .wi-ko { margin-top: 2px; }
+.wn-act { display: flex; gap: 4px; flex-shrink: 0; }
+.wn-act .tts-btn { font-size: 12px; padding: 0 12px; }
 
 /* ── 카드 플립 연습 모드 ── */
 .flip-set-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-bottom:1rem; }
@@ -1208,11 +1215,11 @@ async function submitBlank() {
   if (isCorrect) {
     blank.correct++;
     fb.className = 'feedback fb-ok';
-    fb.textContent = '✓ 정답!';
+    fb.textContent = '정답!';
   } else {
     blank.wrong++;
     fb.className = 'feedback fb-fail';
-    fb.textContent = '✗ 정답: ' + w[0];
+    fb.textContent = '정답: ' + w[0];
   }
 
   blank.results.push({ word: w[0], ko: w[1], input: inp, correct: isCorrect });
@@ -3143,7 +3150,7 @@ async function submitAns() {
     }
     var _related = getRelatedWords(w[0], w[1]);
     var _relHtml = (!_synHtml && _related.length) ? '<div style="font-size:11px;color:var(--txt3);margin-top:4px">관련: ' + _related.join(' · ') + '</div>' : '';
-    fb.innerHTML = result === 'close' ? '✓ 정답에 가깝습니다!<div style="font-size:12px;margin-top:3px;opacity:.8;line-height:1.4">' + w[1] + '</div>' + _synHtml + _relHtml : '✓ 정답!' + _synHtml + _relHtml;
+    fb.innerHTML = result === 'close' ? '정답에 가깝습니다!<div style="font-size:12px;margin-top:3px;opacity:.8;line-height:1.4">' + w[1] + '</div>' + _synHtml + _relHtml : '정답!' + _synHtml + _relHtml;
     if (quiz.combo === 3 || quiz.combo === 5 || (quiz.combo >= 10 && quiz.combo % 5 === 0)) {
       showComboToast(quiz.combo);
     }
@@ -3168,9 +3175,9 @@ async function submitAns() {
     var wrongKey = w[0].toLowerCase();
     var prevWrong = (quiz.wrongCountMap && quiz.wrongCountMap[wrongKey]) || 0;
     if (prevWrong >= 2) {
-      fb.innerHTML = `✗ 오답 <span style='font-size:11px;opacity:.6'>(${prevWrong+1}번째)</span><div style='font-size:13px;margin-top:4px;line-height:1.5'><span style='font-size:11px;opacity:.7'>정답: </span>${w[1]}</div>`;
+      fb.innerHTML = `오답 <span style='font-size:11px;opacity:.6'>(${prevWrong+1}번째)</span><div style='font-size:13px;margin-top:4px;line-height:1.5'><span style='font-size:11px;opacity:.7'>정답: </span>${w[1]}</div>`;
     } else {
-      fb.innerHTML = `✗ 오답<div style='font-size:13px;margin-top:4px;line-height:1.5'><span style='font-size:11px;opacity:.7'>정답: </span>${w[1]}</div>`;
+      fb.innerHTML = `오답<div style='font-size:13px;margin-top:4px;line-height:1.5'><span style='font-size:11px;opacity:.7'>정답: </span>${w[1]}</div>`;
     }
   }
 
@@ -3466,12 +3473,12 @@ async function finishQuiz() {
   var wrongOnes = quiz.results.filter(function(r){ return !r.correct; });
   // 오답 재퀴즈 버튼 표시
   var retryRow = document.getElementById('retry-wrong-row');
-  if (retryRow) retryRow.style.display = wrongOnes.length > 0 ? 'flex' : 'none';
+  if (retryRow) retryRow.style.display = 'none'; // '틀린 단어만 다시'(btn-retry-wrap)와 같은 기능이라 하나만 보임
   if (wrongOnes.length) {
     document.getElementById('res-list').innerHTML =
       '<p class="sec-title mb-3">틀린 단어 ('+wrongOnes.length+'개)</p>' +
       wrongOnes.slice(0,5).map(function(r){
-        return '<div class="wrong-item"><div class="wi-word">'+r.word+'</div><div><div class="wi-ko">'+r.ko+'</div><div class="wi-ans">내 답: '+(r.input||'')+'</div></div></div>';
+        return '<div class="wrong-item"><div class="wi-word">'+r.word+'</div><div><div class="wi-ko">'+r.ko+'</div><div class="wi-ans">내 답: '+(r.input||'(안 씀)')+'</div></div></div>';
       }).join('') +
       (wrongOnes.length > 5 ? '<p style="font-size:12px;color:var(--txt3);text-align:center;padding-top:.5rem">+' + (wrongOnes.length-5) + '개 더...</p>' : '');
   } else {
@@ -3622,16 +3629,15 @@ function showWrong() {
         '</div>';
     }
     var safeKo = (r.ko||'').replace(/'/g,"\\'");
-    return '<div class="wrong-item" style="flex-direction:column;align-items:flex-start;gap:4px">' +
-      '<div style="display:flex;align-items:center;gap:10px;width:100%">' +
-      '<div><div class="wi-word">' + (r.word||'') + '</div>' +
-      '<div style="display:flex;gap:4px;margin-top:4px">' +
-      '<button class="tts-btn" style="font-size:11px;padding:3px 8px" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
-      '<button class="tts-btn" style="font-size:11px;padding:3px 8px;color:var(--gold)" onclick="quickAddFromWrong(\'' + safeWord + '\',\'' + safeKo + '\')">📌 내 단어</button>' +
-      '</div></div>' +
-      '<div><div class="wi-ko">' + (r.ko||'') + '</div>' +
-      '<div class="wi-ans">내 답: ' + (r.input||'') + '</div></div>' +
-      '</div>' + exHtml + '</div>';
+    return '<div class="wrong-item wn-item">' +
+      '<div class="wn-head"><div class="wn-main">' +
+      '<div class="wi-word">' + (r.word||'') + '</div>' +
+      '<div class="wi-ko">' + (r.ko||'') + '</div>' +
+      '<div class="wi-ans">내 답: ' + (r.input||'(안 씀)') + '</div></div>' +
+      '<div class="wn-act">' +
+      '<button class="tts-btn" aria-label="발음 듣기" onclick="Utils.speak(\'' + safeWord + '\')">🔊</button>' +
+      '<button class="tts-btn" style="color:var(--gold)" onclick="quickAddFromWrong(\'' + safeWord + '\',\'' + safeKo + '\')">📌 내 단어</button>' +
+      '</div></div>' + exHtml + '</div>';
   }).join('');
 }
 
