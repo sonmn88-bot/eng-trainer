@@ -59,6 +59,10 @@
 .t-summary::after { content: ''; width: 8px; height: 8px; border-right: 2px solid var(--txt3); border-bottom: 2px solid var(--txt3); transform: rotate(45deg); margin: 0 6px 4px 0; flex-shrink: 0; }
 details[open] > .t-summary::after { transform: rotate(-135deg); margin-bottom: -4px; }
 .list-head-r { font-size: 12px; }
+.mail-steps { margin: 0 0 0 20px; padding: 0; font-size: 13px; line-height: 1.7; color: var(--txt2); }
+.mail-steps li { margin-bottom: 8px; }
+.mail-steps b { color: var(--txt); }
+.mail-steps a { color: var(--gold); font-weight: 700; }
 .tsec .row-between > .sec-title { white-space: nowrap; flex-shrink: 0; }
 /* ── 분석 차트 (dataviz: 순차 램프 한 색, 2px 간격, 얇은 표식, 보조선은 흐리게) ── */
 .viz-root { --viz-series: var(--gold); --viz-grid: var(--bdr); --viz-axis: var(--txt3);
@@ -565,6 +569,8 @@ details[open] > .t-summary::after { transform: rotate(-135deg); margin-bottom: -
         <button class="btn btn-full" onclick="generateExamPaper('ko')">📄 한→영 시험지</button>
         <button class="btn btn-full" onclick="generateExamPaper('en')">📄 영→한 시험지</button>
       </div>
+      <button class="btn btn-full" id="exam-mail-btn" style="margin-top:8px" onclick="mailExamPaper()">✉️ 메일로 보내기 (두 시험지 PDF)</button>
+      <div id="exam-mail-msg" style="font-size:12px;min-height:16px;margin-top:.375rem;text-align:center"></div>
     </div>
   </div>
 
@@ -704,6 +710,21 @@ details[open] > .t-summary::after { transform: rotate(-135deg); margin-bottom: -
     </div>
     <input id="backup-file-input" type="file" accept=".json" style="display:none" onchange="importBackup(this)">
     <div id="backup-msg" style="font-size:11px;min-height:14px;color:var(--grn,#4caf50)"></div>
+  </div>
+
+  <!-- 시험지 메일 연결 -->
+  <div class="card card-sm mt-4" id="mail-hook-card">
+    <div class="list-head"><p class="sec-title m-0">시험지 메일 연결</p></div>
+    <div id="mail-hook-status" style="font-size:13px;font-weight:700;margin-bottom:8px">확인 중…</div>
+    <ol class="mail-steps">
+      <li><b>코드 복사</b><div style="margin-top:6px"><button class="btn btn-sm" onclick="copyMailScript()">코드 복사하기</button></div></li>
+      <li><b>구글 스크립트 만들기</b> — <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com 열기</a> → 원래 있던 글을 지우고 붙여넣기 → 저장 → 오른쪽 위 <b>배포 › 새 배포</b> → 유형 <b>웹 앱</b>, 실행: <b>나</b>, 액세스: <b>모든 사용자</b> → 배포 → 권한 허용 → <b>웹 앱 URL 복사</b></li>
+      <li><b>주소 붙여넣기</b>
+        <div style="display:flex;gap:8px;margin-top:6px"><input id="mail-hook-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" class="flex-1"><button class="btn btn-sm" onclick="saveMailHook()">저장</button></div>
+      </li>
+    </ol>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px"><button class="btn btn-sm" onclick="testMailHook()">테스트 메일</button><span id="mail-hook-msg" style="font-size:12px;color:var(--txt2)"></span></div>
+    <p style="font-size:12px;color:var(--txt3);line-height:1.6;margin-top:8px">메일은 스크립트를 만든 구글 계정으로만 갑니다. 메일 주소는 앱에 저장되지 않아요.</p>
   </div>
 
   <!-- 최근 오류 -->
@@ -3264,7 +3285,7 @@ function switchT(tab) {
   document.querySelectorAll('.tabs .tab').forEach(function(el){ el.classList.remove('active'); });
   document.querySelectorAll('#analysis-seg .seg-btn').forEach(function(el){ el.classList.remove('active'); });
   var tb = document.getElementById('tt-' + tab); if (tb) tb.classList.add('active');
-  if (tab === 'settings') loadErrors();
+  if (tab === 'settings') { loadErrors(); renderMailHookCard(); }
   if (tab === 'analysis') renderCharts();
   var seg = document.getElementById('analysis-seg');
   if (seg) seg.style.display = (tab === 'analysis') ? 'flex' : 'none';
@@ -3694,7 +3715,7 @@ async function generateExamPaper(direction) {
   tryGenerate(0);
 }
 
-function _buildExamPaper(direction, setInfo, week) {
+function _buildExamPaper(direction, setInfo, week, opts) {
   var words = window[setInfo.varName] || [];
   var wkNum = parseInt(week);
   var hasDayTag = words.length > 0 && words[0][2] && words[0][2].startsWith('Day ');
@@ -3798,11 +3819,159 @@ function _buildExamPaper(direction, setInfo, week) {
     bodyHtml +
     '<\/body><\/html>';
 
+  if (opts && opts.returnHtml) return { html: html, title: title, dirLabel: dirLabel, total: total };
   var win = window.open('', '_blank', 'width=920,height=750');
   if (!win) { alert('팝업이 차단됐어요. 팝업 허용 후 다시 시도하세요.'); return; }
   win.document.write(html);
   win.document.close();
 }
+
+// ── 시험지 메일 발송: 단어장·주차 선택 → PDF(한→영·영→한, 정답지 포함) → 선생님 Gmail ──
+// 보내는 곳은 선생님이 만든 Google Apps Script 웹 앱 (받는 사람 = 스크립트 주인 본인). 주소·토큰은 teacherConfig/mailHook (관리자만 읽기)
+var HTML2PDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+var _mailHook;
+async function getMailHook() {
+  if (_mailHook === undefined) { try { _mailHook = await DB.getTeacherConfig('mailHook'); } catch (e) { _mailHook = null; } }
+  return _mailHook;
+}
+function _loadExamSet(setId) {
+  return new Promise(function(res, rej) {
+    var info = (window.WORD_CATALOG || []).find(function(s){ return s.id === setId; });
+    if (!info) return rej(new Error('단어장을 찾지 못했어요'));
+    if (window[info.varName]) return res(info);
+    var sc = document.createElement('script'); sc.src = 'data/words/' + info.file;
+    sc.onload = function() { res(info); }; sc.onerror = function() { rej(new Error('단어 파일을 불러오지 못했어요')); };
+    document.head.appendChild(sc);
+  });
+}
+// 시험지 HTML → PDF(base64). 시험지 스타일이 그대로 적용되게 숨은 iframe 안에서 변환
+async function examHtmlToPdf(html) {
+  var fr = document.createElement('iframe');
+  fr.setAttribute('aria-hidden', 'true');
+  fr.style.cssText = 'position:fixed;left:-10000px;top:0;width:820px;height:1200px;border:0';
+  document.body.appendChild(fr);
+  try {
+    await new Promise(function(r) { fr.onload = r; fr.srcdoc = html; });
+    var d = fr.contentDocument, w = fr.contentWindow;
+    var tb = d.querySelector('.no-print'); if (tb) tb.remove();
+    var st = d.createElement('style');
+    st.textContent = '.page{min-height:0!important;height:296mm;overflow:hidden;page-break-after:auto!important}';
+    d.head.appendChild(st);
+    await new Promise(function(res, rej) {
+      var sc = d.createElement('script'); sc.src = HTML2PDF_URL; sc.onload = res;
+      sc.onerror = function() { rej(new Error('PDF 도구를 불러오지 못했어요 (인터넷 확인)')); };
+      d.head.appendChild(sc);
+    });
+    try { if (d.fonts && d.fonts.ready) await d.fonts.ready; } catch (e) {}
+    var uri = await w.html2pdf().set({
+      margin: 0, image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: { scale: 2, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css'], after: '.page' }
+    }).from(d.body).outputPdf('datauristring');
+    return uri.split(',')[1];
+  } finally { fr.remove(); }
+}
+async function postMailHook(payload) {
+  var hook = await getMailHook();
+  if (!hook || !hook.url) throw new Error('NO_HOOK');
+  payload.token = hook.token;
+  // Apps Script 웹 앱은 CORS 응답이 없어서 결과를 못 읽음(no-cors) → 보낸 뒤 메일함 확인 안내
+  await fetch(hook.url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+}
+async function mailExamPaper() {
+  var msg = document.getElementById('exam-mail-msg');
+  var say = function(t, c) { msg.textContent = t; msg.style.color = c || 'var(--txt2)'; };
+  var setId = document.getElementById('exam-set-select').value, week = document.getElementById('exam-week-select').value;
+  if (!setId || !week) { say('단어장과 주차를 먼저 고르세요', 'var(--red)'); return; }
+  var hook = await getMailHook();
+  if (!hook || !hook.url) {
+    say('먼저 설정 탭 \'시험지 메일 연결\'을 한 번 해 주세요', 'var(--red)');
+    switchT('settings');
+    setTimeout(function(){ var c = document.getElementById('mail-hook-card'); if (c) c.scrollIntoView({ block: 'center' }); }, 200);
+    return;
+  }
+  var btn = document.getElementById('exam-mail-btn'); btn.disabled = true;
+  try {
+    var info = await _loadExamSet(setId);
+    var files = [];
+    for (var dir of ['ko', 'en']) {
+      say('PDF 만드는 중… (' + (dir === 'ko' ? '한→영' : '영→한') + ')');
+      var paper = _buildExamPaper(dir, info, week, { returnHtml: true });
+      if (!paper) throw new Error('해당 주차에 단어가 없어요');
+      files.push({ name: paper.title + ' ' + paper.dirLabel + ' 시험지', pdf: await examHtmlToPdf(paper.html) });
+      var total = paper.total;
+    }
+    say('메일 보내는 중…');
+    var title = info.name + ' ' + week + '주차';
+    await postMailHook({
+      subject: '[시험지] ' + title + ' (' + total + '단어)',
+      text: title + ' 시험지입니다. 한→영·영→한 시험지(정답지 포함) PDF 2개를 첨부했어요.',
+      html: '<p><b>' + title + '</b> 시험지입니다.</p><p>첨부: 한→영 시험지 · 영→한 시험지 (각각 정답지 포함, ' + total + '단어)</p>',
+      files: files
+    });
+    say('보냈어요. 1~2분 안에 메일함에 도착해요', 'var(--gold)');
+  } catch (e) {
+    DB.logError('시험지 메일', e);
+    say('보내지 못했어요: ' + (e.message || e), 'var(--red)');
+  } finally { btn.disabled = false; }
+}
+
+// 설정: 시험지 메일 연결 (한 번만)
+function _mailScriptCode(token) {
+  return [
+    '// 영어 트레이너 시험지 메일 발송 — 이 스크립트를 만든 계정의 Gmail로만 보냅니다',
+    "var TOKEN = '" + token + "';",
+    'function doPost(e) {',
+    '  var d = JSON.parse(e.postData.contents);',
+    "  if (d.token !== TOKEN) return ContentService.createTextOutput('denied');",
+    '  var files = (d.files || []).map(function (f) {',
+    "    return Utilities.newBlob(Utilities.base64Decode(f.pdf), 'application/pdf', f.name + '.pdf');",
+    '  });',
+    '  MailApp.sendEmail({',
+    '    to: Session.getEffectiveUser().getEmail(),',
+    "    subject: d.subject || '시험지', body: d.text || '', htmlBody: d.html || '',",
+    "    attachments: files, name: '영어 트레이너'",
+    '  });',
+    "  return ContentService.createTextOutput('ok');",
+    '}'
+  ].join('\n');
+}
+async function renderMailHookCard() {
+  var st = document.getElementById('mail-hook-status'); if (!st) return;
+  var hook = await getMailHook();
+  st.textContent = hook && hook.url ? '연결됨 · 시험 탭에서 \'메일로 보내기\'를 누르면 와요' : '아직 연결 안 됨';
+  st.style.color = hook && hook.url ? 'var(--gold)' : 'var(--txt2)';
+  if (hook && hook.url) document.getElementById('mail-hook-url').value = hook.url;
+}
+async function copyMailScript() {
+  var hook = (await getMailHook()) || {};
+  if (!hook.token) {
+    var a = new Uint8Array(16); crypto.getRandomValues(a);
+    hook = { url: hook.url || '', token: Array.from(a, function(b){ return ('0' + b.toString(16)).slice(-2); }).join('') };
+    await DB.setTeacherConfig('mailHook', hook); _mailHook = hook;
+  }
+  var code = _mailScriptCode(hook.token), msg = document.getElementById('mail-hook-msg');
+  try { await navigator.clipboard.writeText(code); msg.textContent = '코드를 복사했어요. 2번으로 가세요'; }
+  catch (e) { prompt('아래 코드를 전체 복사하세요', code); }
+}
+async function saveMailHook() {
+  var url = document.getElementById('mail-hook-url').value.trim(), msg = document.getElementById('mail-hook-msg');
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)) { msg.textContent = '주소는 https://script.google.com/macros/s/…/exec 모양이어야 해요'; msg.style.color = 'var(--red)'; return; }
+  var hook = (await getMailHook()) || {};
+  if (!hook.token) { msg.textContent = '먼저 1번 코드 복사를 눌러 주세요'; msg.style.color = 'var(--red)'; return; }
+  hook.url = url; await DB.setTeacherConfig('mailHook', hook); _mailHook = hook;
+  msg.textContent = '저장했어요. \'테스트 메일\'로 확인해 보세요'; msg.style.color = 'var(--gold)';
+  renderMailHookCard();
+}
+async function testMailHook() {
+  var msg = document.getElementById('mail-hook-msg');
+  try {
+    await postMailHook({ subject: '[영어 트레이너] 메일 연결 테스트', text: '시험지 메일 연결이 잘 됐어요.', html: '<p>시험지 메일 연결이 잘 됐어요.</p>', files: [] });
+    msg.textContent = '보냈어요. 1~2분 안에 메일함을 확인해 주세요 (안 오면 3번 주소를 다시 확인)'; msg.style.color = 'var(--gold)';
+  } catch (e) { msg.textContent = e.message === 'NO_HOOK' ? '먼저 주소를 저장해 주세요' : '보내지 못했어요: ' + e.message; msg.style.color = 'var(--red)'; }
+}
+
 
 // ── 개인 메시지 (스티커) ─────────────────────
 

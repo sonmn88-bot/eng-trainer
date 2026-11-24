@@ -870,3 +870,13 @@ DB.markSrsInit = async function (stuId) {
   const { db, ref, set } = await initDB();
   await set(ref(db, `students/${stuId}/srsInit`), true);
 };
+
+// ── 선생님 전용 설정 (teacherConfig: 규칙상 관리자만 읽기·쓰기) ──
+DB.getTeacherConfig = async function (key) {
+  const { db, ref, get } = await initDB();
+  return (await get(ref(db, `teacherConfig/${key}`))).val();
+};
+DB.setTeacherConfig = async function (key, val) {
+  const { db, ref, set } = await initDB();
+  await set(ref(db, `teacherConfig/${key}`), val);
+};

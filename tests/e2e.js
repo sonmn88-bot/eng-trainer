@@ -37,6 +37,7 @@ async function page() {
   await c.route(/gstatic\.com\/firebasejs\/10\.12\.0\/(.*)$/, (r) =>
     r.fulfill({ path: path.join(SDK, r.request().url().split('/10.12.0/')[1]), contentType: 'application/javascript' }));
   await c.route(/^https:\/\/(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)/, (r) => r.abort());
+  if (process.env.H2P_FILE) await c.route(/cdnjs\.cloudflare\.com\/ajax\/libs\/html2pdf\.js\/0\.10\.1\/html2pdf\.bundle\.min\.js$/, (r) => r.fulfill({ path: process.env.H2P_FILE, contentType: 'application/javascript' }));
   const p = await c.newPage();
   p._errs = [];
   p.on('pageerror', (e) => p._errs.push(e.message));
@@ -361,6 +362,29 @@ async function srsSuite() {
   ok(!p._errs.length, '복습 화면 오류 없음 ' + p._errs.join('|'));
 }
 
+async function mailSuite() {
+  console.log('\n## 시험지 메일 발송');
+  await reset({ settings: { appName: 'T', teacherPw: 'tpw1234' }, students: { stu_1: { id: 'stu_1', name: '가나다' } },
+    teacherConfig: { mailHook: { url: 'https://script.google.com/macros/s/TESTHOOK/exec', token: 'tok123' } } });
+  const t = await page();
+  let sent = null;
+  await t.context().route(/script\.google\.com\/macros\/s\/TESTHOOK\/exec/, (r) => { sent = JSON.parse(r.request().postData()); r.fulfill({ status: 200, body: 'ok' }); });
+  ok(await teacherToDashboard(t, 'tpw1234'), '선생님 화면');
+  await setRules(STRICT);
+  ok((await rest('teacherConfig'))[0] === 401, '로그인 안 한 사람은 메일 설정을 못 읽음');
+  await t.evaluate(() => { switchT('exam'); const s = document.getElementById('exam-set-select'); s.value = 'core'; updateExamWeekOptions(); });
+  await t.waitForTimeout(800);
+  await t.evaluate(() => { document.getElementById('exam-week-select').value = '2'; mailExamPaper(); });
+  for (let i = 0; i < 60 && !/보냈어요|못했어요/.test(await t.textContent('#exam-mail-msg')); i++) await t.waitForTimeout(500);
+  const msg = await t.textContent('#exam-mail-msg');
+  ok(/보냈어요/.test(msg), '메일로 보내기 → 완료 표시 (' + msg + ')');
+  const pages = (sent && sent.files || []).map((f) => (Buffer.from(f.pdf, 'base64').toString('latin1').match(/\/Type \/Page\b/g) || []).length);
+  ok(sent && sent.token === 'tok123' && /2주차/.test(sent.subject) && sent.files.length === 2, '메일 내용: 토큰·제목(2주차)·PDF 2개');
+  ok(pages.length === 2 && pages.every((n) => n >= 2 && n % 2 === 0 && n <= 8), 'PDF 쪽수 정상 (시험지+정답지): ' + pages.join(','));
+  if (process.env.SHOT_DIR && sent) sent.files.forEach((f, i) => fs.writeFileSync(path.join(process.env.SHOT_DIR, 'exam' + i + '.pdf'), Buffer.from(f.pdf, 'base64')));
+  ok(!t._errs.length, '메일 발송 오류 없음 ' + t._errs.join('|'));
+}
+
 (async () => {
   if (!SDK || !fs.existsSync(path.join(SDK, 'firebase-app.js'))) { console.error('FIREBASE_SDK_DIR 없음 (tests/run.sh로 실행하세요)'); process.exit(2); }
   browser = await chromium.launch();
@@ -371,6 +395,7 @@ async function srsSuite() {
     await chartSuite();
     await swSuite();
     await srsSuite();
+    await mailSuite();
   } catch (e) {
     fail++; console.log('FAIL 실행 중 오류: ' + (e && e.stack || e));
   }

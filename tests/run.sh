@@ -14,6 +14,13 @@ if [ ! -f "$CACHE/package/firebase-app.js" ]; then
   (cd "$CACHE" && npm pack firebase@10.12.0 --silent >/dev/null && tar xzf firebase-10.12.0.tgz && rm -f firebase-10.12.0.tgz)
 fi
 export FIREBASE_SDK_DIR="$PWD/$CACHE/package"
+# 시험지 PDF 변환 도구(html2pdf.js, 앱은 cdnjs에서 받음)도 같은 버전 로컬 사본으로
+H2P=tests/.cache/html2pdf
+if [ ! -f "$H2P/package/dist/html2pdf.bundle.min.js" ]; then
+  mkdir -p "$H2P"
+  (cd "$H2P" && npm pack html2pdf.js@0.10.1 --silent >/dev/null && tar xzf html2pdf.js-0.10.1.tgz && rm -f html2pdf.js-0.10.1.tgz)
+fi
+export H2P_FILE="$PWD/$H2P/package/dist/html2pdf.bundle.min.js"
 
 PORT="${PORT:-8799}"
 python3 -m http.server "$PORT" >/dev/null 2>&1 &
